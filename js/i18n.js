@@ -64,7 +64,14 @@ window.IdiomasPrecio3D = {
       borrarUltimoCalculo: "Borrar último cálculo",
       almacenamientoNoDisponible: "No se pudo usar almacenamiento local en este navegador.",
       archivoConfiguracionInvalido: "Archivo de configuración inválido.",
-      confirmarRestablecerConfiguracion: "¿Seguro que quieres restablecer la configuración guardada?"
+      confirmarRestablecerConfiguracion: "¿Seguro que quieres restablecer la configuración guardada?",
+      ayuda: "Ayuda",
+      cerrarAyuda: "Cerrar",
+      informacionDatosImpresion: "Información sobre datos de la impresión",
+      informacionVentaGanancia: "Información sobre venta y ganancia",
+      informacionResultado: "Información sobre resultado",
+      informacionComparador: "Información sobre comparador",
+      informacionConfiguracion: "Información sobre configuración"
     }
   },
   en: {
@@ -131,7 +138,14 @@ window.IdiomasPrecio3D = {
       borrarUltimoCalculo: "Delete last calculation",
       almacenamientoNoDisponible: "Local storage could not be used in this browser.",
       archivoConfiguracionInvalido: "Invalid configuration file.",
-      confirmarRestablecerConfiguracion: "Are you sure you want to reset the saved configuration?"
+      confirmarRestablecerConfiguracion: "Are you sure you want to reset the saved configuration?",
+      ayuda: "Help",
+      cerrarAyuda: "Close",
+      informacionDatosImpresion: "Information about print data",
+      informacionVentaGanancia: "Information about sales and profit",
+      informacionResultado: "Information about results",
+      informacionComparador: "Information about comparison",
+      informacionConfiguracion: "Information about configuration"
     }
   },
   pt: {
@@ -198,7 +212,14 @@ window.IdiomasPrecio3D = {
       borrarUltimoCalculo: "Apagar último cálculo",
       almacenamientoNoDisponible: "Não foi possível usar armazenamento local neste navegador.",
       archivoConfiguracionInvalido: "Arquivo de configuração inválido.",
-      confirmarRestablecerConfiguracion: "Tem certeza de que deseja restaurar a configuração salva?"
+      confirmarRestablecerConfiguracion: "Tem certeza de que deseja restaurar a configuração salva?",
+      ayuda: "Ajuda",
+      cerrarAyuda: "Fechar",
+      informacionDatosImpresion: "Informação sobre dados da impressão",
+      informacionVentaGanancia: "Informação sobre venda e lucro",
+      informacionResultado: "Informação sobre resultado",
+      informacionComparador: "Informação sobre comparador",
+      informacionConfiguracion: "Informação sobre configuração"
     }
   }
 };

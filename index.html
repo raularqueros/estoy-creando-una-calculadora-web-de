@@ -11,7 +11,7 @@
     <div>
       <p class="eyebrow">Impresión 3D</p>
       <h1 data-i18n="tituloApp">Calculadora de precio final</h1>
-      <p class="intro">Base visual para reunir los datos de un trabajo antes de calcular costos, fees, impuestos y margen.</p>
+      <p class="intro">Calcula cuánto cobrar por una impresión 3D considerando material, tiempo, trabajo, envío, comisiones e impuestos.</p>
     </div>
   </header>
 
@@ -30,106 +30,147 @@
     <section id="seccionModoBasico" class="mode-container">
       <section class="panel quick-panel">
         <h2 data-i18n="modoBasico">Básico</h2>
-        <div class="field-grid">
-          <label>
-            Moneda
-            <select id="currencySelectBasico"></select>
-          </label>
-          <label>
-            Idioma
-            <select id="languageSelectBasico"></select>
-          </label>
-          <label>
-            Material
-            <select id="materialBasico"></select>
-          </label>
-          <label>
-            Impresora
-            <select id="impresoraBasico"></select>
-          </label>
-          <label>
-            Peso de la pieza en gramos
-            <input type="number" id="pesoPiezaBasico" min="0" placeholder="0">
-          </label>
-          <label>
-            Peso de soportes/purga en gramos
-            <input type="number" id="pesoSoportesPurgaBasico" min="0" placeholder="Opcional">
-          </label>
-          <label>
-            Tiempo de impresión en horas
-            <input type="number" id="horasImpresionBasico" min="0" step="0.1" placeholder="0">
-          </label>
-          <label>
-            Cantidad
-            <input type="number" id="cantidadBasico" min="1" value="1">
-          </label>
-          <div class="field-block">
-            <span class="field-label" id="costoUnidadLabelBasico">Costo por gramo</span>
-            <div class="mini-switch" aria-label="Modo de costo de material básico">
-              <button type="button" id="modoCostoGramoBasico" class="mini-switch-button active">Costo por gramo</button>
-              <button type="button" id="modoCostoKiloBasico" class="mini-switch-button">Precio por kilo</button>
+        <div class="basic-blocks">
+          <div class="form-block">
+            <h3 class="section-heading">
+              <span>Datos de la impresión</span>
+              <button type="button" class="info-btn" data-help="datosImpresion" aria-label="Información sobre datos de la impresión">i</button>
+            </h3>
+            <div class="field-grid">
+              <label>
+                Material
+                <select id="materialBasico"></select>
+              </label>
+              <div class="field-block">
+                <span class="field-label">Tipo de precio de filamento</span>
+                <div class="mini-switch" aria-label="Modo de costo de material básico">
+                  <button type="button" id="modoCostoGramoBasico" class="mini-switch-button active">Por gramo</button>
+                  <button type="button" id="modoCostoKiloBasico" class="mini-switch-button">Por kilo</button>
+                </div>
+              </div>
+              <div class="field-block">
+                <span class="field-label" id="costoUnidadLabelBasico">Precio por gramo</span>
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="precioFilamentoCampo" aria-label="Información sobre precio del filamento">i</button>
+                <input type="number" id="costoUnidadBasico" min="0" placeholder="$">
+                <p class="help-text" id="costoUnidadHelpBasico">Costo por gramo calculado: $0.</p>
+              </div>
+              <label>
+                Peso de la pieza
+                <input type="number" id="pesoPiezaBasico" min="0" placeholder="Gramos">
+              </label>
+              <label>
+                Material extra: soportes o purga
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="materialExtraCampo" aria-label="Información sobre material extra">i</button>
+                <input type="number" id="pesoSoportesPurgaBasico" min="0" placeholder="Opcional">
+              </label>
+              <label>
+                Tiempo de impresión
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="tiempoImpresionCampo" aria-label="Información sobre tiempo de impresión">i</button>
+                <input type="number" id="horasImpresionBasico" min="0" step="0.1" placeholder="Horas">
+              </label>
             </div>
-            <input type="number" id="costoUnidadBasico" min="0" placeholder="$">
-            <p class="help-text" id="costoUnidadHelpBasico">Costo por gramo calculado: $0.</p>
           </div>
-          <label>
-            Merma sugerida
-            <input type="number" id="mermaBasico" min="0" placeholder="%">
-          </label>
-          <label>
-            <span data-i18n="nivelTrabajo">Nivel de trabajo</span>
-            <select id="nivelTrabajoBasico">
-              <option value="basico" data-i18n="trabajoBasico">Básico</option>
-              <option value="normal" data-i18n="trabajoNormal">Normal</option>
-              <option value="detallado" data-i18n="trabajoDetallado">Detallado</option>
-              <option value="personalizado" data-i18n="trabajoPersonalizado">Personalizado</option>
-            </select>
-          </label>
-          <label>
-            Mano de obra simple
-            <input type="number" id="manoObraSimpleBasico" min="0" value="1500">
-          </label>
-          <label>
-            Embalaje
-            <input type="number" id="embalajeBasico" min="0" placeholder="$">
-          </label>
-          <label>
-            Envío
-            <input type="number" id="envioBasico" min="0" placeholder="$">
-          </label>
-          <label>
-            Canal de venta
-            <select id="canalVentaBasico"></select>
-          </label>
-          <label>
-            Fee porcentual
-            <input type="number" id="feePorcentualBasico" min="0" placeholder="%">
-          </label>
-          <label>
-            Fee fijo
-            <input type="number" id="feeFijoBasico" min="0" placeholder="$">
-          </label>
-          <label>
-            Margen deseado
-            <input type="number" id="margenBasico" min="0" placeholder="%">
-          </label>
-          <label>
-            Impuesto
-            <input type="number" id="impuestoBasico" min="0" placeholder="%">
-          </label>
+
+          <div class="form-block">
+            <h3 class="section-heading">
+              <span>Venta y ganancia</span>
+              <button type="button" class="info-btn" data-help="ventaGanancia" aria-label="Información sobre venta y ganancia">i</button>
+            </h3>
+            <div class="field-grid">
+              <label>
+                <span data-i18n="nivelTrabajo">Nivel de trabajo</span>
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="nivelTrabajoCampo" aria-label="Información sobre nivel de trabajo">i</button>
+                <select id="nivelTrabajoBasico">
+                  <option value="basico" data-i18n="trabajoBasico">Básico</option>
+                  <option value="normal" data-i18n="trabajoNormal">Normal</option>
+                  <option value="detallado" data-i18n="trabajoDetallado">Detallado</option>
+                  <option value="personalizado" data-i18n="trabajoPersonalizado">Personalizado</option>
+                </select>
+              </label>
+              <label>
+                Trabajo / terminaciones
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="manoObraSimpleCampo" aria-label="Información sobre trabajo y terminaciones">i</button>
+                <input type="number" id="manoObraSimpleBasico" min="0" value="1500">
+              </label>
+              <label>
+                Embalaje
+                <input type="number" id="embalajeBasico" min="0" placeholder="$">
+              </label>
+              <label>
+                Envío
+                <input type="number" id="envioBasico" min="0" placeholder="$">
+              </label>
+              <label>
+                Margen
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="margenCampo" aria-label="Información sobre margen">i</button>
+                <input type="number" id="margenBasico" min="0" placeholder="%">
+              </label>
+              <label>
+                Impuesto
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="impuestoCampo" aria-label="Información sobre impuesto">i</button>
+                <input type="number" id="impuestoBasico" min="0" placeholder="%">
+              </label>
+            </div>
+          </div>
         </div>
+
+        <details class="collapsible-section">
+          <summary>
+            Opciones avanzadas del modo básico
+          </summary>
+          <div class="field-grid collapsible-content">
+            <label>
+              Moneda
+              <select id="currencySelectBasico"></select>
+            </label>
+            <label>
+              Idioma
+              <select id="languageSelectBasico"></select>
+            </label>
+            <label>
+              Impresora
+              <select id="impresoraBasico"></select>
+            </label>
+            <label>
+              Cantidad
+              <input type="number" id="cantidadBasico" min="1" value="1">
+            </label>
+            <label>
+              Pérdidas o fallas estimadas
+              <button type="button" class="info-btn info-btn--campo inline-info" data-help="mermaCampo" aria-label="Información sobre pérdidas o fallas estimadas">i</button>
+              <input type="number" id="mermaBasico" min="0" placeholder="%">
+            </label>
+            <label>
+              Canal de venta
+              <select id="canalVentaBasico"></select>
+            </label>
+            <label>
+              Comisión %
+              <button type="button" class="info-btn info-btn--campo inline-info" data-help="comisionPorcentajeCampo" aria-label="Información sobre comisión porcentual">i</button>
+              <input type="number" id="feePorcentualBasico" min="0" placeholder="%">
+            </label>
+            <label>
+              Comisión fija
+              <button type="button" class="info-btn info-btn--campo inline-info" data-help="comisionFijaCampo" aria-label="Información sobre comisión fija">i</button>
+              <input type="number" id="feeFijoBasico" min="0" placeholder="$">
+            </label>
+          </div>
+        </details>
         <p class="help-text">La moneda seleccionada solo cambia el formato. No realiza conversión automática.</p>
         <p class="help-text" id="currencyFormatPreviewBasico">Formato de ejemplo: $0</p>
-        <button
-          type="button"
-          id="toggleSupuestosEditables"
-          class="collapse-toggle"
-          aria-expanded="false"
-          aria-controls="panelSupuestosEditables"
-        >
-          <span>Supuestos editables</span>
-          <span class="collapse-indicator">Mostrar</span>
-        </button>
+        <div class="collapse-row">
+          <button
+            type="button"
+            id="toggleSupuestosEditables"
+            class="collapse-toggle"
+            aria-expanded="false"
+            aria-controls="panelSupuestosEditables"
+          >
+            <span>Supuestos editables</span>
+            <span class="collapse-indicator">Mostrar</span>
+          </button>
+          <button type="button" class="info-btn" data-help="supuestos" aria-label="Información sobre supuestos editables">i</button>
+        </div>
         <div id="panelSupuestosEditables" class="field-grid collapsible-content" hidden>
           <label>
             Watts promedio
@@ -171,24 +212,38 @@
       </section>
 
       <section class="panel result-panel basic-result-panel">
-        <h2><span data-i18n="resultado">Resultado</span> básico</h2>
+        <h2 class="section-heading">
+          <span><span data-i18n="resultado">Resultado</span> básico</span>
+          <button type="button" class="info-btn" data-help="resultado" aria-label="Información sobre resultado">i</button>
+        </h2>
         <div id="resultBasico" class="result-box">
           Completa los datos principales y presiona Calcular.
         </div>
-        <div id="basicBreakdown" class="breakdown-grid"></div>
+        <details class="collapsible-section">
+          <summary>Ver desglose completo</summary>
+          <div id="basicBreakdown" class="breakdown-grid"></div>
+        </details>
         <div id="basicWarnings" class="warning-list"></div>
       </section>
 
-      <section class="panel result-panel">
-        <h2 data-i18n="supuestosUsadosModoBasico">Supuestos usados en modo básico</h2>
-        <div id="supuestosModoBasico" class="assumptions-grid"></div>
-      </section>
+        <section class="panel result-panel assumptions-panel">
+          <details class="collapsible-section">
+            <summary>
+              <span data-i18n="supuestosUsadosModoBasico">Supuestos usados en modo básico</span>
+              <button type="button" class="info-btn details-info" data-help="supuestos" aria-label="Información sobre supuestos usados">i</button>
+            </summary>
+            <div id="supuestosModoBasico" class="assumptions-grid"></div>
+          </details>
+        </section>
     </section>
 
     <div id="seccionModoAvanzado" class="mode-container" hidden>
     <!-- Datos iniciales del trabajo -->
     <section class="panel">
-      <h2>1. Datos básicos</h2>
+      <h2 class="section-heading">
+        <span>1. Datos básicos</span>
+        <button type="button" class="info-btn" data-help="modoAvanzado" aria-label="Información sobre modo avanzado">i</button>
+      </h2>
       <div class="field-grid">
         <label>
           Nombre del trabajo
@@ -264,10 +319,12 @@
       <div class="field-grid">
         <label>
           Consumo estimado
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="wattsPromedioCampo" aria-label="Información sobre watts promedio">i</button>
           <input type="number" id="wattsPromedioAvanzado" min="0" placeholder="Watts">
         </label>
         <label>
           Costo por kWh
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="tarifaKwhCampo" aria-label="Información sobre tarifa kWh">i</button>
           <input type="number" id="tarifaKwhAvanzado" min="0" placeholder="$">
         </label>
       </div>
@@ -302,6 +359,7 @@
         </label>
         <label>
           Costo de impresora
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="costoImpresoraCampo" aria-label="Información sobre costo de impresora">i</button>
           <input type="number" id="costoImpresoraAvanzado" min="0" placeholder="$">
         </label>
         <label>
@@ -310,18 +368,22 @@
         </label>
         <label>
           Años de vida
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="vidaUtilCampo" aria-label="Información sobre vida útil">i</button>
           <input type="number" id="anosVidaAvanzado" min="0" placeholder="0">
         </label>
         <label>
           Días operativos al año
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="diasOperativosCampo" aria-label="Información sobre días operativos al año">i</button>
           <input type="number" id="diasOperativosAnoAvanzado" min="0" placeholder="0">
         </label>
         <label>
           Horas productivas al día
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="horasProductivasCampo" aria-label="Información sobre horas productivas al día">i</button>
           <input type="number" id="horasProductivasDiaAvanzado" min="0" placeholder="0">
         </label>
         <label>
           Mantenimiento
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="mantenimientoCampo" aria-label="Información sobre mantenimiento">i</button>
           <input type="number" id="mantenimientoAvanzado" min="0" placeholder="%">
         </label>
       </div>
@@ -341,6 +403,7 @@
         </label>
         <label>
           Seguro o aduanas
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="seguroCampo" aria-label="Información sobre seguro o aduanas">i</button>
           <input type="number" id="seguroAduanasAvanzado" min="0" placeholder="$">
         </label>
       </div>
@@ -397,7 +460,10 @@
     </div>
 
     <section id="comparadorCanalesPanel" class="panel result-panel comparator-panel">
-      <h2 data-i18n="comparadorCanales">Comparador de canales</h2>
+      <h2 class="section-heading">
+        <span data-i18n="comparadorCanales">Comparador de canales</span>
+        <button type="button" class="info-btn" data-help="comparador" aria-label="Información sobre comparador de canales">i</button>
+      </h2>
       <div class="field-grid comparator-controls">
         <label>
           <span data-i18n="metodoPagoComparador">Método de pago para comparar</span>
@@ -422,17 +488,31 @@
     </section>
 
     <section class="panel storage-panel">
-      <h2>Configuración</h2>
-      <div class="actions">
-        <button type="button" id="guardarConfiguracionButton" data-i18n="guardarConfiguracion">Guardar configuración</button>
-        <button type="button" id="restablecerConfiguracionButton" class="secondary" data-i18n="restablecerConfiguracion">Restablecer configuración</button>
-        <button type="button" id="exportarConfiguracionButton" class="secondary" data-i18n="exportarConfiguracion">Exportar configuración</button>
-        <button type="button" id="importarConfiguracionButton" class="secondary" data-i18n="importarConfiguracion">Importar configuración</button>
-        <input type="file" id="importarConfiguracionInput" accept="application/json,.json" hidden>
-      </div>
-      <p id="storageMessage" class="help-text" role="status"></p>
+      <details class="collapsible-section">
+        <summary>
+          Configuración avanzada
+          <button type="button" class="info-btn" data-help="configuracion" aria-label="Información sobre configuración avanzada">i</button>
+        </summary>
+        <div class="actions">
+          <button type="button" id="guardarConfiguracionButton" data-i18n="guardarConfiguracion">Guardar configuración</button>
+          <button type="button" id="restablecerConfiguracionButton" class="secondary" data-i18n="restablecerConfiguracion">Restablecer configuración</button>
+          <button type="button" id="exportarConfiguracionButton" class="secondary" data-i18n="exportarConfiguracion">Exportar configuración</button>
+          <button type="button" id="importarConfiguracionButton" class="secondary" data-i18n="importarConfiguracion">Importar configuración</button>
+          <input type="file" id="importarConfiguracionInput" accept="application/json,.json" hidden>
+        </div>
+        <p id="storageMessage" class="help-text" role="status"></p>
+      </details>
     </section>
   </main>
+
+  <div id="helpModal" class="help-modal" hidden>
+    <div class="help-modal__backdrop" data-help-close></div>
+    <section class="help-modal__content" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+      <button type="button" id="helpModalClose" class="help-modal__close" data-i18n="cerrarAyuda">Cerrar</button>
+      <h2 id="helpModalTitle" class="help-modal__title"></h2>
+      <p id="helpModalText"></p>
+    </section>
+  </div>
 
   <script src="js/formulas.js"></script>
   <script src="js/currencies.js"></script>
@@ -440,6 +520,7 @@
   <script src="js/presets.js"></script>
   <script src="js/comparator.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/help.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

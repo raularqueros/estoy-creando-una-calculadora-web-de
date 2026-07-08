@@ -687,10 +687,10 @@ function actualizarAyudaCostoMaterial(tipo) {
   const advertenciaKilo =
     usandoKilo && (valorVacio || valorCero) ? " Ingresa un precio por kilo mayor a 0." : "";
 
-  config.etiqueta.textContent = usandoKilo ? "Precio por kilo de filamento" : "Costo por gramo";
+  config.etiqueta.textContent = usandoKilo ? "Precio por kilo de filamento" : "Precio por gramo";
   config.ayuda.textContent = usandoKilo
     ? `Si ingresas el precio del kilo, la calculadora lo convertirá automáticamente a costo por gramo. Costo por gramo calculado: ${formatearMoneda(costoPorGramo)}.${advertenciaKilo}`
-    : `Costo por gramo calculado: ${formatearMoneda(costoPorGramo)}.`;
+    : `Precio por gramo calculado: ${formatearMoneda(costoPorGramo)}.`;
   config.ayuda.classList.toggle("warning-text", Boolean(advertenciaKilo));
 }
 
@@ -1123,63 +1123,66 @@ function renderizarComparadorCanales(datosBase, resultadoBase) {
 
   comparadorCanalesContenido.className = "";
   comparadorCanalesContenido.innerHTML = `
-    <div class="table-wrap">
-      <table class="comparator-table">
-        <thead>
-          <tr>
-            <th>Canal</th>
-            <th>Método de pago</th>
-            <th>Fee canal</th>
-            <th>Fee pago</th>
-            <th>Fee total</th>
-            <th>Precio sugerido</th>
-            <th>Fees estimados</th>
-            <th>Utilidad estimada</th>
-            <th>Margen real</th>
-            <th>Diferencia vs venta directa</th>
-            <th>Nota</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${resultados
-            .map(
-              (resultado) => `
-                <tr>
-                  <td>${resultado.canalNombre}</td>
-                  <td>${resultado.metodoPagoAplicado}</td>
-                  <td>${formatearFeeMixto(resultado.feeFijoCanal, resultado.feePorcentajeCanal)}</td>
-                  <td>${formatearFeeMixto(resultado.feeFijoPago, resultado.feePorcentajePago)}</td>
-                  <td>${formatearFeeMixto(resultado.feeFijoTotal, resultado.feePorcentualTotal)}</td>
-                  <td>${formatoComparadorMoneda(resultado.precioFinal)}</td>
-                  <td>${formatoComparadorMoneda(resultado.feesEstimados)}</td>
-                  <td>${formatoComparadorMoneda(resultado.utilidadReal)}</td>
-                  <td>${formatoComparadorPorcentaje(resultado.margenReal)}</td>
-                  <td>${formatoComparadorMoneda(resultado.diferenciaVsVentaDirecta)}</td>
-                  <td>${resultado.nota || ""}</td>
-                </tr>
-              `
-            )
-            .join("")}
-        </tbody>
-      </table>
-    </div>
     <div class="comparison-recommendations">
       ${crearRecomendacion(
-        "Canal con menor precio final",
+        "Menor precio final",
         menorPrecio,
         menorPrecio ? formatearMoneda(menorPrecio.precioFinal) : ""
       )}
       ${crearRecomendacion(
-        "Canal con mayor utilidad estimada",
+        "Mayor utilidad",
         mayorUtilidad,
         mayorUtilidad ? formatearMoneda(mayorUtilidad.utilidadReal) : ""
       )}
       ${crearRecomendacion(
-        "Canal con menor fee",
+        "Menor comisión",
         menorFee,
         menorFee ? formatearMoneda(menorFee.feesEstimados) : ""
       )}
     </div>
+    <details class="collapsible-section">
+      <summary>Ver tabla completa de comparación</summary>
+      <div class="table-wrap">
+        <table class="comparator-table">
+          <thead>
+            <tr>
+              <th>Canal</th>
+              <th>Método de pago</th>
+              <th>Fee canal</th>
+              <th>Fee pago</th>
+              <th>Fee total</th>
+              <th>Precio sugerido</th>
+              <th>Fees estimados</th>
+              <th>Utilidad estimada</th>
+              <th>Margen real</th>
+              <th>Diferencia vs venta directa</th>
+              <th>Nota</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${resultados
+              .map(
+                (resultado) => `
+                  <tr>
+                    <td>${resultado.canalNombre}</td>
+                    <td>${resultado.metodoPagoAplicado}</td>
+                    <td>${formatearFeeMixto(resultado.feeFijoCanal, resultado.feePorcentajeCanal)}</td>
+                    <td>${formatearFeeMixto(resultado.feeFijoPago, resultado.feePorcentajePago)}</td>
+                    <td>${formatearFeeMixto(resultado.feeFijoTotal, resultado.feePorcentualTotal)}</td>
+                    <td>${formatoComparadorMoneda(resultado.precioFinal)}</td>
+                    <td>${formatoComparadorMoneda(resultado.feesEstimados)}</td>
+                    <td>${formatoComparadorMoneda(resultado.utilidadReal)}</td>
+                    <td>${formatoComparadorPorcentaje(resultado.margenReal)}</td>
+                    <td>${formatoComparadorMoneda(resultado.diferenciaVsVentaDirecta)}</td>
+                    <td>${resultado.nota || ""}</td>
+                  </tr>
+                `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    </details>
   `;
 }
 
@@ -1196,6 +1199,25 @@ function renderizarResultado(resumen, feeEstimado, destino, desglose, opciones =
 
   const utilidadEstimada = resumen.precioNeto - resumen.costoTotal - feeEstimado;
   const margenObjetivo = opciones.margenObjetivo || 0;
+  const margenReal =
+    resumen.precioNeto > 0 && Number.isFinite(utilidadEstimada)
+      ? utilidadEstimada / resumen.precioNeto
+      : 0;
+  const resumenHtml = opciones.resumenBasicoSimple
+    ? `
+      ${crearItemResumen("Precio sugerido", formatearMoneda(resumen.precioFinal))}
+      ${crearItemResumen("Costo real estimado", formatearMoneda(resumen.costoTotal))}
+      ${crearItemResumen("Utilidad estimada", formatearMoneda(utilidadEstimada))}
+      ${crearItemResumen("Margen real", formatearPorcentaje(margenReal))}
+    `
+    : `
+      ${crearItemResumen("Precio sugerido al cliente", formatearMoneda(resumen.precioFinal))}
+      ${crearItemResumen("Costo real estimado", formatearMoneda(resumen.costoTotal))}
+      ${crearItemResumen("Utilidad estimada", formatearMoneda(utilidadEstimada))}
+      ${crearItemResumen("Margen objetivo", formatearPorcentaje(margenObjetivo))}
+      ${crearItemResumen("Fee estimado", formatearMoneda(feeEstimado))}
+      ${crearItemResumen("Impuesto estimado", formatearMoneda(resumen.impuesto))}
+    `;
 
   const desgloseHtml = `
     ${crearItemDesglose("Material", formatearMoneda(resumen.costoMaterial))}
@@ -1210,12 +1232,7 @@ function renderizarResultado(resumen, feeEstimado, destino, desglose, opciones =
   destino.innerHTML = `
     <p class="result-total">${formatearMoneda(resumen.precioFinal)}</p>
     <div class="result-summary">
-      ${crearItemResumen("Precio sugerido al cliente", formatearMoneda(resumen.precioFinal))}
-      ${crearItemResumen("Costo real estimado", formatearMoneda(resumen.costoTotal))}
-      ${crearItemResumen("Utilidad estimada", formatearMoneda(utilidadEstimada))}
-      ${crearItemResumen("Margen objetivo", formatearPorcentaje(margenObjetivo))}
-      ${crearItemResumen("Fee estimado", formatearMoneda(feeEstimado))}
-      ${crearItemResumen("Impuesto estimado", formatearMoneda(resumen.impuesto))}
+      ${resumenHtml}
     </div>
     ${desglose ? "" : `<div class="breakdown-grid">${desgloseHtml}</div>`}
   `;
@@ -1227,7 +1244,8 @@ function renderizarResultado(resumen, feeEstimado, destino, desglose, opciones =
 
 function renderizarResultadoBasico(resumen, feeEstimado) {
   renderizarResultado(resumen, feeEstimado, resultBasico, basicBreakdown, {
-    margenObjetivo: leerPorcentaje("margenBasico")
+    margenObjetivo: leerPorcentaje("margenBasico"),
+    resumenBasicoSimple: true
   });
 
   if (resumen.precioNeto === null) {

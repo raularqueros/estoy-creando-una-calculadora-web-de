@@ -14,6 +14,12 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 [hidden] {
   display: none !important;
 }
@@ -74,6 +80,7 @@ h2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
   padding: 24px 20px 40px;
+  overflow: hidden;
 }
 
 .mode-switch-panel,
@@ -112,8 +119,40 @@ h2 {
   grid-column: 1 / -1;
 }
 
+.basic-blocks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.form-block {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.form-block h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+@media (min-width: 769px) {
+  .basic-blocks .field-grid > label,
+  .basic-blocks .field-grid > .field-block {
+    min-height: 112px;
+  }
+}
+
 /* Paneles principales de captura */
 .panel {
+  min-width: 0;
   padding: 20px;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -146,6 +185,23 @@ label {
   color: var(--muted);
 }
 
+label:has(.inline-info),
+.field-block:has(.inline-info) {
+  grid-template-columns: minmax(0, max-content) 22px 1fr;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 7px;
+}
+
+label:has(.inline-info) > input,
+label:has(.inline-info) > select,
+.field-block:has(.inline-info) > input,
+.field-block:has(.inline-info) > select,
+.field-block:has(.inline-info) > .mini-switch,
+.field-block:has(.inline-info) > .help-text {
+  grid-column: 1 / -1;
+}
+
 input,
 select {
   width: 100%;
@@ -171,6 +227,7 @@ select:focus {
 .result-box {
   min-height: 96px;
   padding: 18px;
+  overflow-wrap: anywhere;
   color: var(--muted);
   background: #f9fbfc;
   border: 1px dashed var(--line);
@@ -248,8 +305,10 @@ select:focus {
 
 .table-wrap {
   width: 100%;
+  max-width: 100%;
   margin-top: 16px;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .comparator-table {
@@ -356,6 +415,105 @@ button.secondary:hover {
   font-weight: 700;
 }
 
+.info-btn {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--primary-dark);
+  background: #edf2f4;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.info-btn:hover,
+.info-btn:focus {
+  color: #ffffff;
+  background: var(--primary);
+}
+
+.info-btn--campo {
+  width: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  height: 20px;
+  font-size: 0.68rem;
+}
+
+.inline-info {
+  justify-self: start;
+}
+
+.details-info {
+  margin-left: 8px;
+}
+
+.help-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.help-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(31, 41, 51, 0.45);
+}
+
+.help-modal__content {
+  position: relative;
+  z-index: 1;
+  width: min(520px, 100%);
+  max-height: min(80vh, 560px);
+  overflow: auto;
+  padding: 22px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 40px rgba(31, 41, 51, 0.22);
+}
+
+.help-modal__title {
+  margin-right: 92px;
+  margin-bottom: 12px;
+  font-size: 1.15rem;
+}
+
+.help-modal__content p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.help-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: auto;
+  min-height: 34px;
+  padding: 0 12px;
+  color: var(--text);
+  background: #edf2f4;
+  border: 1px solid var(--line);
+}
+
+.help-modal__close:hover,
+.help-modal__close:focus {
+  color: #ffffff;
+  background: var(--primary);
+}
+
 .storage-panel h2 {
   margin-bottom: 10px;
 }
@@ -388,6 +546,17 @@ button.secondary:hover {
   text-align: left;
 }
 
+.collapse-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.collapse-row .collapse-toggle {
+  margin-top: 0;
+}
+
 .collapse-toggle:hover {
   color: #ffffff;
   background: var(--primary);
@@ -401,6 +570,31 @@ button.secondary:hover {
 
 .collapsible-content {
   margin-top: 14px;
+}
+
+.collapsible-section {
+  margin-top: 14px;
+}
+
+.collapsible-section > summary {
+  min-height: 46px;
+  padding: 13px 14px;
+  color: var(--text);
+  background: #edf2f4;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.collapsible-section > summary:hover {
+  color: #ffffff;
+  background: var(--primary);
+}
+
+.collapsible-section[open] > summary {
+  color: #ffffff;
+  background: var(--primary-dark);
 }
 
 .mini-switch {
@@ -425,19 +619,42 @@ button.secondary:hover {
   background: var(--primary);
 }
 
-/* Ajustes para pantallas pequenas */
-@media (max-width: 760px) {
+/* Ajustes para tablets verticales y telefonos */
+@media (max-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+
+  h1 {
+    font-size: clamp(1.75rem, 8vw, 2.35rem);
+  }
+
+  h2 {
+    margin-bottom: 14px;
+  }
+
+  .site-header {
+    padding: 24px 14px 18px;
+  }
+
+  .intro {
+    line-height: 1.5;
+  }
+
   .calculator {
     grid-template-columns: 1fr;
-    padding-inline: 14px;
+    gap: 14px;
+    padding: 16px 14px 32px;
   }
 
   .mode-switch-panel {
     align-items: stretch;
     flex-direction: column;
+    gap: 12px;
   }
 
   .mode-actions,
+  .basic-blocks,
   .mode-container,
   .result-summary,
   .breakdown-grid,
@@ -448,21 +665,193 @@ button.secondary:hover {
 
   .mode-actions {
     display: grid;
+    gap: 8px;
   }
 
-  .site-header {
-    padding-inline: 14px;
+  .mode-button,
+  .actions button,
+  .storage-panel .actions button {
+    min-height: 48px;
   }
 
   .field-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .form-block {
+    gap: 12px;
+  }
+
+  label,
+  .field-block {
+    gap: 8px;
+    font-size: 0.95rem;
+  }
+
+  input,
+  select {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  label:has(.inline-info),
+  .field-block:has(.inline-info) {
+    grid-template-columns: minmax(0, 1fr) 22px;
   }
 
   .actions {
     flex-direction: column;
+    gap: 10px;
   }
 
   button {
     width: 100%;
+  }
+
+  .info-btn {
+    width: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    height: 24px;
+  }
+
+  .info-btn--campo {
+    width: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    height: 20px;
+  }
+
+  .result-box {
+    padding: 14px;
+  }
+
+  .basic-result-panel .result-total {
+    margin-bottom: 12px;
+    font-size: clamp(2rem, 10vw, 2.8rem);
+    line-height: 1.05;
+  }
+
+  .basic-result-panel .result-summary {
+    gap: 8px;
+  }
+
+  .basic-result-panel .summary-item:first-child {
+    background: #eef7fa;
+    border-color: rgba(37, 111, 143, 0.35);
+  }
+
+  .basic-result-panel .summary-item:first-child strong {
+    color: var(--primary-dark);
+    font-size: 1.25rem;
+  }
+
+  .summary-item,
+  .breakdown-item,
+  .assumption-item,
+  .warning-item,
+  .recommendation-item {
+    padding: 11px;
+  }
+
+  .comparison-recommendations {
+    gap: 8px;
+  }
+
+  .table-wrap {
+    margin-inline: -2px;
+    padding-bottom: 6px;
+  }
+
+  .comparator-table {
+    min-width: 860px;
+    font-size: 0.84rem;
+  }
+
+  .comparator-table th,
+  .comparator-table td {
+    padding: 9px;
+  }
+
+  .collapsible-section {
+    margin-top: 12px;
+  }
+
+  .collapsible-section > summary,
+  .collapse-toggle {
+    min-height: 48px;
+  }
+
+  .help-modal {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .help-modal__content {
+    width: 100%;
+    max-height: min(82vh, 620px);
+    padding: 18px;
+  }
+
+  .help-modal__title {
+    margin-right: 72px;
+    font-size: 1.05rem;
+  }
+
+  .help-modal__close {
+    width: auto;
+    min-height: 44px;
+    padding-inline: 10px;
+    font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .calculator {
+    padding-inline: 12px;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+  }
+
+  .mini-switch {
+    gap: 8px;
+  }
+
+  .mini-switch-button {
+    min-height: 44px;
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .site-header {
+    padding-inline: 12px;
+  }
+
+  .calculator {
+    padding-inline: 10px;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+
+  .result-box {
+    padding: 12px;
+  }
+
+  .basic-result-panel .result-total {
+    font-size: clamp(1.8rem, 10vw, 2.35rem);
   }
 }
