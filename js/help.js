@@ -41,9 +41,9 @@ const contenidos = {
       "El precio sugerido incluye costo real, utilidad objetivo, comisiones e impuesto. Revisa también el desglose para entender qué parte del precio viene de material, trabajo, envío, amortización, fees o impuestos."
   },
   supuestos: {
-    titulo: "Supuestos usados",
+    titulo: "Costos internos usados",
     texto:
-      "El modo básico usa algunos supuestos para no pedirte demasiados datos. Por ejemplo: consumo eléctrico, vida útil de impresora, mantenimiento y tarifa eléctrica. Puedes revisar estos valores para entender cómo se calculó el precio."
+      "Estos valores ayudan a calcular costos como electricidad, mantenimiento, vida útil de la impresora y pérdidas estimadas. Puedes dejarlos como están o cambiarlos si conoces tus costos reales."
   },
   comparador: {
     titulo: "Comparador de canales",

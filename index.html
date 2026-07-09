@@ -28,14 +28,28 @@
         <p class="mode-description">Usa el modo básico para cotizar rápido. Cambia a avanzado cuando necesites más control.</p>
       </div>
       <div class="mode-actions" role="group" aria-label="Modo de cálculo">
-        <button type="button" id="btnModoBasico" class="mode-button active" aria-pressed="true" data-i18n="modoBasico">Básico</button>
-        <button type="button" id="btnModoAvanzado" class="mode-button secondary" aria-pressed="false" data-i18n="modoAvanzado">Avanzado</button>
+        <button type="button" id="btnModoBasico" class="mode-button secondary" aria-pressed="false" data-i18n="modoBasico">Básico</button>
+        <button type="button" id="btnModoAvanzado" class="mode-button active" aria-pressed="true" data-i18n="modoAvanzado">Avanzado</button>
       </div>
     </section>
 
-    <section id="seccionModoBasico" class="mode-container">
+    <section id="seccionModoBasico" class="mode-container" hidden>
       <section class="panel quick-panel">
         <h2 data-i18n="modoBasico">Básico</h2>
+        <div class="basic-order-fields">
+          <label>
+            Nombre del trabajo / pedido
+            <input
+              type="text"
+              id="nombreTrabajoBasico"
+              placeholder="Ej: Llavero personalizado, soporte celular, pedido 20 piezas"
+            >
+          </label>
+          <label>
+            Cantidad de productos
+            <input type="number" id="cantidadBasico" min="1" value="1">
+          </label>
+        </div>
         <div class="basic-blocks">
           <div class="form-block">
             <h3 class="section-heading">
@@ -69,11 +83,22 @@
                 <button type="button" class="info-btn info-btn--campo inline-info" data-help="materialExtraCampo" aria-label="Información sobre material extra">i</button>
                 <input type="number" id="pesoSoportesPurgaBasico" min="0" placeholder="Opcional">
               </label>
-              <label>
-                Tiempo de impresión
-                <button type="button" class="info-btn info-btn--campo inline-info" data-help="tiempoImpresionCampo" aria-label="Información sobre tiempo de impresión">i</button>
-                <input type="number" id="horasImpresionBasico" min="0" step="0.1" placeholder="Horas">
-              </label>
+              <div class="field-block field-block--time">
+                <div class="field-label-row">
+                  <span>Tiempo de impresión</span>
+                  <button type="button" class="info-btn info-btn--campo inline-info" data-help="tiempoImpresionCampo" aria-label="Información sobre tiempo de impresión">i</button>
+                </div>
+                <div class="time-inputs">
+                  <label>
+                    Horas
+                    <input type="number" id="horasImpresionHorasBasico" min="0" step="1" placeholder="0">
+                  </label>
+                  <label>
+                    Minutos
+                    <input type="number" id="horasImpresionMinutosBasico" min="0" max="59" step="1" placeholder="0">
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -138,10 +163,6 @@
               <select id="impresoraBasico"></select>
             </label>
             <label>
-              Cantidad
-              <input type="number" id="cantidadBasico" min="1" value="1">
-            </label>
-            <label>
               Pérdidas o fallas estimadas
               <button type="button" class="info-btn info-btn--campo inline-info" data-help="mermaCampo" aria-label="Información sobre pérdidas o fallas estimadas">i</button>
               <input type="number" id="mermaBasico" min="0" placeholder="%">
@@ -172,10 +193,10 @@
             aria-expanded="false"
             aria-controls="panelSupuestosEditables"
           >
-            <span>Supuestos editables</span>
+            <span data-i18n="costosAjustables">Costos internos usados</span>
             <span class="collapse-indicator">Mostrar</span>
           </button>
-          <button type="button" class="info-btn" data-help="supuestos" aria-label="Información sobre supuestos editables">i</button>
+          <button type="button" class="info-btn" data-help="supuestos" aria-label="Información sobre costos internos usados">i</button>
         </div>
         <div id="panelSupuestosEditables" class="field-grid collapsible-content" hidden>
           <label>
@@ -243,7 +264,7 @@
         </section>
     </section>
 
-    <div id="seccionModoAvanzado" class="mode-container" hidden>
+    <div id="seccionModoAvanzado" class="mode-container">
     <!-- Datos iniciales del trabajo -->
     <section class="panel">
       <h2 class="section-heading">
@@ -253,15 +274,15 @@
       <div class="field-grid">
         <label>
           Nombre del trabajo
-          <input type="text" placeholder="Ej: Soporte para escritorio">
+          <input type="text" id="nombreTrabajoAvanzado" placeholder="Ej: Soporte para escritorio">
         </label>
         <label>
           Cliente
-          <input type="text" placeholder="Ej: Cliente particular">
+          <input type="text" id="clienteAvanzado" placeholder="Ej: Cliente particular">
         </label>
         <label>
-          Cantidad de piezas
-          <input type="number" id="cantidadAvanzado" min="0" placeholder="0">
+          Cantidad de productos
+          <input type="number" id="cantidadAvanzado" min="1" value="1">
         </label>
         <label>
           Moneda
@@ -280,10 +301,19 @@
     <section class="panel">
       <h2>2. Datos del slicer</h2>
       <div class="field-grid">
-        <label>
-          Tiempo estimado
-          <input type="text" id="horasImpresionAvanzado" placeholder="Ej: 5 h 30 min">
-        </label>
+        <div class="field-block field-block--time">
+          <span class="field-label">Tiempo estimado</span>
+          <div class="time-inputs">
+            <label>
+              Horas
+              <input type="number" id="horasImpresionHorasAvanzado" min="0" step="1" placeholder="0">
+            </label>
+            <label>
+              Minutos
+              <input type="number" id="horasImpresionMinutosAvanzado" min="0" max="59" step="1" placeholder="0">
+            </label>
+          </div>
+        </div>
         <label>
           Filamento usado
           <input type="number" id="pesoPiezaAvanzado" min="0" placeholder="Gramos">
@@ -341,11 +371,11 @@
       <h2>5. Mano de obra</h2>
       <div class="field-grid">
         <label>
-          Preparación
+          Preparación (por pedido)
           <input type="text" id="horasPreparacionAvanzado" placeholder="Ej: 20 min">
         </label>
         <label>
-          Postprocesado
+          Postprocesado (por unidad)
           <input type="text" id="horasPostprocesadoAvanzado" placeholder="Ej: 45 min">
         </label>
         <label>
@@ -457,13 +487,176 @@
       </div>
       <div class="actions">
         <button type="button" id="calculateButton" data-i18n="calcular">Calcular</button>
-        <button type="button" id="btnExportarExcel" class="export-button" data-i18n="exportarExcel" disabled>Exportar a Excel</button>
+        <button type="button" id="btnExportarExcel" class="export-button" data-i18n="exportarExcel" disabled>Exportar cálculo actual</button>
         <button type="button" id="clearButton" class="secondary" data-i18n="limpiar">Limpiar</button>
         <button type="button" id="volverModoBasico" class="secondary" data-i18n="volverModoBasico">Volver a modo básico</button>
       </div>
-      <p class="help-text">Disponible cuando exista un cálculo generado.</p>
+      <p class="help-text">Exportación CSV compatible con Excel. Disponible cuando exista un cálculo generado.</p>
     </section>
     </div>
+
+    <section class="panel result-panel price-levels-panel">
+      <h2>Precios por nivel</h2>
+      <p class="help-text">Compara precios sugeridos usando el mismo pedido y cambiando solo el margen.</p>
+      <div id="preciosNivelContenido" class="price-levels-empty">
+        Primero realiza un cálculo para ver precios por nivel.
+      </div>
+    </section>
+
+    <section id="datosCotizacionPanel" class="panel result-panel quote-data-panel">
+      <details class="collapsible-section">
+        <summary data-i18n="datosCotizacion">Datos para la cotización</summary>
+        <p class="help-text">Estos datos quedan guardados en este navegador y servirán para preparar cotizaciones formales más adelante.</p>
+
+        <div class="quote-data-grid">
+          <div class="quote-data-block">
+            <h3 data-i18n="datosQuienCotiza">Datos de quien cotiza</h3>
+            <div class="field-grid">
+              <label>
+                <span data-i18n="nombreNegocio">Nombre del negocio</span>
+                <input type="text" id="nombreNegocio">
+              </label>
+              <label>
+                <span data-i18n="rutNegocio">RUT / ID fiscal</span>
+                <input type="text" id="rutNegocio">
+              </label>
+              <label>
+                <span data-i18n="telefonoNegocio">Teléfono / WhatsApp</span>
+                <input type="text" id="telefonoNegocio">
+              </label>
+              <label>
+                <span data-i18n="correoNegocio">Correo</span>
+                <input type="email" id="correoNegocio">
+              </label>
+              <label>
+                <span data-i18n="direccionNegocio">Dirección</span>
+                <input type="text" id="direccionNegocio">
+              </label>
+              <label>
+                <span data-i18n="sitioWebNegocio">Sitio web</span>
+                <input type="url" id="sitioWebNegocio">
+              </label>
+              <label>
+                <span data-i18n="instagramNegocio">Instagram</span>
+                <input type="text" id="instagramNegocio">
+              </label>
+            </div>
+          </div>
+
+          <div class="quote-data-block">
+            <h3 data-i18n="datosCliente">Datos del cliente</h3>
+            <div class="field-grid">
+              <label>
+                <span data-i18n="clienteCotizacion">Cliente</span>
+                <input type="text" id="clienteCotizacion">
+              </label>
+              <label>
+                <span data-i18n="contactoCliente">Teléfono / WhatsApp</span>
+                <input type="text" id="contactoCliente">
+              </label>
+              <label>
+                <span data-i18n="correoCliente">Correo</span>
+                <input type="email" id="correoCliente">
+              </label>
+              <label>
+                <span data-i18n="empresaCliente">Empresa</span>
+                <input type="text" id="empresaCliente">
+              </label>
+              <label>
+                <span data-i18n="rutCliente">RUT / ID fiscal</span>
+                <input type="text" id="rutCliente">
+              </label>
+              <label>
+                <span data-i18n="direccionCliente">Dirección</span>
+                <input type="text" id="direccionCliente">
+              </label>
+            </div>
+          </div>
+
+          <div class="quote-data-block">
+            <h3 data-i18n="condicionesCotizacion">Condiciones de la cotización</h3>
+            <div class="field-grid">
+              <label>
+                <span data-i18n="validezCotizacionDias">Validez de la cotización (días)</span>
+                <input type="number" id="validezCotizacionDias" min="0" value="7">
+              </label>
+              <label>
+                <span data-i18n="tiempoEntrega">Tiempo de entrega</span>
+                <input type="text" id="tiempoEntrega" value="A coordinar">
+              </label>
+              <label class="field-wide">
+                <span data-i18n="condicionesPago">Condiciones de pago</span>
+                <textarea id="condicionesPago" rows="3">50% de abono para iniciar y 50% contra entrega.</textarea>
+              </label>
+              <label class="field-wide">
+                <span data-i18n="observacionesCotizacion">Observaciones</span>
+                <textarea id="observacionesCotizacion" rows="3"></textarea>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="guardarDatosCotizacionButton" data-i18n="guardarDatosCotizacion">Guardar datos de cotización</button>
+          <button type="button" id="borrarDatosCotizacionButton" class="secondary danger-button" data-i18n="borrarDatosCotizacion">Borrar datos guardados</button>
+        </div>
+        <p id="datosCotizacionMessage" class="help-text" role="status"></p>
+      </details>
+    </section>
+
+    <section id="cotizacionClientePanel" class="panel result-panel client-quote-panel">
+      <h2 data-i18n="cotizacionCliente">Cotización para cliente</h2>
+      <p class="help-text">Genera una vista limpia para imprimir o guardar como PDF desde el navegador.</p>
+      <div class="actions quote-actions">
+        <button type="button" id="generarCotizacionButton" data-i18n="generarCotizacion" disabled>Generar cotización</button>
+        <button type="button" id="vistaPreviaCotizacionButton" class="secondary" data-i18n="vistaPreviaCotizacion" disabled>Vista previa de cotización</button>
+        <button type="button" id="imprimirCotizacionButton" class="secondary" data-i18n="imprimirGuardarPDF" disabled>Imprimir / Guardar PDF</button>
+      </div>
+      <p id="cotizacionMessage" class="help-text" role="status">Primero realiza un cálculo válido para generar una cotización.</p>
+      <div id="cotizacionClienteVista" class="client-quote-preview" hidden></div>
+    </section>
+
+    <section id="misTrabajosPanel" class="panel result-panel jobs-panel">
+      <details class="collapsible-section" open>
+        <summary data-i18n="misTrabajos">Mis trabajos</summary>
+        <p class="help-text">Guarda cotizaciones calculadas en este navegador. Puedes exportarlas como JSON para respaldarlas o moverlas a otro equipo.</p>
+
+        <div class="job-save-box">
+          <div class="field-grid">
+            <label>
+              <span data-i18n="cliente">Cliente</span>
+              <input type="text" id="trabajoCliente" placeholder="Ej: Cliente particular">
+            </label>
+            <label>
+              Estado
+              <select id="trabajoEstado">
+                <option value="Pendiente" data-i18n="pendiente">Pendiente</option>
+                <option value="Aceptado" data-i18n="aceptado">Aceptado</option>
+                <option value="Rechazado" data-i18n="rechazado">Rechazado</option>
+                <option value="Terminado" data-i18n="terminado">Terminado</option>
+                <option value="Pagado" data-i18n="pagado">Pagado</option>
+              </select>
+            </label>
+            <label class="field-wide">
+              <span data-i18n="descripcion">Descripción</span>
+              <textarea id="trabajoDescripcion" rows="3" placeholder="Notas del pedido, requisitos o condiciones"></textarea>
+            </label>
+          </div>
+          <div class="actions">
+            <button type="button" id="guardarTrabajoActualButton" data-i18n="guardarTrabajoActual">Guardar trabajo actual</button>
+            <button type="button" id="exportarTrabajosButton" class="secondary" data-i18n="exportarTrabajos">Exportar trabajos</button>
+            <button type="button" id="exportarTrabajosJsonButton" class="secondary">Exportar respaldo JSON</button>
+            <button type="button" id="importarTrabajosButton" class="secondary" data-i18n="importarTrabajos">Importar respaldo JSON</button>
+            <button type="button" id="borrarTrabajosButton" class="secondary danger-button" data-i18n="borrarTrabajos">Borrar todos los trabajos</button>
+            <input type="file" id="importarTrabajosInput" accept="application/json,.json" hidden>
+          </div>
+          <p id="trabajosMessage" class="help-text" role="status"></p>
+        </div>
+
+        <div id="trabajosResumen" class="jobs-summary"></div>
+        <div id="trabajosListado" class="jobs-list"></div>
+      </details>
+    </section>
 
     <section id="comparadorCanalesPanel" class="panel result-panel comparator-panel">
       <h2 class="section-heading">

@@ -1,17 +1,18 @@
 /* Estilos generales de la pagina */
 :root {
-  --bg: #eef3f5;
+  --bg: #f3f7fb;
   --surface: #ffffff;
-  --text: #1f2933;
-  --muted: #607080;
-  --line: #d8e1e6;
-  --primary: #256f8f;
-  --primary-dark: #174f68;
-  --accent: #e0a533;
-  --soft: #f7fafb;
-  --soft-strong: #edf6f8;
-  --success: #237a57;
-  --shadow: 0 14px 34px rgba(31, 41, 51, 0.08);
+  --text: #17202a;
+  --muted: #64748b;
+  --line: #d9e2ec;
+  --primary: #0f766e;
+  --primary-dark: #134e4a;
+  --accent: #f59e0b;
+  --soft: #f8fafc;
+  --soft-strong: #ecfdf5;
+  --success: #15803d;
+  --shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+  --shadow-soft: 0 8px 18px rgba(15, 23, 42, 0.06);
 }
 
 * {
@@ -32,13 +33,16 @@ body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
   color: var(--text);
-  background: var(--bg);
+  background:
+    linear-gradient(180deg, #e8f4f6 0, var(--bg) 260px),
+    var(--bg);
 }
 
 .site-header {
   padding: 34px 20px 26px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
+  color: #ffffff;
+  background: linear-gradient(135deg, #0f172a 0%, #155e75 55%, #0f766e 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .site-header > div,
@@ -80,6 +84,14 @@ h2 {
   line-height: 1.6;
 }
 
+.site-header .eyebrow {
+  color: #facc15;
+}
+
+.site-header .intro {
+  color: #dbeafe;
+}
+
 .header-badges {
   display: flex;
   flex-wrap: wrap;
@@ -92,9 +104,9 @@ h2 {
   align-items: center;
   min-height: 30px;
   padding: 0 10px;
-  color: var(--primary-dark);
-  background: var(--soft-strong);
-  border: 1px solid rgba(37, 111, 143, 0.18);
+  color: #e0f2fe;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
   font-size: 0.82rem;
   font-weight: 700;
@@ -119,7 +131,7 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  background: var(--soft);
+  background: #ffffff;
 }
 
 .mode-switch-panel h2 {
@@ -137,7 +149,7 @@ h2 {
   display: flex;
   gap: 8px;
   padding: 4px;
-  background: #e8eff2;
+  background: #edf6f7;
   border: 1px solid var(--line);
   border-radius: 8px;
 }
@@ -203,13 +215,20 @@ h2 {
 }
 
 .quick-panel {
-  border-color: rgba(37, 111, 143, 0.22);
+  border-color: rgba(15, 118, 110, 0.24);
 }
 
 .quick-panel > h2 {
   margin-bottom: 20px;
   color: var(--primary-dark);
   font-size: 1.25rem;
+}
+
+.basic-order-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(160px, 0.8fr);
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
 .field-grid {
@@ -240,8 +259,34 @@ label {
   color: var(--muted);
 }
 
+.field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.field-block--time:has(.inline-info) {
+  grid-template-columns: 1fr;
+}
+
+.field-block--time > .field-label-row,
+.field-block--time > .time-inputs {
+  grid-column: 1 / -1;
+}
+
+.time-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(96px, 1fr));
+  gap: 10px;
+}
+
+.time-inputs label {
+  min-width: 0;
+}
+
 label:has(.inline-info),
-.field-block:has(.inline-info) {
+.field-block:has(.inline-info):not(.field-block--time) {
   grid-template-columns: minmax(0, max-content) 22px 1fr;
   align-items: center;
   column-gap: 8px;
@@ -258,7 +303,8 @@ label:has(.inline-info) > select,
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -272,10 +318,20 @@ select {
 }
 
 input:focus,
-select:focus {
-  outline: 2px solid rgba(37, 111, 143, 0.25);
+select:focus,
+textarea:focus {
+  outline: 2px solid rgba(15, 118, 110, 0.22);
   border-color: var(--primary);
   background: #ffffff;
+}
+
+textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
 }
 
 .result-panel {
@@ -287,7 +343,7 @@ select:focus {
   padding: 18px;
   overflow-wrap: anywhere;
   color: var(--muted);
-  background: var(--soft);
+  background: #f8fafc;
   border: 1px solid var(--line);
   border-radius: 8px;
   line-height: 1.5;
@@ -299,6 +355,20 @@ select:focus {
   font-size: 2.15rem;
   font-weight: 700;
   line-height: 1.05;
+}
+
+.result-job-name {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.result-job-meta {
+  margin: -4px 0 12px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .result-summary {
@@ -314,17 +384,17 @@ select:focus {
   padding: 12px;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .summary-item,
 .breakdown-item,
 .assumption-item {
-  box-shadow: 0 6px 16px rgba(31, 41, 51, 0.04);
+  box-shadow: var(--shadow-soft);
 }
 
 .basic-result-panel {
-  border-color: rgba(37, 111, 143, 0.32);
+  border-color: rgba(15, 118, 110, 0.34);
 }
 
 .basic-result-panel h2 {
@@ -333,13 +403,13 @@ select:focus {
 
 .basic-result-panel .result-box {
   background: var(--soft-strong);
-  border-color: rgba(37, 111, 143, 0.22);
+  border-color: rgba(15, 118, 110, 0.22);
 }
 
 .basic-result-panel .summary-item:first-child {
   background: #ffffff;
-  border-color: rgba(37, 111, 143, 0.36);
-  box-shadow: 0 10px 24px rgba(37, 111, 143, 0.1);
+  border-color: rgba(15, 118, 110, 0.36);
+  box-shadow: 0 12px 26px rgba(15, 118, 110, 0.12);
 }
 
 .basic-result-panel .summary-item:first-child strong {
@@ -381,6 +451,78 @@ select:focus {
   color: #6f4a05;
   background: #fff7e5;
   border-color: #efd08d;
+}
+
+.price-levels-panel {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.price-level-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.price-level-card {
+  display: grid;
+  gap: 8px;
+  min-height: 164px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--primary);
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+}
+
+.price-level-card:nth-child(2) {
+  border-left-color: var(--accent);
+  background: #fffbeb;
+}
+
+.price-level-card:nth-child(3) {
+  border-left-color: #2563eb;
+  background: #eff6ff;
+}
+
+.price-level-card:nth-child(4) {
+  border-left-color: #7c3aed;
+  background: #f5f3ff;
+}
+
+.price-level-card span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.price-level-card strong {
+  color: var(--text);
+  font-size: 1.45rem;
+  line-height: 1.1;
+}
+
+.price-level-card p,
+.price-level-card small {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.price-level-card small {
+  align-self: end;
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.price-levels-empty {
+  margin-top: 16px;
+  padding: 14px;
+  color: var(--muted);
+  background: #ffffff;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
 }
 
 .comparator-empty {
@@ -426,6 +568,160 @@ select:focus {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin-top: 16px;
+}
+
+.job-save-box {
+  margin-top: 14px;
+}
+
+.quote-data-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.quote-data-block {
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.quote-data-block h3 {
+  margin: 0 0 14px;
+  color: var(--primary-dark);
+  font-size: 1rem;
+}
+
+.client-quote-preview {
+  margin-top: 18px;
+}
+
+.print-quote {
+  padding: 22px;
+  color: var(--text);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.print-quote__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.6fr);
+  gap: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.print-quote h2,
+.print-quote h3,
+.print-quote p {
+  margin-top: 0;
+}
+
+.print-quote__meta {
+  text-align: right;
+}
+
+.print-quote__section {
+  margin-top: 18px;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+
+.print-quote__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.print-quote__table th,
+.print-quote__table td {
+  padding: 10px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.print-quote__table th {
+  background: var(--soft);
+}
+
+.print-quote__total {
+  margin-top: 16px;
+  color: var(--primary-dark);
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.jobs-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.jobs-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.job-card {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(260px, 1.5fr) minmax(160px, 0.7fr);
+  gap: 12px;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(31, 41, 51, 0.04);
+}
+
+.job-card__main h3 {
+  margin: 4px 0 6px;
+  color: var(--primary-dark);
+  font-size: 1rem;
+}
+
+.job-card__main p,
+.job-date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.job-card__numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.job-status-control {
+  align-content: start;
+}
+
+.job-actions {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 8px;
+}
+
+.job-actions button {
+  min-height: 38px;
+  padding-inline: 12px;
+  font-size: 0.86rem;
+}
+
+.danger-button {
+  color: #8a1f11;
+}
+
+.danger-button:hover {
+  color: #ffffff;
+  background: #9f2a1d;
 }
 
 .recommendation-item {
@@ -509,6 +805,11 @@ button.secondary {
 
 button.secondary:hover {
   background: #e1e8ec;
+}
+
+button.danger-button:hover {
+  color: #ffffff;
+  background: #9f2a1d;
 }
 
 .help-text {
@@ -732,6 +1033,12 @@ button.secondary:hover {
   background: var(--primary);
 }
 
+@media (max-width: 1024px) {
+  .price-level-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Ajustes para tablets verticales y telefonos */
 @media (max-width: 768px) {
   body {
@@ -782,11 +1089,16 @@ button.secondary:hover {
 
   .mode-actions,
   .basic-blocks,
+  .basic-order-fields,
   .mode-container,
   .result-summary,
+  .price-level-grid,
   .breakdown-grid,
   .assumptions-grid,
-  .comparison-recommendations {
+  .comparison-recommendations,
+  .jobs-summary,
+  .job-card,
+  .job-card__numbers {
     grid-template-columns: 1fr;
   }
 
@@ -827,7 +1139,7 @@ button.secondary:hover {
   }
 
   label:has(.inline-info),
-  .field-block:has(.inline-info) {
+  .field-block:has(.inline-info):not(.field-block--time) {
     grid-template-columns: minmax(0, 1fr) 22px;
   }
 
@@ -888,6 +1200,22 @@ button.secondary:hover {
 
   .comparison-recommendations {
     gap: 8px;
+  }
+
+  .job-actions {
+    flex-direction: column;
+  }
+
+  .print-quote {
+    padding: 16px;
+  }
+
+  .print-quote__header {
+    grid-template-columns: 1fr;
+  }
+
+  .print-quote__meta {
+    text-align: left;
   }
 
   .table-wrap {
@@ -980,5 +1308,84 @@ button.secondary:hover {
 
   .basic-result-panel .result-total {
     font-size: clamp(1.8rem, 10vw, 2.35rem);
+  }
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    width: auto;
+    max-width: none;
+    overflow: visible;
+    color: #000000;
+    background: #ffffff;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #cotizacionClientePanel,
+  #cotizacionClientePanel * {
+    visibility: visible;
+  }
+
+  #cotizacionClientePanel {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    border: 0;
+    box-shadow: none;
+  }
+
+  #cotizacionClientePanel > h2,
+  #cotizacionClientePanel > .help-text,
+  .quote-actions,
+  #cotizacionMessage {
+    display: none !important;
+  }
+
+  .client-quote-preview {
+    display: block !important;
+    margin: 0;
+  }
+
+  .print-quote {
+    padding: 0;
+    color: #000000;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .print-quote__header {
+    grid-template-columns: 1fr 0.6fr;
+    border-color: #000000;
+  }
+
+  .print-quote__section,
+  .print-quote__table,
+  .print-quote__table tr {
+    page-break-inside: avoid;
+  }
+
+  .print-quote__table th,
+  .print-quote__table td {
+    border-color: #000000;
+  }
+
+  .print-quote__table th {
+    background: #ffffff;
+  }
+
+  .print-quote__total {
+    color: #000000;
   }
 }
