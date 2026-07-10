@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Precio para Impresión 3D</title>
+  <link rel="stylesheet" href="styles.css?v=20260710-quotea4">
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">Impresión 3D</p>
+      <h1 data-i18n="tituloApp">Calculadora de precio final</h1>
+      <p class="intro">Calcula cuánto cobrar por una impresión 3D considerando material, tiempo, trabajo, envío, comisiones e impuestos.</p>
+      <div class="header-badges" aria-label="Estado de la herramienta">
+        <span class="badge">MVP funcional</span>
+        <span class="badge">100% local</span>
+        <span class="badge">Sin backend</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-shell">
+    <aside class="dashboard-sidebar" aria-label="Navegación principal">
+      <nav class="dashboard-nav" id="dashboardNav">
+        <button type="button" class="dashboard-nav__button" data-section="cotizar">
+          <span>Cotizar</span>
+        </button>
+        <button type="button" class="dashboard-nav__button" data-section="resultado">
+          <span>Resultado</span>
+        </button>
+        <button type="button" class="dashboard-nav__button" data-section="trabajos">
+          <span>Mis trabajos</span>
+        </button>
+        <button type="button" class="dashboard-nav__button" data-section="datos-cotizacion">
+          <span>Datos de cotización</span>
+        </button>
+        <button type="button" class="dashboard-nav__button" data-section="cotizacion-cliente">
+          <span>Cotización</span>
+        </button>
+        <button type="button" class="dashboard-nav__button" data-section="configuracion">
+          <span>Configuración</span>
+        </button>
+        <button type="button" class="dashboard-nav__button" data-section="ayuda">
+          <span>Ayuda / Fuentes</span>
+        </button>
+      </nav>
+      <span class="dashboard-nav__more" aria-hidden="true">›</span>
+    </aside>
+
+  <main class="calculator" id="dashboardContent">
+    <section class="panel mode-switch-panel">
+      <div>
+        <p class="eyebrow" data-i18n="modoCalculo">Modo de cálculo</p>
+        <h2 data-i18n="cotizacionRapida">Cotización rápida</h2>
+        <p class="mode-description">Usa el modo básico para cotizar rápido. Cambia a avanzado cuando necesites más control.</p>
+      </div>
+      <div class="mode-actions" role="group" aria-label="Modo de cálculo">
+        <button type="button" id="btnModoBasico" class="mode-button secondary" aria-pressed="false" data-i18n="modoBasico">Básico</button>
+        <button type="button" id="btnModoAvanzado" class="mode-button active" aria-pressed="true" data-i18n="modoAvanzado">Avanzado</button>
+      </div>
+    </section>
+
+    <section id="seccionModoBasico" class="mode-container" hidden>
+      <section class="panel quick-panel">
+        <h2 data-i18n="modoBasico">Básico</h2>
+        <div class="basic-order-fields">
+          <label>
+            Nombre del trabajo / pedido
+            <input
+              type="text"
+              id="nombreTrabajoBasico"
+              placeholder="Ej: Llavero personalizado, soporte celular, pedido 20 piezas"
+            >
+          </label>
+          <label>
+            Cantidad de productos
+            <input type="number" id="cantidadBasico" min="1" value="1">
+          </label>
+        </div>
+        <div class="basic-blocks">
+          <div class="form-block">
+            <h3 class="section-heading">
+              <span>Datos de la impresión</span>
+              <button type="button" class="info-btn" data-help="datosImpresion" aria-label="Información sobre datos de la impresión">i</button>
+            </h3>
+            <div class="field-grid">
+              <label>
+                Material
+                <select id="materialBasico"></select>
+              </label>
+              <div class="field-block">
+                <span class="field-label">Tipo de precio de filamento</span>
+                <div class="mini-switch" aria-label="Modo de costo de material básico">
+                  <button type="button" id="modoCostoGramoBasico" class="mini-switch-button active">Por gramo</button>
+                  <button type="button" id="modoCostoKiloBasico" class="mini-switch-button">Por kilo</button>
+                </div>
+              </div>
+              <div class="field-block">
+                <span class="field-label" id="costoUnidadLabelBasico">Precio por gramo</span>
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="precioFilamentoCampo" aria-label="Información sobre precio del filamento">i</button>
+                <input type="number" id="costoUnidadBasico" min="0" placeholder="$">
+                <p class="help-text" id="costoUnidadHelpBasico">Costo por gramo calculado: $0.</p>
+              </div>
+              <label>
+                Peso de la pieza
+                <input type="number" id="pesoPiezaBasico" min="0" placeholder="Gramos">
+              </label>
+              <label>
+                Material extra: soportes o purga
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="materialExtraCampo" aria-label="Información sobre material extra">i</button>
+                <input type="number" id="pesoSoportesPurgaBasico" min="0" placeholder="Opcional">
+              </label>
+              <div class="field-block field-block--time">
+                <div class="field-label-row">
+                  <span>Tiempo de impresión</span>
+                  <button type="button" class="info-btn info-btn--campo inline-info" data-help="tiempoImpresionCampo" aria-label="Información sobre tiempo de impresión">i</button>
+                </div>
+                <div class="time-inputs">
+                  <label>
+                    Horas
+                    <input type="number" id="horasImpresionHorasBasico" min="0" step="1" placeholder="0">
+                  </label>
+                  <label>
+                    Minutos
+                    <input type="number" id="horasImpresionMinutosBasico" min="0" max="59" step="1" placeholder="0">
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-block">
+            <h3 class="section-heading">
+              <span>Venta y ganancia</span>
+              <button type="button" class="info-btn" data-help="ventaGanancia" aria-label="Información sobre venta y ganancia">i</button>
+            </h3>
+            <div class="field-grid">
+              <label>
+                <span data-i18n="nivelTrabajo">Nivel de trabajo</span>
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="nivelTrabajoCampo" aria-label="Información sobre nivel de trabajo">i</button>
+                <select id="nivelTrabajoBasico">
+                  <option value="basico" data-i18n="trabajoBasico">Básico</option>
+                  <option value="normal" data-i18n="trabajoNormal">Normal</option>
+                  <option value="detallado" data-i18n="trabajoDetallado">Detallado</option>
+                  <option value="personalizado" data-i18n="trabajoPersonalizado">Personalizado</option>
+                </select>
+              </label>
+              <label>
+                Trabajo / terminaciones
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="manoObraSimpleCampo" aria-label="Información sobre trabajo y terminaciones">i</button>
+                <input type="number" id="manoObraSimpleBasico" min="0" value="1500">
+              </label>
+              <label>
+                Embalaje
+                <input type="number" id="embalajeBasico" min="0" placeholder="$">
+              </label>
+              <label>
+                Envío
+                <input type="number" id="envioBasico" min="0" placeholder="$">
+              </label>
+              <label>
+                Margen
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="margenCampo" aria-label="Información sobre margen">i</button>
+                <input type="number" id="margenBasico" min="0" placeholder="%">
+              </label>
+              <label>
+                Impuesto
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="impuestoCampo" aria-label="Información sobre impuesto">i</button>
+                <input type="number" id="impuestoBasico" min="0" placeholder="%">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <details class="collapsible-section">
+          <summary>
+            Opciones avanzadas del modo básico
+          </summary>
+          <div class="field-grid collapsible-content">
+            <label>
+              Moneda
+              <select id="currencySelectBasico"></select>
+            </label>
+            <label>
+              Idioma
+              <select id="languageSelectBasico"></select>
+            </label>
+            <label>
+              Impresora
+              <select id="impresoraBasico"></select>
+            </label>
+            <label>
+              Pérdidas o fallas estimadas
+              <button type="button" class="info-btn info-btn--campo inline-info" data-help="mermaCampo" aria-label="Información sobre pérdidas o fallas estimadas">i</button>
+              <input type="number" id="mermaBasico" min="0" placeholder="%">
+            </label>
+            <label>
+              Canal de venta
+              <select id="canalVentaBasico"></select>
+            </label>
+            <label>
+              Comisión %
+              <button type="button" class="info-btn info-btn--campo inline-info" data-help="comisionPorcentajeCampo" aria-label="Información sobre comisión porcentual">i</button>
+              <input type="number" id="feePorcentualBasico" min="0" placeholder="%">
+            </label>
+            <label>
+              Comisión fija
+              <button type="button" class="info-btn info-btn--campo inline-info" data-help="comisionFijaCampo" aria-label="Información sobre comisión fija">i</button>
+              <input type="number" id="feeFijoBasico" min="0" placeholder="$">
+            </label>
+          </div>
+        </details>
+        <p class="help-text">La moneda seleccionada solo cambia el formato. No realiza conversión automática.</p>
+        <p class="help-text" id="currencyFormatPreviewBasico">Formato de ejemplo: $0</p>
+        <div class="collapse-row">
+          <button
+            type="button"
+            id="toggleSupuestosEditables"
+            class="collapse-toggle"
+            aria-expanded="false"
+            aria-controls="panelSupuestosEditables"
+          >
+            <span data-i18n="costosAjustables">Costos internos usados</span>
+            <span class="collapse-indicator">Mostrar</span>
+          </button>
+          <button type="button" class="info-btn" data-help="supuestos" aria-label="Información sobre costos internos usados">i</button>
+        </div>
+        <div id="panelSupuestosEditables" class="field-grid collapsible-content" hidden>
+          <label>
+            Watts promedio
+            <input type="number" id="wattsPromedioBasico" min="0" placeholder="Watts">
+          </label>
+          <label>
+            Tarifa kWh
+            <input type="number" id="tarifaKwhBasico" min="0" placeholder="$">
+          </label>
+          <label>
+            Costo de impresora
+            <input type="number" id="costoImpresoraBasico" min="0" placeholder="$">
+          </label>
+          <label>
+            Costo de herramientas
+            <input type="number" id="costoHerramientasBasico" min="0" placeholder="$">
+          </label>
+          <label>
+            Años de vida
+            <input type="number" id="anosVidaBasico" min="0" placeholder="0">
+          </label>
+          <label>
+            Días operativos al año
+            <input type="number" id="diasOperativosAnoBasico" min="0" placeholder="0">
+          </label>
+          <label>
+            Horas productivas al día
+            <input type="number" id="horasProductivasDiaBasico" min="0" placeholder="0">
+          </label>
+          <label>
+            Mantenimiento
+            <input type="number" id="mantenimientoBasico" min="0" placeholder="%">
+          </label>
+        </div>
+        <div class="actions">
+          <button type="button" id="calculateBasicButton" data-i18n="calcular">Calcular</button>
+          <button type="button" id="verCalculoAvanzado" class="secondary" data-i18n="verCalculoAvanzado">Ver cálculo avanzado</button>
+        </div>
+      </section>
+
+      <section class="panel result-panel basic-result-panel">
+        <h2 class="section-heading">
+          <span><span data-i18n="resultado">Resultado</span> básico</span>
+          <button type="button" class="info-btn" data-help="resultado" aria-label="Información sobre resultado">i</button>
+        </h2>
+        <div id="resultBasico" class="result-box">
+          Aún no hay un cálculo disponible. Completa una cotización para ver el resultado.
+        </div>
+        <details class="collapsible-section">
+          <summary>Ver desglose completo</summary>
+          <div id="basicBreakdown" class="breakdown-grid"></div>
+        </details>
+        <div id="basicWarnings" class="warning-list"></div>
+      </section>
+
+        <section class="panel result-panel assumptions-panel">
+          <details class="collapsible-section">
+            <summary>
+              <span data-i18n="supuestosUsadosModoBasico">Supuestos usados en modo básico</span>
+              <button type="button" class="info-btn details-info" data-help="supuestos" aria-label="Información sobre supuestos usados">i</button>
+            </summary>
+            <div id="supuestosModoBasico" class="assumptions-grid"></div>
+          </details>
+        </section>
+    </section>
+
+    <div id="seccionModoAvanzado" class="mode-container">
+    <!-- Datos iniciales del trabajo -->
+    <section class="panel">
+      <h2 class="section-heading">
+        <span>1. Datos básicos</span>
+        <button type="button" class="info-btn" data-help="modoAvanzado" aria-label="Información sobre modo avanzado">i</button>
+      </h2>
+      <div class="field-grid">
+        <label>
+          Nombre del trabajo
+          <input type="text" id="nombreTrabajoAvanzado" placeholder="Ej: Soporte para escritorio">
+        </label>
+        <label>
+          Cliente
+          <input type="text" id="clienteAvanzado" placeholder="Ej: Cliente particular">
+        </label>
+        <label>
+          Cantidad de productos
+          <input type="number" id="cantidadAvanzado" min="1" value="1">
+        </label>
+        <label>
+          Moneda
+          <select id="currencySelect"></select>
+        </label>
+        <label>
+          Idioma
+          <select id="languageSelect"></select>
+        </label>
+      </div>
+      <p class="help-text">La moneda seleccionada solo cambia el formato. No realiza conversión automática.</p>
+      <p class="help-text" id="currencyFormatPreview">Formato de ejemplo: $0</p>
+    </section>
+
+    <!-- Datos entregados por el slicer -->
+    <section class="panel">
+      <h2>2. Datos del slicer</h2>
+      <div class="field-grid">
+        <div class="field-block field-block--time">
+          <span class="field-label">Tiempo estimado</span>
+          <div class="time-inputs">
+            <label>
+              Horas
+              <input type="number" id="horasImpresionHorasAvanzado" min="0" step="1" placeholder="0">
+            </label>
+            <label>
+              Minutos
+              <input type="number" id="horasImpresionMinutosAvanzado" min="0" max="59" step="1" placeholder="0">
+            </label>
+          </div>
+        </div>
+        <label>
+          Filamento usado
+          <input type="number" id="pesoPiezaAvanzado" min="0" placeholder="Gramos">
+        </label>
+        <label>
+          Altura de capa
+          <input type="text" placeholder="Ej: 0.20 mm">
+        </label>
+      </div>
+    </section>
+
+    <!-- Datos de material y desperdicio -->
+    <section class="panel">
+      <h2>3. Material</h2>
+      <div class="field-grid">
+        <label>
+          Tipo de material
+          <select id="materialAvanzado"></select>
+        </label>
+        <div class="field-block">
+          <span class="field-label" id="costoUnidadLabelAvanzado">Costo por gramo</span>
+          <div class="mini-switch" aria-label="Modo de costo de material avanzado">
+            <button type="button" id="modoCostoGramoAvanzado" class="mini-switch-button active">Costo por gramo</button>
+            <button type="button" id="modoCostoKiloAvanzado" class="mini-switch-button">Precio por kilo</button>
+          </div>
+          <input type="number" id="costoUnidadAvanzado" min="0" placeholder="$">
+          <p class="help-text" id="costoUnidadHelpAvanzado">Costo por gramo calculado: $0.</p>
+        </div>
+        <label>
+          Soportes, purga o merma
+          <input type="number" id="pesoSoportesPurgaAvanzado" min="0" placeholder="Gramos">
+        </label>
+      </div>
+    </section>
+
+    <!-- Datos de consumo electrico -->
+    <section class="panel">
+      <h2>4. Electricidad</h2>
+      <div class="field-grid">
+        <label>
+          Consumo estimado
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="wattsPromedioCampo" aria-label="Información sobre watts promedio">i</button>
+          <input type="number" id="wattsPromedioAvanzado" min="0" placeholder="Watts">
+        </label>
+        <label>
+          Costo por kWh
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="tarifaKwhCampo" aria-label="Información sobre tarifa kWh">i</button>
+          <input type="number" id="tarifaKwhAvanzado" min="0" placeholder="$">
+        </label>
+      </div>
+    </section>
+
+    <!-- Tiempo humano dedicado al trabajo -->
+    <section class="panel">
+      <h2>5. Mano de obra</h2>
+      <div class="field-grid">
+        <label>
+          Preparación (por pedido)
+          <input type="text" id="horasPreparacionAvanzado" placeholder="Ej: 20 min">
+        </label>
+        <label>
+          Postprocesado (por unidad)
+          <input type="text" id="horasPostprocesadoAvanzado" placeholder="Ej: 45 min">
+        </label>
+        <label>
+          Valor hora
+          <input type="number" id="tarifaHoraAvanzado" min="0" placeholder="$">
+        </label>
+      </div>
+    </section>
+
+    <!-- Costos asociados al equipo -->
+    <section class="panel">
+      <h2>6. Equipo y amortización</h2>
+      <div class="field-grid">
+        <label>
+          Impresora
+          <select id="impresoraAvanzado"></select>
+        </label>
+        <label>
+          Costo de impresora
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="costoImpresoraCampo" aria-label="Información sobre costo de impresora">i</button>
+          <input type="number" id="costoImpresoraAvanzado" min="0" placeholder="$">
+        </label>
+        <label>
+          Costo de herramientas
+          <input type="number" id="costoHerramientasAvanzado" min="0" placeholder="$">
+        </label>
+        <label>
+          Años de vida
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="vidaUtilCampo" aria-label="Información sobre vida útil">i</button>
+          <input type="number" id="anosVidaAvanzado" min="0" placeholder="0">
+        </label>
+        <label>
+          Días operativos al año
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="diasOperativosCampo" aria-label="Información sobre días operativos al año">i</button>
+          <input type="number" id="diasOperativosAnoAvanzado" min="0" placeholder="0">
+        </label>
+        <label>
+          Horas productivas al día
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="horasProductivasCampo" aria-label="Información sobre horas productivas al día">i</button>
+          <input type="number" id="horasProductivasDiaAvanzado" min="0" placeholder="0">
+        </label>
+        <label>
+          Mantenimiento
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="mantenimientoCampo" aria-label="Información sobre mantenimiento">i</button>
+          <input type="number" id="mantenimientoAvanzado" min="0" placeholder="%">
+        </label>
+      </div>
+    </section>
+
+    <!-- Costos de entrega y proteccion -->
+    <section class="panel">
+      <h2>7. Logística</h2>
+      <div class="field-grid">
+        <label>
+          Embalaje
+          <input type="number" id="embalajeAvanzado" min="0" placeholder="$">
+        </label>
+        <label>
+          Envío
+          <input type="number" id="envioAvanzado" min="0" placeholder="$">
+        </label>
+        <label>
+          Seguro o aduanas
+          <button type="button" class="info-btn info-btn--campo inline-info" data-help="seguroCampo" aria-label="Información sobre seguro o aduanas">i</button>
+          <input type="number" id="seguroAduanasAvanzado" min="0" placeholder="$">
+        </label>
+      </div>
+    </section>
+
+    <!-- Costos del canal de venta -->
+    <section class="panel">
+      <h2>8. Canal de venta y fees</h2>
+      <div class="field-grid">
+        <label>
+          Canal
+          <select id="canalVentaAvanzado"></select>
+        </label>
+        <label>
+          Fee de marketplace
+          <input type="number" id="feeMarketplaceAvanzado" min="0" placeholder="%">
+        </label>
+        <label>
+          Fee de pago
+          <input type="number" id="feePagoAvanzado" min="0" placeholder="%">
+        </label>
+      </div>
+    </section>
+
+    <!-- Datos comerciales finales -->
+    <section class="panel">
+      <h2>9. Margen e impuestos</h2>
+      <div class="field-grid">
+        <label>
+          Margen de ganancia
+          <input type="number" id="margenAvanzado" min="0" placeholder="%">
+        </label>
+        <label>
+          Impuestos
+          <input type="number" id="impuestoAvanzado" min="0" placeholder="%">
+        </label>
+      </div>
+    </section>
+
+    <!-- Resultado futuro del calculo -->
+    <section class="panel result-panel">
+      <h2>10. <span data-i18n="resultado">Resultado</span></h2>
+      <div id="result" class="result-box">
+        Aún no hay un cálculo disponible. Completa una cotización para ver el resultado.
+      </div>
+      <div class="actions">
+        <button type="button" id="calculateButton" data-i18n="calcular">Calcular</button>
+        <button type="button" id="btnExportarExcel" class="export-button" data-i18n="exportarExcel" disabled>Exportar cálculo actual</button>
+        <button type="button" id="clearButton" class="secondary" data-i18n="limpiar">Limpiar</button>
+        <button type="button" id="volverModoBasico" class="secondary" data-i18n="volverModoBasico">Volver a modo básico</button>
+      </div>
+      <p class="help-text">Exportación CSV compatible con Excel. Disponible cuando exista un cálculo generado.</p>
+    </section>
+    </div>
+
+    <section class="panel result-panel price-levels-panel">
+      <h2>Precios por nivel</h2>
+      <p class="help-text">Compara precios sugeridos usando el mismo pedido y cambiando solo el margen.</p>
+      <div id="preciosNivelContenido" class="price-levels-empty">
+        Primero realiza un cálculo para ver precios por nivel.
+      </div>
+    </section>
+
+    <section id="datosCotizacionPanel" class="panel result-panel quote-data-panel">
+      <details class="collapsible-section">
+        <summary data-i18n="datosCotizacion">Datos para la cotización</summary>
+        <p class="help-text">Estos datos quedan guardados en este navegador y servirán para preparar cotizaciones formales más adelante.</p>
+
+        <div class="quote-data-grid">
+          <div class="quote-data-block">
+            <h3 data-i18n="datosQuienCotiza">Datos de quien cotiza</h3>
+            <div class="field-grid">
+              <label>
+                <span data-i18n="nombreNegocio">Nombre del negocio</span>
+                <input type="text" id="nombreNegocio">
+              </label>
+              <label>
+                <span data-i18n="rutNegocio">RUT / ID fiscal</span>
+                <input type="text" id="rutNegocio">
+              </label>
+              <label>
+                <span data-i18n="telefonoNegocio">Teléfono / WhatsApp</span>
+                <input type="text" id="telefonoNegocio">
+              </label>
+              <label>
+                <span data-i18n="correoNegocio">Correo</span>
+                <input type="email" id="correoNegocio">
+              </label>
+              <label>
+                <span data-i18n="direccionNegocio">Dirección</span>
+                <input type="text" id="direccionNegocio">
+              </label>
+              <label>
+                <span data-i18n="sitioWebNegocio">Sitio web</span>
+                <input type="url" id="sitioWebNegocio">
+              </label>
+              <label>
+                <span data-i18n="instagramNegocio">Instagram</span>
+                <input type="text" id="instagramNegocio">
+              </label>
+            </div>
+          </div>
+
+          <div class="quote-data-block">
+            <h3 data-i18n="datosCliente">Datos del cliente</h3>
+            <div class="field-grid">
+              <label>
+                <span data-i18n="clienteCotizacion">Cliente</span>
+                <input type="text" id="clienteCotizacion">
+              </label>
+              <label>
+                <span data-i18n="contactoCliente">Teléfono / WhatsApp</span>
+                <input type="text" id="contactoCliente">
+              </label>
+              <label>
+                <span data-i18n="correoCliente">Correo</span>
+                <input type="email" id="correoCliente">
+              </label>
+              <label>
+                <span data-i18n="empresaCliente">Empresa</span>
+                <input type="text" id="empresaCliente">
+              </label>
+              <label>
+                <span data-i18n="rutCliente">RUT / ID fiscal</span>
+                <input type="text" id="rutCliente">
+              </label>
+              <label>
+                <span data-i18n="direccionCliente">Dirección</span>
+                <input type="text" id="direccionCliente">
+              </label>
+            </div>
+          </div>
+
+          <div class="quote-data-block">
+            <h3 data-i18n="condicionesCotizacion">Condiciones de la cotización</h3>
+            <div class="field-grid">
+              <label>
+                <span data-i18n="validezCotizacionDias">Validez de la cotización (días)</span>
+                <input type="number" id="validezCotizacionDias" min="0" value="7">
+              </label>
+              <label>
+                <span data-i18n="tiempoEntrega">Tiempo de entrega</span>
+                <input type="text" id="tiempoEntrega" value="A coordinar">
+              </label>
+              <label class="field-wide">
+                <span data-i18n="condicionesPago">Condiciones de pago</span>
+                <textarea id="condicionesPago" rows="3">50% de abono para iniciar y 50% contra entrega.</textarea>
+              </label>
+              <label class="field-wide">
+                <span data-i18n="observacionesCotizacion">Observaciones</span>
+                <textarea id="observacionesCotizacion" rows="3"></textarea>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="guardarDatosCotizacionButton" data-i18n="guardarDatosCotizacion">Guardar datos de cotización</button>
+          <button type="button" id="borrarDatosCotizacionButton" class="secondary danger-button" data-i18n="borrarDatosCotizacion">Borrar datos guardados</button>
+        </div>
+        <p id="datosCotizacionMessage" class="help-text" role="status"></p>
+      </details>
+    </section>
+
+    <section id="cotizacionClientePanel" class="panel result-panel client-quote-panel">
+      <h2 data-i18n="cotizacionCliente">Cotización para cliente</h2>
+      <p class="help-text">Genera una vista limpia para imprimir o guardar como PDF desde el navegador.</p>
+      <div class="actions quote-actions">
+        <button type="button" id="generarCotizacionButton" data-i18n="generarCotizacion" disabled>Generar cotización</button>
+        <button type="button" id="vistaPreviaCotizacionButton" class="secondary" data-i18n="vistaPreviaCotizacion" disabled>Vista previa de cotización</button>
+        <button type="button" id="imprimirCotizacionButton" class="secondary" data-i18n="imprimirGuardarPDF" disabled>Imprimir / Guardar PDF</button>
+        <button type="button" id="nuevaCotizacionButton" class="secondary">Nueva cotización</button>
+      </div>
+      <p class="help-text print-help">Para obtener un PDF limpio, desactiva "Encabezados y pies de página" en las opciones de impresión del navegador.</p>
+      <p id="cotizacionMessage" class="help-text empty-state" role="status">Primero realiza un cálculo para generar una cotización.</p>
+      <div id="cotizacionClienteVista" class="client-quote-preview" hidden></div>
+    </section>
+
+    <section id="misTrabajosPanel" class="panel result-panel jobs-panel">
+      <details class="collapsible-section" open>
+        <summary data-i18n="misTrabajos">Mis trabajos</summary>
+        <p class="help-text">Guarda cotizaciones calculadas en este navegador. Puedes exportarlas como JSON para respaldarlas o moverlas a otro equipo.</p>
+
+        <div class="job-save-box">
+          <div class="field-grid">
+            <label>
+              <span data-i18n="cliente">Cliente</span>
+              <input type="text" id="trabajoCliente" placeholder="Ej: Cliente particular">
+            </label>
+            <label>
+              Estado
+              <select id="trabajoEstado">
+                <option value="Pendiente" data-i18n="pendiente">Pendiente</option>
+                <option value="Aceptado" data-i18n="aceptado">Aceptado</option>
+                <option value="Rechazado" data-i18n="rechazado">Rechazado</option>
+                <option value="Terminado" data-i18n="terminado">Terminado</option>
+                <option value="Pagado" data-i18n="pagado">Pagado</option>
+              </select>
+            </label>
+            <label class="field-wide">
+              <span data-i18n="descripcion">Descripción</span>
+              <textarea id="trabajoDescripcion" rows="3" placeholder="Notas del pedido, requisitos o condiciones"></textarea>
+            </label>
+          </div>
+          <div class="actions">
+            <button type="button" id="guardarTrabajoActualButton" data-i18n="guardarTrabajoActual">Guardar trabajo actual</button>
+            <button type="button" id="exportarTrabajosButton" class="secondary" data-i18n="exportarTrabajos">Exportar trabajos</button>
+            <button type="button" id="exportarTrabajosJsonButton" class="secondary">Exportar respaldo JSON</button>
+            <button type="button" id="importarTrabajosButton" class="secondary" data-i18n="importarTrabajos">Importar respaldo JSON</button>
+            <button type="button" id="borrarTrabajosButton" class="secondary danger-button" data-i18n="borrarTrabajos">Borrar todos los trabajos</button>
+            <input type="file" id="importarTrabajosInput" accept="application/json,.json" hidden>
+          </div>
+          <p id="trabajosMessage" class="help-text" role="status"></p>
+        </div>
+
+        <div id="trabajosResumen" class="jobs-summary"></div>
+        <div id="trabajosListado" class="jobs-list"></div>
+      </details>
+    </section>
+
+    <section id="comparadorCanalesPanel" class="panel result-panel comparator-panel">
+      <h2 class="section-heading">
+        <span data-i18n="comparadorCanales">Comparador de canales</span>
+        <button type="button" class="info-btn" data-help="comparador" aria-label="Información sobre comparador de canales">i</button>
+      </h2>
+      <div class="field-grid comparator-controls">
+        <label>
+          <span data-i18n="metodoPagoComparador">Método de pago para comparar</span>
+          <select id="metodoPagoComparador">
+            <option value="automatico" data-i18n="automaticoSegunCanal">Automático según canal</option>
+          </select>
+        </label>
+      </div>
+      <p class="help-text" data-i18n="feesReferenciales">Los fees son referenciales. Las plataformas, métodos de pago, impuestos y condiciones pueden cambiar según país, fecha, categoría y tipo de cuenta. Evita duplicar comisiones si el canal ya integra el cobro.</p>
+      <div id="comparadorCanalesContenido" class="comparator-empty" data-i18n="primeroCalcula">
+        Realiza un cálculo para comparar precios por canal.
+      </div>
+    </section>
+
+    <section id="ultimoCalculoPanel" class="panel result-panel storage-panel">
+      <h2 data-i18n="ultimoCalculoGuardado">Último cálculo guardado</h2>
+      <div id="ultimoCalculoResumen" class="result-box">Aún no hay un cálculo guardado.</div>
+      <div class="actions">
+        <button type="button" id="cargarUltimoCalculoButton" data-i18n="cargarUltimoCalculo">Cargar último cálculo</button>
+        <button type="button" id="borrarUltimoCalculoButton" class="secondary" data-i18n="borrarUltimoCalculo">Borrar último cálculo</button>
+      </div>
+    </section>
+
+    <section class="panel storage-panel">
+      <details class="collapsible-section">
+        <summary>
+          Configuración avanzada
+          <button type="button" class="info-btn" data-help="configuracion" aria-label="Información sobre configuración avanzada">i</button>
+        </summary>
+        <div class="actions">
+          <button type="button" id="guardarConfiguracionButton" data-i18n="guardarConfiguracion">Guardar configuración</button>
+          <button type="button" id="restablecerConfiguracionButton" class="secondary" data-i18n="restablecerConfiguracion">Restablecer configuración</button>
+          <button type="button" id="exportarConfiguracionButton" class="secondary" data-i18n="exportarConfiguracion">Exportar configuración</button>
+          <button type="button" id="importarConfiguracionButton" class="secondary" data-i18n="importarConfiguracion">Importar configuración</button>
+          <input type="file" id="importarConfiguracionInput" accept="application/json,.json" hidden>
+        </div>
+        <p id="storageMessage" class="help-text" role="status"></p>
+      </details>
+    </section>
+  </main>
+  </div>
+
+  <div id="helpModal" class="help-modal" hidden>
+    <div class="help-modal__backdrop" data-help-close></div>
+    <section class="help-modal__content" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+      <button type="button" id="helpModalClose" class="help-modal__close" data-i18n="cerrarAyuda">Cerrar</button>
+      <h2 id="helpModalTitle" class="help-modal__title"></h2>
+      <p id="helpModalText"></p>
+    </section>
+  </div>
+
+  <script src="js/formulas.js"></script>
+  <script src="js/currencies.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/presets.js"></script>
+  <script src="js/comparator.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/help.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
