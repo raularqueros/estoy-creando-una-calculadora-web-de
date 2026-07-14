@@ -6,8 +6,34 @@ const STORAGE_DATOS_NEGOCIO_KEY = "precio3d_datos_negocio_v1";
 const STORAGE_CONFIG_COTIZACION_KEY = "precio3d_cotizacion_config_v1";
 const STORAGE_COTIZACION_CONTADOR_KEY = "precio3d_cotizacion_contador_v1";
 const STORAGE_COTIZACION_ACTUAL_KEY = "precio3d_cotizacion_actual_v1";
+const STORAGE_FLUJO_TRABAJOS_KEY = "precio3d_flujo_trabajos_v1";
 const STORAGE_VERSION = 1;
-const ESTADOS_TRABAJO = ["Pendiente", "Aceptado", "Rechazado", "Terminado", "Pagado"];
+const TRABAJO_VERSION = 2;
+const ESTADOS_TRABAJO = [
+  "Pendiente",
+  "Aceptado",
+  "Esperando abono",
+  "En producción",
+  "Terminado",
+  "Entregado",
+  "Pagado",
+  "Rechazado",
+  "Cancelado"
+];
+const ESTADOS_EQUIVALENTES = {
+  pendiente: "Pendiente",
+  aceptado: "Aceptado",
+  esperando_abono: "Esperando abono",
+  "esperando abono": "Esperando abono",
+  en_produccion: "En producción",
+  "en produccion": "En producción",
+  "en producción": "En producción",
+  terminado: "Terminado",
+  entregado: "Entregado",
+  pagado: "Pagado",
+  rechazado: "Rechazado",
+  cancelado: "Cancelado"
+};
 
 function puedeUsarLocalStorage() {
   try {
@@ -139,7 +165,51 @@ function crearIdTrabajo() {
 }
 
 function normalizarEstadoTrabajo(estado) {
-  return ESTADOS_TRABAJO.includes(estado) ? estado : "Pendiente";
+  const texto = String(estado || "Pendiente").trim();
+
+  if (ESTADOS_TRABAJO.includes(texto)) {
+    return texto;
+  }
+
+  return ESTADOS_EQUIVALENTES[texto.toLowerCase()] || "Pendiente";
+}
+
+function numeroSeguro(valor, fallback = 0) {
+  const numero = Number(valor);
+  return Number.isFinite(numero) && numero >= 0 ? numero : fallback;
+}
+
+function normalizarPagos(pagos) {
+  if (!Array.isArray(pagos)) {
+    return [];
+  }
+
+  return pagos
+    .filter((pago) => pago && typeof pago === "object")
+    .map((pago) => ({
+      id: String(pago.id || crearIdTrabajo()),
+      monto: numeroSeguro(pago.monto),
+      fecha: pago.fecha || new Date().toISOString().slice(0, 10),
+      metodo: String(pago.metodo || "Transferencia"),
+      nota: String(pago.nota || ""),
+      createdAt: pago.createdAt || new Date().toISOString()
+    }));
+}
+
+function normalizarHistorialEstados(historial, estado, fecha) {
+  const entradas = Array.isArray(historial)
+    ? historial
+        .filter((entrada) => entrada && typeof entrada === "object")
+        .map((entrada) => ({
+          estado: normalizarEstadoTrabajo(entrada.estado),
+          fecha: entrada.fecha || fecha,
+          nota: String(entrada.nota || "")
+        }))
+    : [];
+
+  return entradas.length
+    ? entradas
+    : [{ estado: normalizarEstadoTrabajo(estado), fecha, nota: "Estado inicial" }];
 }
 
 function normalizarTrabajo(trabajo) {
@@ -148,20 +218,68 @@ function normalizarTrabajo(trabajo) {
   }
 
   const ahora = new Date().toISOString();
+  const fechaCreacion = trabajo.fechaCreacion || trabajo.createdAt || ahora;
+  const fechaActualizacion = trabajo.fechaActualizacion || trabajo.updatedAt || fechaCreacion;
+  const estado = normalizarEstadoTrabajo(trabajo.estado);
+  const pagos = normalizarPagos(trabajo.pagos);
+  const precioFinal = numeroSeguro(trabajo.precioFinal);
+  const costoTotal = numeroSeguro(trabajo.costoTotal);
+  const precioVendidoReal = numeroSeguro(trabajo.precioVendidoReal);
+  const costosAdicionalesReales = numeroSeguro(trabajo.costosAdicionalesReales);
+  const totalPagos = pagos.reduce((total, pago) => total + pago.monto, 0);
+  const montoAbonado = Math.max(numeroSeguro(trabajo.montoAbonado), totalPagos);
+  const precioCobro = precioVendidoReal > 0 ? precioVendidoReal : precioFinal;
+  const utilidadReal = precioVendidoReal > 0
+    ? precioVendidoReal - costoTotal - costosAdicionalesReales
+    : null;
+  const margenRealCalculado = precioVendidoReal > 0 ? utilidadReal / precioVendidoReal : null;
+  const clienteSnapshot = trabajo.clienteSnapshot && typeof trabajo.clienteSnapshot === "object"
+    ? {
+        nombre: String(trabajo.clienteSnapshot.nombre || trabajo.cliente || ""),
+        empresa: String(trabajo.clienteSnapshot.empresa || ""),
+        rutIdFiscal: String(trabajo.clienteSnapshot.rutIdFiscal || ""),
+        telefono: String(trabajo.clienteSnapshot.telefono || ""),
+        correo: String(trabajo.clienteSnapshot.correo || ""),
+        direccion: String(trabajo.clienteSnapshot.direccion || "")
+      }
+    : null;
 
   return {
     id: String(trabajo.id || crearIdTrabajo()),
+    version: TRABAJO_VERSION,
     nombreTrabajo: String(trabajo.nombreTrabajo || "Trabajo sin nombre"),
     cliente: String(trabajo.cliente || ""),
+    clienteId: String(trabajo.clienteId || ""),
+    clienteSnapshot,
     descripcion: String(trabajo.descripcion || ""),
-    fechaCreacion: trabajo.fechaCreacion || ahora,
-    fechaActualizacion: trabajo.fechaActualizacion || ahora,
-    estado: normalizarEstadoTrabajo(trabajo.estado),
+    fechaCreacion,
+    fechaActualizacion,
+    estado,
     modoUsado: trabajo.modoUsado === "avanzado" ? "avanzado" : "basico",
-    precioFinal: Number(trabajo.precioFinal) || 0,
-    costoTotal: Number(trabajo.costoTotal) || 0,
-    utilidadObjetivo: Number(trabajo.utilidadObjetivo) || 0,
-    margenReal: Number.isFinite(Number(trabajo.margenReal)) ? Number(trabajo.margenReal) : null,
+    precioFinal,
+    precioVendidoReal,
+    costoTotal,
+    costosAdicionalesReales,
+    utilidadObjetivo: numeroSeguro(trabajo.utilidadObjetivo),
+    utilidadReal,
+    margenReal: margenRealCalculado !== null
+      ? margenRealCalculado
+      : Number.isFinite(Number(trabajo.margenReal))
+        ? Number(trabajo.margenReal)
+        : null,
+    montoAbonado,
+    saldoPendiente: Math.max(0, precioCobro - montoAbonado),
+    pagos,
+    historialEstados: normalizarHistorialEstados(
+      trabajo.historialEstados,
+      estado,
+      fechaActualizacion
+    ),
+    fechaVenta: trabajo.fechaVenta || "",
+    fechaPago: trabajo.fechaPago || "",
+    fechaAceptacion: trabajo.fechaAceptacion || "",
+    notasVenta: String(trabajo.notasVenta || ""),
+    moneda: String(trabajo.moneda || trabajo.datos?.moneda || "CLP").toUpperCase(),
     numeroCotizacion: String(trabajo.numeroCotizacion || ""),
     datos: trabajo.datos && typeof trabajo.datos === "object" ? trabajo.datos : {},
     resultado: trabajo.resultado && typeof trabajo.resultado === "object" ? trabajo.resultado : {}
@@ -180,7 +298,7 @@ function normalizarListaTrabajos(datos) {
 
 function envolverTrabajos(trabajos) {
   return {
-    version: STORAGE_VERSION,
+    version: TRABAJO_VERSION,
     guardadoEn: new Date().toISOString(),
     trabajos: normalizarListaTrabajos(trabajos)
   };
@@ -191,7 +309,11 @@ function cargarTrabajos() {
 }
 
 function guardarListaTrabajos(trabajos) {
-  return escribirJSONSeguro(STORAGE_TRABAJOS_KEY, envolverTrabajos(trabajos));
+  const guardado = escribirJSONSeguro(STORAGE_TRABAJOS_KEY, envolverTrabajos(trabajos));
+  if (guardado && typeof window !== "undefined" && typeof CustomEvent !== "undefined") {
+    window.dispatchEvent(new CustomEvent("precio3d:trabajos-actualizados"));
+  }
+  return guardado;
 }
 
 function guardarTrabajo(trabajo) {
@@ -214,7 +336,8 @@ function guardarTrabajo(trabajo) {
     trabajos.unshift(trabajoNormalizado);
   }
 
-  return guardarListaTrabajos(trabajos) ? trabajoNormalizado : null;
+  const guardado = indice >= 0 ? trabajos[indice] : trabajoNormalizado;
+  return guardarListaTrabajos(trabajos) ? guardado : null;
 }
 
 function actualizarTrabajo(id, cambios) {
@@ -261,7 +384,18 @@ function duplicarTrabajo(id) {
     nombreTrabajo: `${trabajo.nombreTrabajo} (copia)`,
     fechaCreacion: new Date().toISOString(),
     fechaActualizacion: new Date().toISOString(),
-    estado: "Pendiente"
+    estado: "Pendiente",
+    precioVendidoReal: 0,
+    costosAdicionalesReales: 0,
+    utilidadReal: null,
+    montoAbonado: 0,
+    saldoPendiente: Number(trabajo.precioFinal) || 0,
+    pagos: [],
+    historialEstados: [],
+    fechaVenta: "",
+    fechaPago: "",
+    fechaAceptacion: "",
+    notasVenta: ""
   });
 }
 
@@ -309,7 +443,11 @@ function importarTrabajosJSON(contenido, modo = "combinar") {
 }
 
 function borrarTrabajos() {
-  return borrarClaveSeguro(STORAGE_TRABAJOS_KEY);
+  const borrado = borrarClaveSeguro(STORAGE_TRABAJOS_KEY);
+  if (borrado && typeof window !== "undefined" && typeof CustomEvent !== "undefined") {
+    window.dispatchEvent(new CustomEvent("precio3d:trabajos-actualizados"));
+  }
+  return borrado;
 }
 
 function envolverDatosNegocio(datosNegocio) {
@@ -393,6 +531,131 @@ function borrarConfigCotizacion() {
   return borrarClaveSeguro(STORAGE_CONFIG_COTIZACION_KEY);
 }
 
+function cambiarEstadoTrabajo(id, estado, nota = "") {
+  const trabajo = cargarTrabajos().find((item) => item.id === id);
+
+  if (!trabajo) {
+    return null;
+  }
+
+  const estadoNormalizado = normalizarEstadoTrabajo(estado);
+  const fecha = new Date().toISOString();
+  const historial = normalizarHistorialEstados(
+    trabajo.historialEstados,
+    trabajo.estado,
+    trabajo.fechaActualizacion || trabajo.fechaCreacion
+  );
+
+  if (historial.at(-1)?.estado !== estadoNormalizado) {
+    historial.push({ estado: estadoNormalizado, fecha, nota: String(nota || "") });
+  }
+
+  const fechas = {};
+  if (estadoNormalizado === "Aceptado" && !trabajo.fechaAceptacion) {
+    fechas.fechaAceptacion = fecha;
+  }
+  if (estadoNormalizado === "Pagado" && !trabajo.fechaPago) {
+    fechas.fechaPago = fecha.slice(0, 10);
+  }
+
+  return actualizarTrabajo(id, {
+    estado: estadoNormalizado,
+    historialEstados: historial,
+    ...fechas
+  });
+}
+
+function registrarVenta(id, datosVenta) {
+  const trabajo = cargarTrabajos().find((item) => item.id === id);
+
+  if (!trabajo) {
+    return null;
+  }
+
+  const precioVendidoReal = numeroSeguro(datosVenta?.precioVendidoReal);
+  const costosAdicionalesReales = numeroSeguro(datosVenta?.costosAdicionalesReales);
+  const montoAbonado = numeroSeguro(datosVenta?.montoAbonado);
+  const totalPagosActual = trabajo.pagos.reduce((total, pago) => total + pago.monto, 0);
+  const pagos = [...trabajo.pagos];
+
+  if (montoAbonado > totalPagosActual) {
+    pagos.push({
+      id: crearIdTrabajo(),
+      monto: montoAbonado - totalPagosActual,
+      fecha: datosVenta?.fechaVenta || new Date().toISOString().slice(0, 10),
+      metodo: "Abono inicial",
+      nota: "Abono registrado con la venta",
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  const totalAbonado = pagos.reduce((total, pago) => total + pago.monto, 0);
+  const utilidadReal = precioVendidoReal > 0
+    ? precioVendidoReal - trabajo.costoTotal - costosAdicionalesReales
+    : null;
+  const margenReal = precioVendidoReal > 0 ? utilidadReal / precioVendidoReal : null;
+
+  return actualizarTrabajo(id, {
+    precioVendidoReal,
+    costosAdicionalesReales,
+    montoAbonado: totalAbonado,
+    saldoPendiente: Math.max(0, precioVendidoReal - totalAbonado),
+    pagos,
+    utilidadReal,
+    margenReal,
+    fechaVenta: datosVenta?.fechaVenta || new Date().toISOString().slice(0, 10),
+    fechaPago: datosVenta?.fechaPago || trabajo.fechaPago || "",
+    notasVenta: String(datosVenta?.notasVenta || "")
+  });
+}
+
+function registrarPago(id, datosPago) {
+  const trabajo = cargarTrabajos().find((item) => item.id === id);
+
+  if (!trabajo) {
+    return null;
+  }
+
+  const pago = {
+    id: crearIdTrabajo(),
+    monto: numeroSeguro(datosPago?.monto),
+    fecha: datosPago?.fecha || new Date().toISOString().slice(0, 10),
+    metodo: String(datosPago?.metodo || "Transferencia"),
+    nota: String(datosPago?.nota || ""),
+    createdAt: new Date().toISOString()
+  };
+
+  const pagos = [...trabajo.pagos];
+  if (!pagos.length && trabajo.montoAbonado > 0) {
+    pagos.push({
+      id: crearIdTrabajo(),
+      monto: trabajo.montoAbonado,
+      fecha: trabajo.fechaVenta || trabajo.fechaCreacion.slice(0, 10),
+      metodo: "Abono anterior",
+      nota: "Abono migrado desde el registro anterior",
+      createdAt: trabajo.fechaActualizacion
+    });
+  }
+  pagos.push(pago);
+  const totalPagado = pagos.reduce((total, item) => total + item.monto, 0);
+  const precioCobro = trabajo.precioVendidoReal > 0 ? trabajo.precioVendidoReal : trabajo.precioFinal;
+
+  return actualizarTrabajo(id, {
+    pagos,
+    montoAbonado: totalPagado,
+    saldoPendiente: Math.max(0, precioCobro - totalPagado),
+    fechaPago: totalPagado >= precioCobro && precioCobro > 0 ? pago.fecha : trabajo.fechaPago
+  });
+}
+
+function guardarFlujoTrabajos(flujo) {
+  return escribirJSONSeguro(STORAGE_FLUJO_TRABAJOS_KEY, flujo === "completo" ? "completo" : "simple");
+}
+
+function cargarFlujoTrabajos() {
+  return leerJSONSeguro(STORAGE_FLUJO_TRABAJOS_KEY) === "completo" ? "completo" : "simple";
+}
+
 function obtenerFechaLocalCompacta(fecha = new Date()) {
   const ano = fecha.getFullYear();
   const mes = String(fecha.getMonth() + 1).padStart(2, "0");
@@ -403,6 +666,15 @@ function obtenerFechaLocalCompacta(fecha = new Date()) {
 function cargarCotizacionActual() {
   const actual = leerJSONSeguro(STORAGE_COTIZACION_ACTUAL_KEY);
   return actual && typeof actual === "object" && !Array.isArray(actual) ? actual : null;
+}
+
+function guardarDatosCotizacionActual(datos) {
+  const actual = cargarCotizacionActual() || {};
+  return escribirJSONSeguro(STORAGE_COTIZACION_ACTUAL_KEY, {
+    ...actual,
+    ...(datos && typeof datos === "object" ? datos : {}),
+    actualizadoEn: new Date().toISOString()
+  });
 }
 
 function obtenerOCrearNumeroCotizacion(referencia, forzarNueva = false) {
@@ -464,11 +736,16 @@ window.StoragePrecio3D = {
   guardarTrabajo,
   cargarTrabajos,
   actualizarTrabajo,
+  cambiarEstadoTrabajo,
+  registrarVenta,
+  registrarPago,
   eliminarTrabajo,
   duplicarTrabajo,
   exportarTrabajosJSON,
   importarTrabajosJSON,
   borrarTrabajos,
+  guardarFlujoTrabajos,
+  cargarFlujoTrabajos,
   guardarDatosNegocio,
   cargarDatosNegocio,
   borrarDatosNegocio,
@@ -476,6 +753,7 @@ window.StoragePrecio3D = {
   cargarConfigCotizacion,
   borrarConfigCotizacion,
   cargarCotizacionActual,
+  guardarDatosCotizacionActual,
   obtenerOCrearNumeroCotizacion,
   borrarCotizacionActual,
   exportarConfiguracionJSON,

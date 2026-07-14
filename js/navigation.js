@@ -3,8 +3,14 @@
   "use strict";
 
   const STORAGE_KEY = "precio3d_seccion_activa_v1";
+  const SIDEBAR_STORAGE_KEY = "precio3d_sidebar_expandida_v1";
   const main = document.querySelector("#dashboardContent");
   const nav = document.querySelector("#dashboardNav");
+  const shell = document.querySelector(".dashboard-shell");
+  const sidebarToggle = document.querySelector("#sidebarToggle");
+  const mobileBottomNav = document.querySelector("#mobileBottomNav");
+  const mobileMoreButton = document.querySelector("#mobileMoreButton");
+  const mobileMoreMenu = document.querySelector("#mobileMoreMenu");
 
   if (!main || !nav) {
     console.error("No se pudo iniciar la navegacion principal.");
@@ -15,7 +21,8 @@
     cotizar: ["Cotizar", "Ingresa los datos de tu impresión para calcular un precio rentable."],
     resultado: ["Resultado", "Revisa el precio sugerido, tus costos y la utilidad estimada."],
     trabajos: ["Mis trabajos", "Guarda y organiza tus cotizaciones, ventas y pedidos."],
-    "datos-cotizacion": ["Datos de cotización", "Configura los datos de tu negocio, cliente y condiciones comerciales."],
+    clientes: ["Mis clientes", "Guarda y reutiliza los datos de tus clientes en trabajos y cotizaciones."],
+    "datos-cotizacion": ["Datos comerciales", "Configura los datos de tu negocio, cliente y condiciones comerciales."],
     "cotizacion-cliente": ["Cotización para cliente", "Prepara una cotización limpia para imprimir o guardar como PDF."],
     configuracion: ["Configuración", "Personaliza los costos y preferencias utilizados en los cálculos."],
     ayuda: ["Ayuda / Fuentes", "Consulta explicaciones, advertencias y fuentes de referencia."]
@@ -31,6 +38,7 @@
     vista.setAttribute("aria-labelledby", `titulo-vista-${id}`);
     vista.innerHTML = `
       <header class="dashboard-view__header">
+        <p class="dashboard-breadcrumb">Inicio / ${nombres[id][0]}</p>
         <h2 id="titulo-vista-${id}" tabindex="-1">${nombres[id][0]}</h2>
         <p>${nombres[id][1]}</p>
       </header>
@@ -58,6 +66,7 @@
     comparador: document.querySelector("#comparadorCanalesPanel"),
     ultimoCalculo: document.querySelector("#ultimoCalculoPanel"),
     trabajos: document.querySelector("#misTrabajosPanel"),
+    clientes: document.querySelector("#misClientesPanel"),
     cotizacionCliente: document.querySelector("#cotizacionClientePanel"),
     datosCotizacion: document.querySelector("#datosCotizacionPanel"),
     configuracion: document.querySelector(".storage-panel:not(#ultimoCalculoPanel)")
@@ -73,11 +82,74 @@
     elementos.filter(Boolean).forEach((elemento) => contenido(id).appendChild(elemento));
   }
 
-  mover("cotizar", [
-    paneles.selectorModo,
-    paneles.modoBasico,
-    paneles.modoAvanzado
-  ]);
+  const cotizarLayout = document.createElement("div");
+  cotizarLayout.className = "quote-workspace";
+  cotizarLayout.innerHTML = `
+    <div class="quote-workspace__form"></div>
+    <aside class="quote-workspace__result" aria-label="Resultado de la cotización"></aside>
+  `;
+  contenido("cotizar").appendChild(cotizarLayout);
+
+  const columnaFormulario = cotizarLayout.querySelector(".quote-workspace__form");
+  const columnaResultado = cotizarLayout.querySelector(".quote-workspace__result");
+  [paneles.selectorModo, paneles.modoBasico, paneles.modoAvanzado]
+    .filter(Boolean)
+    .forEach((elemento) => columnaFormulario.appendChild(elemento));
+
+  function crearAcordeonAvanzado(panel, titulo) {
+    if (!panel || panel.classList.contains("advanced-accordion")) {
+      return;
+    }
+
+    const encabezadoAnterior = panel.querySelector(":scope > h2");
+    const contenidoAcordeon = document.createElement("div");
+    const boton = document.createElement("button");
+    const idContenido = `acordeon-${titulo.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+    contenidoAcordeon.id = idContenido;
+    contenidoAcordeon.className = "advanced-accordion__content";
+    contenidoAcordeon.hidden = true;
+    encabezadoAnterior?.querySelectorAll(".info-btn").forEach((ayuda) => {
+      const contenedorAyuda = document.createElement("div");
+      contenedorAyuda.className = "advanced-accordion__help";
+      contenedorAyuda.appendChild(ayuda);
+      contenidoAcordeon.appendChild(contenedorAyuda);
+    });
+    Array.from(panel.children)
+      .filter((elemento) => elemento !== encabezadoAnterior)
+      .forEach((elemento) => contenidoAcordeon.appendChild(elemento));
+
+    boton.type = "button";
+    boton.className = "advanced-accordion__toggle";
+    boton.setAttribute("aria-expanded", "false");
+    boton.setAttribute("aria-controls", idContenido);
+    boton.innerHTML = `<span>${titulo}</span><span class="advanced-accordion__indicator" aria-hidden="true">+</span>`;
+    boton.addEventListener("click", () => {
+      const abierto = boton.getAttribute("aria-expanded") === "true";
+      boton.setAttribute("aria-expanded", String(!abierto));
+      contenidoAcordeon.hidden = abierto;
+      boton.querySelector(".advanced-accordion__indicator").textContent = abierto ? "+" : "−";
+    });
+
+    panel.classList.add("advanced-accordion");
+    panel.replaceChildren(boton, contenidoAcordeon);
+  }
+
+  const acordeonesAvanzados = [
+    [document.querySelector("#wattsPromedioAvanzado")?.closest(".panel"), "Energía"],
+    [document.querySelector("#impresoraAvanzado")?.closest(".panel"), "Impresora y amortización"],
+    [document.querySelector("#horasPreparacionAvanzado")?.closest(".panel"), "Mano de obra"],
+    [document.querySelector("#embalajeAvanzado")?.closest(".panel"), "Logística"],
+    [document.querySelector("#canalVentaAvanzado")?.closest(".panel"), "Comisiones e impuestos"],
+    [document.querySelector("#margenAvanzado")?.closest(".panel"), "Margen y precio final"]
+  ];
+
+  acordeonesAvanzados.forEach(([panel, titulo]) => {
+    crearAcordeonAvanzado(panel, titulo);
+    if (panel) {
+      paneles.modoAvanzado?.appendChild(panel);
+    }
+  });
 
   const accionesAvanzadas = document.createElement("section");
   accionesAvanzadas.className = "panel advanced-calculate-panel";
@@ -104,16 +176,24 @@
     </div>
   `;
 
-  mover("resultado", [
+  const elementosResultado = [
     accionesResultado,
     resultadoBasico,
     resultadoAvanzado,
     paneles.preciosNivel,
     paneles.comparador,
     paneles.ultimoCalculo
-  ]);
+  ].filter(Boolean);
+
+  function ubicarResultados(destino) {
+    const contenedor = destino === "cotizar" ? columnaResultado : contenido("resultado");
+    elementosResultado.forEach((elemento) => contenedor.appendChild(elemento));
+  }
+
+  ubicarResultados("cotizar");
 
   mover("trabajos", [paneles.trabajos]);
+  mover("clientes", [paneles.clientes]);
   mover("cotizacion-cliente", [paneles.cotizacionCliente]);
   mover("datos-cotizacion", [paneles.datosCotizacion]);
 
@@ -169,6 +249,44 @@
     </section>
   `;
 
+  function aplicarEstadoSidebar(expandida) {
+    shell?.classList.toggle("sidebar-collapsed", !expandida);
+    sidebarToggle?.setAttribute("aria-expanded", String(expandida));
+    sidebarToggle?.setAttribute(
+      "aria-label",
+      expandida ? "Contraer navegación" : "Expandir navegación"
+    );
+    const etiqueta = sidebarToggle?.querySelector(".dashboard-nav__label");
+    if (etiqueta) {
+      etiqueta.textContent = expandida ? "Contraer" : "Expandir";
+    }
+  }
+
+  function cargarEstadoSidebar() {
+    try {
+      const guardado = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+      return guardado === null ? true : guardado === "true";
+    } catch (error) {
+      console.warn("No fue posible cargar el estado de la navegación.", error);
+      return true;
+    }
+  }
+
+  function guardarEstadoSidebar(expandida) {
+    try {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(expandida));
+    } catch (error) {
+      console.warn("No fue posible guardar el estado de la navegación.", error);
+    }
+  }
+
+  function cerrarMenuMovil() {
+    if (mobileMoreMenu) {
+      mobileMoreMenu.hidden = true;
+    }
+    mobileMoreButton?.setAttribute("aria-expanded", "false");
+  }
+
   function guardarSeccion(id) {
     try {
       localStorage.setItem(STORAGE_KEY, id);
@@ -180,23 +298,41 @@
   function mostrarSeccion(id, opciones = {}) {
     const destino = vistas[id] ? id : "cotizar";
 
+    if (destino === "cotizar" || destino === "resultado") {
+      ubicarResultados(destino);
+    }
+
     Object.entries(vistas).forEach(([vistaId, vista]) => {
       const activa = vistaId === destino;
       vista.hidden = !activa;
       vista.setAttribute("aria-hidden", String(!activa));
     });
 
-    nav.querySelectorAll("[data-section]").forEach((boton) => {
+    document
+      .querySelectorAll("#dashboardNav [data-section], #mobileBottomNav [data-section], #mobileMoreMenu [data-section]")
+      .forEach((boton) => {
       const activo = boton.dataset.section === destino;
       boton.classList.toggle("active", activo);
       boton.setAttribute("aria-current", activo ? "page" : "false");
 
-      if (activo && window.matchMedia("(max-width: 768px)").matches) {
+      if (activo && window.matchMedia("(max-width: 768px)").matches && boton.closest("#mobileBottomNav")) {
         window.requestAnimationFrame(() => {
           boton.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
         });
       }
     });
+
+    const seccionesSecundarias = new Set([
+      "cotizacion-cliente",
+      "datos-cotizacion",
+      "clientes",
+      "configuracion",
+      "ayuda"
+    ]);
+    const masActivo = seccionesSecundarias.has(destino);
+    mobileMoreButton?.classList.toggle("active", masActivo);
+    mobileMoreButton?.setAttribute("aria-current", masActivo ? "page" : "false");
+    cerrarMenuMovil();
 
     if (opciones.guardar !== false) {
       guardarSeccion(destino);
@@ -220,10 +356,45 @@
     }
   }
 
-  nav.addEventListener("click", (event) => {
+  function manejarNavegacion(event) {
     const boton = event.target.closest("[data-section]");
     if (boton) {
       mostrarSeccion(boton.dataset.section, { enfocar: true });
+    }
+  }
+
+  [nav, mobileBottomNav, mobileMoreMenu]
+    .filter(Boolean)
+    .forEach((contenedor) => contenedor.addEventListener("click", manejarNavegacion));
+
+  sidebarToggle?.addEventListener("click", () => {
+    const expandida = sidebarToggle.getAttribute("aria-expanded") !== "true";
+    aplicarEstadoSidebar(expandida);
+    guardarEstadoSidebar(expandida);
+  });
+
+  mobileMoreButton?.addEventListener("click", () => {
+    const abierto = mobileMoreButton.getAttribute("aria-expanded") === "true";
+    mobileMoreButton.setAttribute("aria-expanded", String(!abierto));
+    if (mobileMoreMenu) {
+      mobileMoreMenu.hidden = abierto;
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    if (
+      mobileMoreMenu &&
+      !mobileMoreMenu.hidden &&
+      !mobileMoreMenu.contains(event.target) &&
+      !mobileMoreButton?.contains(event.target)
+    ) {
+      cerrarMenuMovil();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      cerrarMenuMovil();
     }
   });
 
@@ -280,8 +451,10 @@
 
   window.NavegacionPrecio3D = {
     mostrarSeccion,
-    claveStorage: STORAGE_KEY
+    claveStorage: STORAGE_KEY,
+    claveSidebar: SIDEBAR_STORAGE_KEY
   };
 
+  aplicarEstadoSidebar(cargarEstadoSidebar());
   mostrarSeccion(cargarSeccion(), { guardar: false });
 })();

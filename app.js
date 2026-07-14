@@ -18,6 +18,8 @@ const importarConfiguracionInput = document.querySelector("#importarConfiguracio
 const trabajoCliente = document.querySelector("#trabajoCliente");
 const trabajoDescripcion = document.querySelector("#trabajoDescripcion");
 const trabajoEstado = document.querySelector("#trabajoEstado");
+const trabajoClienteGuardado = document.querySelector("#trabajoClienteGuardado");
+const nuevoClienteDesdeTrabajoButton = document.querySelector("#nuevoClienteDesdeTrabajoButton");
 const guardarTrabajoActualButton = document.querySelector("#guardarTrabajoActualButton");
 const guardarDesdeResultadoButton = document.querySelector("#guardarDesdeResultadoButton");
 const generarCotizacionDesdeResultadoButton = document.querySelector("#generarCotizacionDesdeResultadoButton");
@@ -32,6 +34,9 @@ const trabajosListado = document.querySelector("#trabajosListado");
 const guardarDatosCotizacionButton = document.querySelector("#guardarDatosCotizacionButton");
 const borrarDatosCotizacionButton = document.querySelector("#borrarDatosCotizacionButton");
 const datosCotizacionMessage = document.querySelector("#datosCotizacionMessage");
+const clienteGuardadoCotizacion = document.querySelector("#clienteGuardadoCotizacion");
+const clienteCotizacionVinculo = document.querySelector("#clienteCotizacionVinculo");
+const actualizarClienteDesdeCotizacionButton = document.querySelector("#actualizarClienteDesdeCotizacionButton");
 const generarCotizacionButton = document.querySelector("#generarCotizacionButton");
 const vistaPreviaCotizacionButton = document.querySelector("#vistaPreviaCotizacionButton");
 const imprimirCotizacionButton = document.querySelector("#imprimirCotizacionButton");
@@ -58,6 +63,10 @@ const languageSelect = document.querySelector("#languageSelect");
 const languageSelectBasico = document.querySelector("#languageSelectBasico");
 const currencyFormatPreview = document.querySelector("#currencyFormatPreview");
 const currencyFormatPreviewBasico = document.querySelector("#currencyFormatPreviewBasico");
+const currencyDetectionStatus = document.querySelector("#currencyDetectionStatus");
+const currencyDetectionStatusBasico = document.querySelector("#currencyDetectionStatusBasico");
+const detectarMonedaAvanzado = document.querySelector("#detectarMonedaAvanzado");
+const detectarMonedaBasico = document.querySelector("#detectarMonedaBasico");
 const materialBasico = document.querySelector("#materialBasico");
 const impresoraBasico = document.querySelector("#impresoraBasico");
 const canalVentaBasico = document.querySelector("#canalVentaBasico");
@@ -86,7 +95,7 @@ const nivelesPrecioSugeridos = [
     nota: "Para pedidos simples o clientes sensibles al precio."
   },
   {
-    nombre: "Estándar",
+    nombre: "Recomendado",
     margen: 0.35,
     nota: "Buen equilibrio entre precio, costo y ganancia."
   },
@@ -97,7 +106,17 @@ const nivelesPrecioSugeridos = [
   }
 ];
 
-const estadosTrabajo = ["Pendiente", "Aceptado", "Rechazado", "Terminado", "Pagado"];
+const estadosTrabajo = [
+  "Pendiente",
+  "Aceptado",
+  "Esperando abono",
+  "En producción",
+  "Terminado",
+  "Entregado",
+  "Pagado",
+  "Rechazado",
+  "Cancelado"
+];
 
 let modoActual = "avanzado";
 let ultimoResultadoBasico = null;
@@ -112,6 +131,11 @@ let referenciaCotizacionActual = null;
 let guardadoPausado = true;
 let temporizadorGuardado = null;
 let avisoStorageMostrado = false;
+let monedaSeleccionadaManualmente = false;
+let hayMonedaGuardada = false;
+let ultimaDeteccionMoneda = null;
+let clienteCotizacionSeleccionadoId = "";
+let snapshotClienteCotizacion = null;
 
 // Boton reservado para una futura exportacion a Excel
 exportExcelButton.disabled = true;
@@ -394,6 +418,7 @@ function obtenerConfiguracionActual() {
     modoActual,
     idioma: languageSelectBasico?.value || languageSelect?.value || "es",
     moneda: currencySelectBasico?.value || currencySelect?.value || "CLP",
+    monedaManual: monedaSeleccionadaManualmente,
     basico: {
       nombreTrabajo: valorCampo("nombreTrabajoBasico"),
       cantidadProductos: valorCampo("cantidadBasico"),
@@ -494,12 +519,14 @@ function registrarAutoguardado() {
   });
 }
 
-function aplicarConfiguracion(configuracion, mostrarMensaje = false) {
+function aplicarConfiguracion(configuracion, mostrarMensaje = false, opciones = {}) {
   if (!configuracion || typeof configuracion !== "object") {
     return false;
   }
 
   guardadoPausado = true;
+  hayMonedaGuardada = Boolean(configuracion.moneda);
+  monedaSeleccionadaManualmente = Boolean(opciones.preferenciaManual || configuracion.monedaManual);
 
   asignarValorCampo("currencySelectBasico", configuracion.moneda);
   asignarValorCampo("currencySelect", configuracion.moneda);
@@ -577,15 +604,17 @@ function cargarConfiguracionInicial() {
   if (!almacenamientoLocalDisponible()) {
     guardadoPausado = false;
     mostrarAdvertenciaStorageUnaVez();
-    return;
+    return false;
   }
 
   const configuracion = window.StoragePrecio3D?.cargarConfiguracion?.();
 
   if (configuracion) {
     aplicarConfiguracion(configuracion, true);
+    return true;
   } else {
     guardadoPausado = false;
+    return false;
   }
 }
 
@@ -623,7 +652,7 @@ function importarConfiguracionDesdeArchivo(event) {
       return;
     }
 
-    aplicarConfiguracion(configuracion, false);
+    aplicarConfiguracion(configuracion, false, { preferenciaManual: true });
     guardarConfiguracionActual(false);
     mostrarMensajeAlmacenamiento("Configuración guardada.");
     importarConfiguracionInput.value = "";
@@ -678,9 +707,12 @@ function restablecerConfiguracionGuardada() {
     return;
   }
 
-  limpiarFormulario();
+  limpiarFormulario({ preservarMoneda: false });
+  monedaSeleccionadaManualmente = false;
+  hayMonedaGuardada = false;
   guardadoPausado = false;
   mostrarMensajeAlmacenamiento("Configuración restablecida.");
+  inicializarDeteccionMoneda();
 }
 
 // Carga una lista de monedas en un selector.
@@ -694,7 +726,7 @@ function cargarSelectorMonedas(selector) {
   window.MonedasPrecio3D.forEach((moneda) => {
     const option = document.createElement("option");
     option.value = moneda.codigo;
-    option.textContent = `${moneda.codigo} - ${moneda.nombre}`;
+    option.textContent = `${moneda.codigo} — ${moneda.nombre}`;
     selector.appendChild(option);
   });
 
@@ -800,23 +832,24 @@ function cargarMetodosPagoComparador() {
 }
 
 // Busca la moneda activa para formatear montos.
-function obtenerMonedaSeleccionada() {
-  const codigo = modoActual === "basico" ? currencySelectBasico.value : currencySelect.value;
-  return window.MonedasPrecio3D.find((moneda) => moneda.codigo === codigo);
+function obtenerCodigoMonedaActivo() {
+  return (modoActual === "basico" ? currencySelectBasico?.value : currencySelect?.value) || "CLP";
+}
+
+function obtenerMonedaSeleccionada(codigo = obtenerCodigoMonedaActivo()) {
+  return window.obtenerMonedaPrecio3D?.(codigo) || null;
 }
 
 // Formatea un numero con la moneda seleccionada, sin convertir valores.
-function formatearMoneda(valor) {
-  const moneda = obtenerMonedaSeleccionada();
+function formatearMoneda(valor, codigoMoneda = obtenerCodigoMonedaActivo(), incluirCodigo = false) {
+  const moneda = obtenerMonedaSeleccionada(codigoMoneda);
 
   if (!moneda) {
     return String(valor);
   }
 
-  return new Intl.NumberFormat(moneda.locale, {
-    style: "currency",
-    currency: moneda.codigo
-  }).format(Number(valor) || 0);
+  const texto = window.formatearMonedaPrecio3D(valor, moneda.codigo, moneda.locale);
+  return incluirCodigo ? `${moneda.codigo} ${texto}` : texto;
 }
 
 function formatearPorcentaje(valor) {
@@ -916,8 +949,13 @@ function actualizarVistaPreviaMoneda() {
   actualizarAyudaCostoMaterial("avanzado");
 }
 
-function sincronizarMonedas(origen) {
+function sincronizarMonedas(origen, opciones = {}) {
   const valor = origen.value;
+
+  if (opciones.manual) {
+    monedaSeleccionadaManualmente = true;
+    hayMonedaGuardada = true;
+  }
 
   if (currencySelect && currencySelect !== origen) {
     currencySelect.value = valor;
@@ -935,8 +973,87 @@ function sincronizarMonedas(origen) {
   }
 
   if (ultimoDatosCalculo && ultimoResultadoCalculo) {
+    ultimoDatosCalculo.moneda = valor;
+    const feeEstimado = calcularFeeEstimado(ultimoResultadoCalculo);
+    renderizarResultado(ultimoResultadoCalculo, feeEstimado, resultBox, null, {
+      margenObjetivo: ultimoDatosCalculo.margen,
+      nombreTrabajo: ultimoDatosCalculo.nombreTrabajo,
+      cantidadProductos: ultimoDatosCalculo.cantidadProductos
+    });
     renderizarComparadorCanales(ultimoDatosCalculo, ultimoResultadoCalculo);
     renderizarPreciosPorNivel(ultimoDatosCalculo);
+    actualizarVistaCotizacionSiExiste();
+  }
+
+  if (opciones.manual) {
+    actualizarEstadoDeteccionMoneda(`Moneda seleccionada manualmente: ${valor}. Tu selección tiene prioridad.`);
+    programarGuardadoConfiguracion();
+  }
+}
+
+function actualizarEstadoDeteccionMoneda(texto) {
+  [currencyDetectionStatus, currencyDetectionStatusBasico].forEach((elemento) => {
+    if (elemento) elemento.textContent = texto;
+  });
+}
+
+function aplicarDeteccionMoneda(deteccion, permitirReemplazoManual = false) {
+  if (!deteccion?.currency || !window.obtenerMonedaPrecio3D?.(deteccion.currency)) {
+    actualizarEstadoDeteccionMoneda("No fue posible detectar la moneda. Puedes seleccionarla manualmente.");
+    return false;
+  }
+
+  ultimaDeteccionMoneda = deteccion;
+
+  if (monedaSeleccionadaManualmente && !permitirReemplazoManual) {
+    actualizarEstadoDeteccionMoneda(
+      `Moneda detectada para ${deteccion.countryName}: ${deteccion.currency}. Tu selección manual tiene prioridad.`
+    );
+    return false;
+  }
+
+  currencySelect.value = deteccion.currency;
+  currencySelectBasico.value = deteccion.currency;
+  sincronizarMonedas(currencySelect, { manual: false });
+  actualizarEstadoDeteccionMoneda(
+    `Moneda detectada para ${deteccion.countryName}: ${deteccion.currency}. Puedes cambiarla manualmente en cualquier momento.`
+  );
+  return true;
+}
+
+async function inicializarDeteccionMoneda() {
+  if (!window.GeolocalizacionPrecio3D) return;
+
+  if (hayMonedaGuardada) {
+    actualizarEstadoDeteccionMoneda(
+      `Moneda guardada: ${currencySelectBasico.value || currencySelect.value}. Puedes cambiarla manualmente en cualquier momento.`
+    );
+    return;
+  }
+
+  actualizarEstadoDeteccionMoneda("Detectando moneda…");
+  const deteccion = await window.GeolocalizacionPrecio3D.detectarMonedaAutomatica();
+  aplicarDeteccionMoneda(deteccion);
+}
+
+async function detectarMonedaNuevamente() {
+  let permitirReemplazoManual = false;
+
+  if (monedaSeleccionadaManualmente) {
+    permitirReemplazoManual = confirm(
+      "Ya seleccionaste una moneda manualmente. ¿Deseas reemplazarla por la moneda detectada?"
+    );
+    if (!permitirReemplazoManual) return;
+  }
+
+  actualizarEstadoDeteccionMoneda("Detectando moneda…");
+  window.GeolocalizacionPrecio3D?.borrarDeteccionGuardada?.();
+  const deteccion = await window.GeolocalizacionPrecio3D?.detectarMonedaAutomatica?.({ forzar: true });
+
+  if (aplicarDeteccionMoneda(deteccion, permitirReemplazoManual)) {
+    monedaSeleccionadaManualmente = false;
+    hayMonedaGuardada = false;
+    guardarConfiguracionActual(false);
   }
 }
 
@@ -964,6 +1081,15 @@ function cambiarModo(modo) {
   btnModoAvanzado.classList.toggle("active", !esBasico);
   btnModoBasico.setAttribute("aria-pressed", String(esBasico));
   btnModoAvanzado.setAttribute("aria-pressed", String(!esBasico));
+  document.querySelector(".basic-result-panel")?.toggleAttribute("hidden", !esBasico);
+  document.querySelector(".assumptions-panel")?.toggleAttribute("hidden", !esBasico);
+  document.querySelector("#result")?.closest(".panel")?.toggleAttribute("hidden", esBasico);
+  const descripcionModo = document.querySelector(".mode-description");
+  if (descripcionModo) {
+    descripcionModo.textContent = esBasico
+      ? "Cotización rápida con valores recomendados."
+      : "Control detallado de costos y operación.";
+  }
   actualizarVistaPreviaMoneda();
   programarGuardadoConfiguracion();
 }
@@ -1271,7 +1397,7 @@ function crearNivelPrecio(nivel, datosBase) {
 
   if (resumenNivel.precioNeto === null) {
     return `
-      <div class="price-level-card">
+      <div class="price-level-card${nivel.personalizado ? " price-level-card--selected" : ""}">
         <span>${nivel.nombre}</span>
         <strong>No calculable</strong>
         <p>${nivel.nota}</p>
@@ -1281,13 +1407,21 @@ function crearNivelPrecio(nivel, datosBase) {
 
   const feeEstimado = calcularFeeEstimado(resumenNivel);
   const utilidadEstimada = resumenNivel.precioNeto - resumenNivel.costoTotal - feeEstimado;
+  const estadoSeleccionado = nivel.personalizado
+    ? '<span class="price-level-selected"><span aria-hidden="true">✓</span> Seleccionado</span>'
+    : "";
+  const impuestoIncluido = resumenNivel.impuesto > 0
+    ? `<small>Impuesto incluido: ${formatearMoneda(resumenNivel.impuesto)}</small>`
+    : "";
 
   return `
-    <div class="price-level-card">
+    <div class="price-level-card${nivel.personalizado ? " price-level-card--selected" : ""}">
+      ${estadoSeleccionado}
       <span>${nivel.nombre} · ${formatearPorcentaje(nivel.margen)}</span>
       <strong>${formatearMoneda(resumenNivel.precioFinal)}</strong>
       <p>${nivel.nota}</p>
       <small>Utilidad estimada: ${formatearMoneda(utilidadEstimada)}</small>
+      ${impuestoIncluido}
     </div>
   `;
 }
@@ -1306,9 +1440,10 @@ function renderizarPreciosPorNivel(datosBase) {
   const niveles = [
     ...nivelesPrecioSugeridos,
     {
-      nombre: "Tu margen",
+      nombre: "Personalizado",
       margen: normalizarPorcentaje(datosBase.margen),
-      nota: "Usa el margen que ingresaste en el formulario."
+      nota: "Usa el margen que ingresaste en el formulario.",
+      personalizado: true
     }
   ];
 
@@ -1490,11 +1625,12 @@ function renderizarResultado(resumen, feeEstimado, destino, desglose, opciones =
   const desgloseHtml = `
     ${crearItemDesglose("Material", formatearMoneda(resumen.costoMaterial))}
     ${crearItemDesglose("Electricidad", formatearMoneda(resumen.costoElectricidad))}
-    ${crearItemDesglose("Amortización", formatearMoneda(resumen.costoAmortizacion))}
+    ${crearItemDesglose("Máquina", formatearMoneda(resumen.costoAmortizacion))}
     ${crearItemDesglose("Mano de obra", formatearMoneda(resumen.costoManoObra))}
     ${crearItemDesglose("Logística", formatearMoneda(resumen.costoLogistico))}
     ${crearItemDesglose("Fees", formatearMoneda(feeEstimado))}
     ${crearItemDesglose("Impuesto", formatearMoneda(resumen.impuesto))}
+    ${crearItemDesglose("Costo total", formatearMoneda(resumen.costoTotal))}
   `;
 
   destino.innerHTML = `
@@ -1505,6 +1641,7 @@ function renderizarResultado(resumen, feeEstimado, destino, desglose, opciones =
       ${resumenHtml}
     </div>
     ${desglose ? "" : `<div class="breakdown-grid">${desgloseHtml}</div>`}
+    <div class="cost-chart-slot" data-future-chart hidden></div>
   `;
 
   if (desglose) {
@@ -1621,16 +1758,92 @@ function obtenerTrabajosGuardados() {
   return window.StoragePrecio3D?.cargarTrabajos?.() || [];
 }
 
+function obtenerClienteGuardado(id) {
+  return id ? window.ClientesPrecio3D?.obtenerClientePorId?.(id) : null;
+}
+
+function crearSnapshotCliente(cliente) {
+  return window.ClientesPrecio3D?.crearSnapshot?.(cliente) || null;
+}
+
+function poblarSelectorClientes(selector, textoVacio) {
+  if (!selector) return;
+  const valorActual = selector.value;
+  const clientes = window.ClientesPrecio3D?.obtenerClientes?.() || [];
+  selector.innerHTML = `<option value="">${escaparHtml(textoVacio)}</option>${clientes
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }))
+    .map((cliente) => `<option value="${escaparHtml(cliente.id)}">${escaparHtml(cliente.nombre)}${cliente.empresa ? ` · ${escaparHtml(cliente.empresa)}` : ""}</option>`)
+    .join("")}`;
+  selector.value = clientes.some((cliente) => cliente.id === valorActual) ? valorActual : "";
+}
+
+function poblarSelectoresClientes() {
+  poblarSelectorClientes(trabajoClienteGuardado, "Guardar sin cliente vinculado");
+  poblarSelectorClientes(clienteGuardadoCotizacion, "Sin cliente guardado");
+  if (clienteCotizacionSeleccionadoId && clienteGuardadoCotizacion) {
+    clienteGuardadoCotizacion.value = clienteCotizacionSeleccionadoId;
+  }
+}
+
+function aplicarClienteACotizacion(cliente, mantenerEdicion = false) {
+  if (!cliente) {
+    clienteCotizacionSeleccionadoId = "";
+    snapshotClienteCotizacion = null;
+    actualizarClienteDesdeCotizacionButton.disabled = true;
+    if (clienteCotizacionVinculo) clienteCotizacionVinculo.textContent = "Cotización sin cliente guardado vinculado.";
+    return;
+  }
+
+  clienteCotizacionSeleccionadoId = cliente.id;
+  snapshotClienteCotizacion = crearSnapshotCliente(cliente);
+  if (!mantenerEdicion) {
+    asignarValorCampo("clienteCotizacion", cliente.nombre);
+    asignarValorCampo("contactoCliente", cliente.telefono);
+    asignarValorCampo("correoCliente", cliente.correo);
+    asignarValorCampo("empresaCliente", cliente.empresa);
+    asignarValorCampo("rutCliente", cliente.rutIdFiscal);
+    asignarValorCampo("direccionCliente", cliente.direccion);
+  }
+  if (clienteGuardadoCotizacion) clienteGuardadoCotizacion.value = cliente.id;
+  actualizarClienteDesdeCotizacionButton.disabled = false;
+  if (clienteCotizacionVinculo) {
+    clienteCotizacionVinculo.textContent = `Vinculado a ${cliente.nombre}. Los cambios de esta cotización no alteran su ficha automáticamente.`;
+  }
+}
+
+function seleccionarClienteTrabajo(cliente) {
+  if (!cliente) return;
+  poblarSelectoresClientes();
+  trabajoClienteGuardado.value = cliente.id;
+  trabajoCliente.value = cliente.nombre;
+}
+
+function obtenerClienteSnapshotFormulario() {
+  const cotizacion = {
+    nombre: valorCampo("clienteCotizacion").trim(),
+    empresa: valorCampo("empresaCliente").trim(),
+    rutIdFiscal: valorCampo("rutCliente").trim(),
+    telefono: valorCampo("contactoCliente").trim(),
+    correo: valorCampo("correoCliente").trim(),
+    direccion: valorCampo("direccionCliente").trim()
+  };
+}
+
 function construirTrabajoActual() {
   if (!ultimoDatosCalculo || !ultimoResultadoCalculo || ultimoResultadoCalculo.precioNeto === null) {
     return null;
   }
 
   const ahora = new Date().toISOString();
+  const clienteId = trabajoClienteGuardado?.value || "";
+  const clienteGuardado = obtenerClienteGuardado(clienteId);
+  const nombreCliente = clienteGuardado?.nombre || valorCampo("trabajoCliente").trim() || ultimoDatosCalculo.cliente || "";
 
   return {
     nombreTrabajo: ultimoDatosCalculo.nombreTrabajo || "Trabajo sin nombre",
-    cliente: valorCampo("trabajoCliente").trim() || ultimoDatosCalculo.cliente || "",
+    cliente: nombreCliente,
+    clienteId: clienteGuardado?.id || "",
+    clienteSnapshot: clienteGuardado ? crearSnapshotCliente(clienteGuardado) : null,
     descripcion: valorCampo("trabajoDescripcion").trim(),
     fechaCreacion: ahora,
     fechaActualizacion: ahora,
@@ -1640,8 +1853,9 @@ function construirTrabajoActual() {
     costoTotal: ultimoResultadoCalculo.costoTotal,
     utilidadObjetivo: obtenerUtilidadEstimada(ultimoResultadoCalculo),
     margenReal: obtenerMargenRealDesdeResultado(ultimoResultadoCalculo),
+    moneda: ultimoDatosCalculo.moneda || obtenerCodigoMonedaActivo(),
     numeroCotizacion: numeroCotizacionActual || "",
-    datos: { ...ultimoDatosCalculo },
+    datos: { ...ultimoDatosCalculo, cliente: nombreCliente, clienteId: clienteGuardado?.id || "" },
     resultado: { ...ultimoResultadoCalculo }
   };
 }
@@ -1651,34 +1865,27 @@ function renderizarResumenTrabajos(trabajos) {
     return;
   }
 
-  const totalCotizado = trabajos.reduce((total, trabajo) => total + (Number(trabajo.precioFinal) || 0), 0);
-  const totalAceptado = trabajos
-    .filter((trabajo) => trabajo.estado === "Aceptado")
-    .reduce((total, trabajo) => total + (Number(trabajo.precioFinal) || 0), 0);
-  const totalPagado = trabajos
-    .filter((trabajo) => trabajo.estado === "Pagado")
-    .reduce((total, trabajo) => total + (Number(trabajo.precioFinal) || 0), 0);
-  const utilidadCotizadaTotal = trabajos.reduce(
-    (total, trabajo) => total + (Number(trabajo.utilidadObjetivo) || 0),
-    0
-  );
-  const utilidadAceptadaEstimada = trabajos
-    .filter((trabajo) => trabajo.estado === "Aceptado")
-    .reduce((total, trabajo) => total + (Number(trabajo.utilidadObjetivo) || 0), 0);
-  const utilidadPagadaEstimada = trabajos
-    .filter((trabajo) => trabajo.estado === "Pagado")
-    .reduce((total, trabajo) => total + (Number(trabajo.utilidadObjetivo) || 0), 0);
+  const resumirImportes = (campo, filtro = () => true) => {
+    const totales = trabajos.filter(filtro).reduce((acumulado, trabajo) => {
+      const moneda = trabajo.moneda || trabajo.datos?.moneda || "CLP";
+      acumulado[moneda] = (acumulado[moneda] || 0) + (Number(trabajo[campo]) || 0);
+      return acumulado;
+    }, {});
+
+    const textos = Object.entries(totales).map(([moneda, total]) => formatearMoneda(total, moneda, true));
+    return textos.length ? textos.join(" · ") : formatearMoneda(0, obtenerCodigoMonedaActivo(), true);
+  };
   const conteoEstados = estadosTrabajo
     .map((estado) => `${estado}: ${trabajos.filter((trabajo) => trabajo.estado === estado).length}`)
     .join(" · ");
 
   trabajosResumen.innerHTML = `
-    ${crearItemResumen("Total cotizado", formatearMoneda(totalCotizado))}
-    ${crearItemResumen("Total aceptado", formatearMoneda(totalAceptado))}
-    ${crearItemResumen("Total pagado", formatearMoneda(totalPagado))}
-    ${crearItemResumen("Utilidad cotizada total", formatearMoneda(utilidadCotizadaTotal))}
-    ${crearItemResumen("Utilidad aceptada estimada", formatearMoneda(utilidadAceptadaEstimada))}
-    ${crearItemResumen("Utilidad pagada estimada", formatearMoneda(utilidadPagadaEstimada))}
+    ${crearItemResumen("Total cotizado", resumirImportes("precioFinal"))}
+    ${crearItemResumen("Total aceptado", resumirImportes("precioFinal", (trabajo) => trabajo.estado === "Aceptado"))}
+    ${crearItemResumen("Total pagado", resumirImportes("precioFinal", (trabajo) => trabajo.estado === "Pagado"))}
+    ${crearItemResumen("Utilidad cotizada total", resumirImportes("utilidadObjetivo"))}
+    ${crearItemResumen("Utilidad aceptada estimada", resumirImportes("utilidadObjetivo", (trabajo) => trabajo.estado === "Aceptado"))}
+    ${crearItemResumen("Utilidad pagada estimada", resumirImportes("utilidadObjetivo", (trabajo) => trabajo.estado === "Pagado"))}
     ${crearItemResumen("Trabajos por estado", conteoEstados || "Sin trabajos")}
   `;
 }
@@ -1690,6 +1897,7 @@ function crearOpcionesEstado(estadoActual) {
 }
 
 function crearTarjetaTrabajo(trabajo) {
+  const monedaTrabajo = trabajo.moneda || trabajo.datos?.moneda || "CLP";
   return `
     <article class="job-card" data-job-id="${escaparHtml(trabajo.id)}">
       <div class="job-card__main">
@@ -1699,9 +1907,9 @@ function crearTarjetaTrabajo(trabajo) {
         ${trabajo.numeroCotizacion ? `<p class="job-quote-number">${escaparHtml(trabajo.numeroCotizacion)}</p>` : ""}
       </div>
       <div class="job-card__numbers">
-        ${crearItemResumen("Precio cotizado", formatearMoneda(trabajo.precioFinal))}
-        ${crearItemResumen("Costo estimado", formatearMoneda(trabajo.costoTotal))}
-        ${crearItemResumen("Utilidad estimada", formatearMoneda(trabajo.utilidadObjetivo))}
+        ${crearItemResumen("Precio cotizado", formatearMoneda(trabajo.precioFinal, monedaTrabajo, true))}
+        ${crearItemResumen("Costo estimado", formatearMoneda(trabajo.costoTotal, monedaTrabajo, true))}
+        ${crearItemResumen("Utilidad estimada", formatearMoneda(trabajo.utilidadObjetivo, monedaTrabajo, true))}
       </div>
       <label class="job-status-control">
         Estado
@@ -1721,6 +1929,11 @@ function crearTarjetaTrabajo(trabajo) {
 }
 
 function renderizarTrabajos() {
+  if (window.PanelTrabajosPrecio3D?.renderizar) {
+    window.PanelTrabajosPrecio3D.renderizar();
+    return;
+  }
+
   const trabajos = obtenerTrabajosGuardados();
 
   renderizarResumenTrabajos(trabajos);
@@ -1766,6 +1979,8 @@ function cargarTrabajoEnCalculadora(trabajo) {
   ultimoModoCalculo = trabajo.modoUsado === "avanzado" ? "avanzado" : "basico";
   trabajoCotizacionTemporal = null;
   const datos = trabajo.datos;
+  const monedaTrabajo = trabajo.moneda || datos.moneda || "CLP";
+  ultimoDatosCalculo.moneda = monedaTrabajo;
   const cantidad = Math.max(1, Number(datos.cantidadProductos) || 1);
 
   cambiarModo(ultimoModoCalculo);
@@ -1835,13 +2050,15 @@ function cargarTrabajoEnCalculadora(trabajo) {
     asignarValorCampo("mantenimientoBasico", (Number(datos.mantenimiento) || 0) * 100);
   }
 
-  if (datos.moneda) {
-    asignarValorCampo("currencySelect", datos.moneda);
-    asignarValorCampo("currencySelectBasico", datos.moneda);
-  }
+  asignarValorCampo("currencySelect", monedaTrabajo);
+  asignarValorCampo("currencySelectBasico", monedaTrabajo);
 
   asignarSelectPorTexto("metodoPagoComparador", datos.metodoPago);
   asignarValorCampo("trabajoCliente", trabajo.cliente || datos.cliente);
+  poblarSelectoresClientes();
+  if (trabajoClienteGuardado) {
+    trabajoClienteGuardado.value = obtenerClienteGuardado(trabajo.clienteId) ? trabajo.clienteId : "";
+  }
   sugerirClienteCotizacion(trabajo.cliente || datos.cliente);
   actualizarAyudaCostoMaterial(ultimoModoCalculo);
   actualizarVistaPreviaMoneda();
@@ -1886,9 +2103,15 @@ function prepararCotizacionDesdeTrabajo(trabajo) {
 
   trabajoCotizacionTemporal = {
     id: trabajo.id,
-    datos: { ...trabajo.datos, nombreTrabajo: trabajo.nombreTrabajo },
+    datos: {
+      ...trabajo.datos,
+      nombreTrabajo: trabajo.nombreTrabajo,
+      moneda: trabajo.moneda || trabajo.datos.moneda || "CLP"
+    },
     resultado: { ...trabajo.resultado },
     cliente: trabajo.cliente || trabajo.datos.cliente || "",
+    clienteId: trabajo.clienteId || "",
+    clienteSnapshot: trabajo.clienteSnapshot || null,
     descripcion: trabajo.descripcion || "",
     numeroCotizacion: trabajo.numeroCotizacion || ""
   };
@@ -1896,6 +2119,20 @@ function prepararCotizacionDesdeTrabajo(trabajo) {
   referenciaCotizacionActual = `trabajo:${trabajo.id}`;
 
   asignarValorCampo("clienteCotizacion", trabajoCotizacionTemporal.cliente);
+  const clienteGuardado = obtenerClienteGuardado(trabajoCotizacionTemporal.clienteId);
+  if (clienteGuardado) {
+    aplicarClienteACotizacion(clienteGuardado);
+  } else if (trabajoCotizacionTemporal.clienteSnapshot) {
+    const snapshot = trabajoCotizacionTemporal.clienteSnapshot;
+    clienteCotizacionSeleccionadoId = "";
+    snapshotClienteCotizacion = { ...snapshot };
+    asignarValorCampo("clienteCotizacion", snapshot.nombre || trabajoCotizacionTemporal.cliente);
+    asignarValorCampo("contactoCliente", snapshot.telefono);
+    asignarValorCampo("correoCliente", snapshot.correo);
+    asignarValorCampo("empresaCliente", snapshot.empresa);
+    asignarValorCampo("rutCliente", snapshot.rutIdFiscal);
+    asignarValorCampo("direccionCliente", snapshot.direccion);
+  }
   asignarValorCampo("trabajoDescripcion", trabajoCotizacionTemporal.descripcion);
   actualizarBotonesCotizacion(true);
 
@@ -1909,13 +2146,14 @@ function prepararCotizacionDesdeTrabajo(trabajo) {
 }
 
 function verDetalleTrabajo(trabajo) {
+  const monedaTrabajo = trabajo.moneda || trabajo.datos?.moneda || "CLP";
   const detalle = [
     `Trabajo: ${trabajo.nombreTrabajo}`,
     `Cliente: ${trabajo.cliente || "Sin cliente"}`,
     `Estado: ${trabajo.estado}`,
-    `Precio cotizado: ${formatearMoneda(trabajo.precioFinal)}`,
-    `Costo estimado: ${formatearMoneda(trabajo.costoTotal)}`,
-    `Utilidad estimada: ${formatearMoneda(trabajo.utilidadObjetivo)}`,
+    `Precio cotizado: ${formatearMoneda(trabajo.precioFinal, monedaTrabajo, true)}`,
+    `Costo estimado: ${formatearMoneda(trabajo.costoTotal, monedaTrabajo, true)}`,
+    `Utilidad estimada: ${formatearMoneda(trabajo.utilidadObjetivo, monedaTrabajo, true)}`,
     `Descripción: ${trabajo.descripcion || "Sin descripción"}`
   ].join("\n");
 
@@ -1991,15 +2229,16 @@ function exportarCalculoActualCSV() {
   }
 
   const cliente = ultimoDatosCalculo.cliente || valorCampo("trabajoCliente").trim();
+  const monedaCalculo = ultimoDatosCalculo.moneda || obtenerCodigoMonedaActivo();
   const filas = [
     ["Campo", "Valor"],
     ["Nombre del trabajo", ultimoDatosCalculo.nombreTrabajo || "Trabajo sin nombre"],
     ["Cliente", cliente],
     ["Modo usado", ultimoModoCalculo || modoActual],
     ["Fecha", new Date().toISOString()],
-    ["Precio final", ultimoResultadoCalculo.precioFinal],
-    ["Costo total", ultimoResultadoCalculo.costoTotal],
-    ["Utilidad estimada", obtenerUtilidadEstimada(ultimoResultadoCalculo)],
+    ["Precio final", formatearMoneda(ultimoResultadoCalculo.precioFinal, monedaCalculo, true)],
+    ["Costo total", formatearMoneda(ultimoResultadoCalculo.costoTotal, monedaCalculo, true)],
+    ["Utilidad estimada", formatearMoneda(obtenerUtilidadEstimada(ultimoResultadoCalculo), monedaCalculo, true)],
     ["Margen", obtenerMargenRealDesdeResultado(ultimoResultadoCalculo)],
     ["Material", ultimoDatosCalculo.material],
     ["Peso pieza", ultimoDatosCalculo.pesoPieza],
@@ -2008,7 +2247,7 @@ function exportarCalculoActualCSV() {
     ["Cantidad", ultimoDatosCalculo.cantidadProductos],
     ["Canal", ultimoDatosCalculo.canalVenta],
     ["Método de pago", ultimoDatosCalculo.metodoPago],
-    ["Moneda", ultimoDatosCalculo.moneda || currencySelectBasico?.value || currencySelect?.value || "CLP"]
+    ["Moneda", monedaCalculo]
   ];
 
   descargarArchivo("calculo-impresion-3d.csv", crearCSVConBOM(filas), "text/csv;charset=utf-8");
@@ -2025,31 +2264,57 @@ function exportarTrabajosCSV() {
 
   const filas = [
     [
+      "Número de cotización",
       "Fecha creación",
-      "Fecha actualización",
-      "Nombre del trabajo",
+      "Fecha venta",
+      "Fecha pago",
+      "Trabajo",
       "Cliente",
-      "Descripción",
       "Estado",
-      "Modo usado",
-      "Precio final",
-      "Costo total",
+      "Modo",
+      "Precio cotizado",
+      "Precio vendido real",
+      "Costo estimado",
+      "Costos adicionales reales",
       "Utilidad estimada",
-      "Margen real"
+      "Utilidad real",
+      "Margen real",
+      "Monto abonado",
+      "Total pagado",
+      "Saldo pendiente",
+      "Moneda"
     ],
-    ...trabajos.map((trabajo) => [
-      trabajo.fechaCreacion,
-      trabajo.fechaActualizacion,
-      trabajo.nombreTrabajo,
-      trabajo.cliente,
-      trabajo.descripcion,
-      trabajo.estado,
-      trabajo.modoUsado,
-      trabajo.precioFinal,
-      trabajo.costoTotal,
-      trabajo.utilidadObjetivo,
-      trabajo.margenReal
-    ])
+    ...trabajos.map((trabajo) => {
+      const moneda = trabajo.moneda || trabajo.datos?.moneda || "CLP";
+      const utilidadReal = window.PanelTrabajosPrecio3D?.utilidadReal?.(trabajo);
+      const margenReal = window.PanelTrabajosPrecio3D?.margenReal?.(trabajo);
+      const totalPagado = window.PanelTrabajosPrecio3D?.totalPagado?.(trabajo) || 0;
+      const precioCobro = Number(trabajo.precioVendidoReal) > 0
+        ? Number(trabajo.precioVendidoReal)
+        : Number(trabajo.precioFinal) || 0;
+
+      return [
+        trabajo.numeroCotizacion,
+        trabajo.fechaCreacion,
+        trabajo.fechaVenta,
+        trabajo.fechaPago,
+        trabajo.nombreTrabajo,
+        trabajo.cliente,
+        trabajo.estado,
+        trabajo.modoUsado,
+        formatearMoneda(trabajo.precioFinal, moneda, true),
+        formatearMoneda(trabajo.precioVendidoReal, moneda, true),
+        formatearMoneda(trabajo.costoTotal, moneda, true),
+        formatearMoneda(trabajo.costosAdicionalesReales, moneda, true),
+        formatearMoneda(trabajo.utilidadObjetivo, moneda, true),
+        utilidadReal === null ? "" : formatearMoneda(utilidadReal, moneda, true),
+        margenReal === null ? "" : margenReal,
+        formatearMoneda(trabajo.montoAbonado, moneda, true),
+        formatearMoneda(totalPagado, moneda, true),
+        formatearMoneda(Math.max(0, precioCobro - totalPagado), moneda, true),
+        moneda
+      ];
+    })
   ];
 
   descargarArchivo("mis-trabajos-impresion-3d.csv", crearCSVConBOM(filas), "text/csv;charset=utf-8");
@@ -2129,6 +2394,8 @@ function obtenerDatosNegocioFormulario() {
 
 function obtenerDatosClienteCotizacionFormulario() {
   return {
+    clienteId: clienteCotizacionSeleccionadoId,
+    snapshotCliente: obtenerClienteSnapshotFormulario(),
     clienteCotizacion: valorCampo("clienteCotizacion").trim(),
     contactoCliente: valorCampo("contactoCliente").trim(),
     correoCliente: valorCampo("correoCliente").trim(),
@@ -2183,6 +2450,28 @@ function sugerirClienteCotizacion(cliente) {
 function cargarDatosCotizacionIniciales() {
   aplicarDatosNegocio(window.StoragePrecio3D?.cargarDatosNegocio?.());
   aplicarConfigCotizacion(window.StoragePrecio3D?.cargarConfigCotizacion?.());
+  poblarSelectoresClientes();
+}
+
+function actualizarClienteDesdeCotizacion() {
+  const cliente = obtenerClienteGuardado(clienteCotizacionSeleccionadoId);
+  if (!cliente) {
+    mostrarMensajeDatosCotizacion("Selecciona primero un cliente guardado.", true);
+    return;
+  }
+  if (!confirm(`¿Actualizar la ficha guardada de ${cliente.nombre} con los datos escritos en esta cotización?`)) {
+    return;
+  }
+  const snapshot = obtenerClienteSnapshotFormulario();
+  const resultado = window.ClientesPrecio3D?.actualizarCliente?.(cliente.id, snapshot);
+  if (!resultado?.ok) {
+    mostrarMensajeDatosCotizacion(resultado?.error || "No se pudo actualizar la ficha del cliente.", true);
+    return;
+  }
+  snapshotClienteCotizacion = crearSnapshotCliente(resultado.cliente);
+  poblarSelectoresClientes();
+  aplicarClienteACotizacion(resultado.cliente, true);
+  mostrarMensajeDatosCotizacion("Ficha del cliente actualizada.");
 }
 
 function guardarDatosCotizacion() {
@@ -2330,6 +2619,8 @@ function obtenerDatosCotizacionActuales() {
   return {
     datosNegocio,
     datosCliente,
+    clienteId: datosCliente.clienteId || trabajoCotizacionTemporal?.clienteId || "",
+    snapshotCliente: datosCliente.snapshotCliente || trabajoCotizacionTemporal?.clienteSnapshot || snapshotClienteCotizacion,
     condiciones,
     cantidad,
     precioFinal,
@@ -2344,6 +2635,16 @@ function obtenerDatosCotizacionActuales() {
     fechaCotizacion: formatearFechaCotizacion(),
     numeroCotizacion
   };
+  window.StoragePrecio3D?.guardarDatosCotizacionActual?.({
+    clienteId: cotizacion.clienteId,
+    snapshotCliente: cotizacion.snapshotCliente,
+    datosCliente: cotizacion.datosCliente,
+    numeroCotizacion: cotizacion.numeroCotizacion,
+    nombreTrabajo: cotizacion.nombreTrabajo,
+    precioFinal: cotizacion.precioFinal,
+    moneda: cotizacion.moneda
+  });
+  return cotizacion;
 }
 
 function prepararCotizacionActual() {
@@ -2429,12 +2730,12 @@ function renderizarCotizacionCliente() {
               <td>${escaparHtml(datos.nombreTrabajo)}</td>
               <td>${escaparHtml(datos.descripcionTrabajo || "Sin descripción")}</td>
               <td class="quote-col-quantity">${datos.cantidad}</td>
-              <td class="quote-col-money">${formatearMoneda(datos.precioUnitario)}</td>
-              <td class="quote-col-money">${formatearMoneda(datos.precioFinal)}</td>
+              <td class="quote-col-money">${formatearMoneda(datos.precioUnitario, datos.moneda, true)}</td>
+              <td class="quote-col-money">${formatearMoneda(datos.precioFinal, datos.moneda, true)}</td>
             </tr>
           </tbody>
         </table>
-        <p class="print-quote__total">Total final: ${formatearMoneda(datos.precioFinal)}</p>
+        <p class="print-quote__total">Total final: ${formatearMoneda(datos.precioFinal, datos.moneda, true)}</p>
       </section>
 
       <section class="print-quote__section print-quote__conditions">
@@ -2525,8 +2826,8 @@ function renderizarUltimoCalculoGuardado() {
     <div class="result-summary">
       ${crearItemResumen("Fecha", fecha)}
       ${crearItemResumen("Modo", ultimo.modo === "avanzado" ? "Avanzado" : "Básico")}
-      ${crearItemResumen("Precio final", formatoComparadorMoneda(precioFinal))}
-      ${crearItemResumen("Costo total", formatoComparadorMoneda(costoTotal))}
+      ${crearItemResumen("Precio final", formatearMoneda(precioFinal, ultimo.moneda || ultimo.datos?.moneda || "CLP", true))}
+      ${crearItemResumen("Costo total", formatearMoneda(costoTotal, ultimo.moneda || ultimo.datos?.moneda || "CLP", true))}
     </div>
   `;
 }
@@ -2697,7 +2998,8 @@ function calcularModoAvanzado() {
   }
 }
 
-function limpiarFormulario() {
+function limpiarFormulario(opciones = {}) {
+  const monedaAnterior = obtenerCodigoMonedaActivo();
   trabajoCotizacionTemporal = null;
   document.querySelectorAll("input").forEach((input) => {
     input.value = "";
@@ -2707,8 +3009,9 @@ function limpiarFormulario() {
     select.selectedIndex = 0;
   });
 
-  currencySelect.value = "CLP";
-  currencySelectBasico.value = "CLP";
+  const monedaLimpieza = opciones.preservarMoneda === false ? "CLP" : monedaAnterior;
+  currencySelect.value = monedaLimpieza;
+  currencySelectBasico.value = monedaLimpieza;
   languageSelect.value = "es";
   languageSelectBasico.value = "es";
   metodoPagoComparador.value = "automatico";
@@ -2782,8 +3085,10 @@ modoCostoKiloAvanzado.addEventListener("click", () => cambiarModoCostoMaterial("
 document
   .querySelector("#costoUnidadAvanzado")
   .addEventListener("input", () => actualizarAyudaCostoMaterial("avanzado"));
-currencySelect.addEventListener("change", () => sincronizarMonedas(currencySelect));
-currencySelectBasico.addEventListener("change", () => sincronizarMonedas(currencySelectBasico));
+currencySelect.addEventListener("change", () => sincronizarMonedas(currencySelect, { manual: true }));
+currencySelectBasico.addEventListener("change", () => sincronizarMonedas(currencySelectBasico, { manual: true }));
+detectarMonedaAvanzado?.addEventListener("click", detectarMonedaNuevamente);
+detectarMonedaBasico?.addEventListener("click", detectarMonedaNuevamente);
 languageSelect.addEventListener("change", () => sincronizarIdiomas(languageSelect));
 languageSelectBasico.addEventListener("change", () => sincronizarIdiomas(languageSelectBasico));
 metodoPagoComparador.addEventListener("change", () => {
@@ -2795,21 +3100,60 @@ exportarConfiguracionButton.addEventListener("click", exportarConfiguracion);
 importarConfiguracionButton.addEventListener("click", () => importarConfiguracionInput.click());
 importarConfiguracionInput.addEventListener("change", importarConfiguracionDesdeArchivo);
 guardarTrabajoActualButton.addEventListener("click", guardarTrabajoActual);
+nuevoClienteDesdeTrabajoButton?.addEventListener("click", (event) => {
+  document.dispatchEvent(new CustomEvent("precio3d:abrir-nuevo-cliente", {
+    detail: {
+      cliente: trabajoCliente?.value ? { nombre: trabajoCliente.value } : null,
+      disparador: event.currentTarget
+    }
+  }));
+});
+trabajoClienteGuardado?.addEventListener("change", () => {
+  const cliente = obtenerClienteGuardado(trabajoClienteGuardado.value);
+  if (cliente) trabajoCliente.value = cliente.nombre;
+});
 exportarTrabajosButton.addEventListener("click", exportarTrabajosCSV);
 exportarTrabajosJsonButton.addEventListener("click", exportarTrabajosJSONDesdeUI);
 importarTrabajosButton.addEventListener("click", () => importarTrabajosInput.click());
 importarTrabajosInput.addEventListener("change", importarTrabajosDesdeArchivo);
 borrarTrabajosButton.addEventListener("click", borrarTodosLosTrabajos);
-trabajosListado.addEventListener("click", manejarAccionTrabajo);
-trabajosListado.addEventListener("change", manejarAccionTrabajo);
+window.PanelTrabajosPrecio3D?.inicializar({
+  cargarTrabajo: cargarTrabajoEnCalculadora,
+  generarCotizacion: prepararCotizacionDesdeTrabajo,
+  mostrarMensaje: mostrarMensajeTrabajos,
+  formatearMoneda
+});
 guardarDatosCotizacionButton.addEventListener("click", guardarDatosCotizacion);
 borrarDatosCotizacionButton.addEventListener("click", borrarDatosCotizacionGuardados);
+clienteGuardadoCotizacion?.addEventListener("change", () => {
+  const cliente = obtenerClienteGuardado(clienteGuardadoCotizacion.value);
+  aplicarClienteACotizacion(cliente);
+  actualizarVistaCotizacionSiExiste();
+});
+actualizarClienteDesdeCotizacionButton?.addEventListener("click", actualizarClienteDesdeCotizacion);
 generarCotizacionButton.addEventListener("click", renderizarCotizacionCliente);
 vistaPreviaCotizacionButton.addEventListener("click", renderizarCotizacionCliente);
 imprimirCotizacionButton.addEventListener("click", imprimirCotizacionCliente);
 nuevaCotizacionButton?.addEventListener("click", iniciarNuevaCotizacion);
 cargarUltimoCalculoButton.addEventListener("click", cargarUltimoCalculoGuardado);
 borrarUltimoCalculoButton.addEventListener("click", borrarUltimoCalculoGuardado);
+window.addEventListener("precio3d:clientes-actualizados", poblarSelectoresClientes);
+document.addEventListener("precio3d:usar-cliente-trabajo", (event) => {
+  seleccionarClienteTrabajo(event.detail?.cliente);
+});
+document.addEventListener("precio3d:usar-cliente-cotizacion", (event) => {
+  poblarSelectoresClientes();
+  aplicarClienteACotizacion(event.detail?.cliente);
+  actualizarVistaCotizacionSiExiste();
+});
+document.addEventListener("precio3d:cliente-eliminado", (event) => {
+  if (event.detail?.clienteId === clienteCotizacionSeleccionadoId) {
+    clienteCotizacionSeleccionadoId = "";
+    if (clienteGuardadoCotizacion) clienteGuardadoCotizacion.value = "";
+    actualizarClienteDesdeCotizacionButton.disabled = true;
+  }
+  renderizarTrabajos();
+});
 
 cargarMonedas();
 cargarIdiomas();
@@ -2826,6 +3170,7 @@ ultimosSupuestosBasicos = obtenerSupuestosBasicos();
 actualizarVistaPreviaMoneda();
 renderizarSupuestosBasicos(ultimosSupuestosBasicos);
 cargarConfiguracionInicial();
+inicializarDeteccionMoneda();
 cargarDatosCotizacionIniciales();
 renderizarUltimoCalculoGuardado();
 renderizarTrabajos();
