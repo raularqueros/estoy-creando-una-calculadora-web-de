@@ -23,6 +23,7 @@ const nuevoClienteDesdeTrabajoButton = document.querySelector("#nuevoClienteDesd
 const guardarTrabajoActualButton = document.querySelector("#guardarTrabajoActualButton");
 const guardarDesdeResultadoButton = document.querySelector("#guardarDesdeResultadoButton");
 const generarCotizacionDesdeResultadoButton = document.querySelector("#generarCotizacionDesdeResultadoButton");
+const agregarCalculoCotizacionButton = document.querySelector("#agregarCalculoCotizacionButton");
 const exportarTrabajosButton = document.querySelector("#exportarTrabajosButton");
 const exportarTrabajosJsonButton = document.querySelector("#exportarTrabajosJsonButton");
 const importarTrabajosButton = document.querySelector("#importarTrabajosButton");
@@ -68,7 +69,15 @@ const currencyDetectionStatusBasico = document.querySelector("#currencyDetection
 const detectarMonedaAvanzado = document.querySelector("#detectarMonedaAvanzado");
 const detectarMonedaBasico = document.querySelector("#detectarMonedaBasico");
 const materialBasico = document.querySelector("#materialBasico");
+const filamentoBasico = document.querySelector("#filamentoBasico");
+const filamentoResumenBasico = document.querySelector("#filamentoResumenBasico");
+const cambiarMonedaFilamentoBasico = document.querySelector("#cambiarMonedaFilamentoBasico");
+const usarCostoActualFilamentoBasico = document.querySelector("#usarCostoActualFilamentoBasico");
+const usarCostoManualBasico = document.querySelector("#usarCostoManualBasico");
 const impresoraBasico = document.querySelector("#impresoraBasico");
+const impresoraPerfilNotaBasico = document.querySelector("#impresoraPerfilNotaBasico");
+const usarValoresManualesBasico = document.querySelector("#usarValoresManualesBasico");
+const actualizarPerfilBasico = document.querySelector("#actualizarPerfilBasico");
 const canalVentaBasico = document.querySelector("#canalVentaBasico");
 const nivelTrabajoBasico = document.querySelector("#nivelTrabajoBasico");
 const manoObraSimpleBasico = document.querySelector("#manoObraSimpleBasico");
@@ -76,7 +85,14 @@ const modoCostoGramoBasico = document.querySelector("#modoCostoGramoBasico");
 const modoCostoKiloBasico = document.querySelector("#modoCostoKiloBasico");
 const costoUnidadHelpBasico = document.querySelector("#costoUnidadHelpBasico");
 const materialAvanzado = document.querySelector("#materialAvanzado");
+const filamentoAvanzado = document.querySelector("#filamentoAvanzado");
+const filamentoResumenAvanzado = document.querySelector("#filamentoResumenAvanzado");
+const cambiarMonedaFilamentoAvanzado = document.querySelector("#cambiarMonedaFilamentoAvanzado");
+const usarCostoActualFilamentoAvanzado = document.querySelector("#usarCostoActualFilamentoAvanzado");
+const usarCostoManualAvanzado = document.querySelector("#usarCostoManualAvanzado");
 const impresoraAvanzado = document.querySelector("#impresoraAvanzado");
+const impresoraPerfilNotaAvanzado = document.querySelector("#impresoraPerfilNotaAvanzado");
+const actualizarPerfilAvanzado = document.querySelector("#actualizarPerfilAvanzado");
 const canalVentaAvanzado = document.querySelector("#canalVentaAvanzado");
 const modoCostoGramoAvanzado = document.querySelector("#modoCostoGramoAvanzado");
 const modoCostoKiloAvanzado = document.querySelector("#modoCostoKiloAvanzado");
@@ -128,6 +144,10 @@ let ultimoModoCalculo = null;
 let trabajoCotizacionTemporal = null;
 let numeroCotizacionActual = null;
 let referenciaCotizacionActual = null;
+let impresoraTrabajoCargada = null;
+let impresoraTrabajoCargadaId = "";
+let filamentoTrabajoCargado = null;
+let filamentoTrabajoCargadoId = "";
 let guardadoPausado = true;
 let temporizadorGuardado = null;
 let avisoStorageMostrado = false;
@@ -151,6 +171,7 @@ function actualizarBotonesGuardarTrabajo(habilitado) {
 actualizarBotonesGuardarTrabajo(false);
 
 function actualizarBotonesCotizacion(habilitado) {
+  const cotizacionConItems = Boolean(window.PanelCotizacionesPrecio3D?.obtenerActual?.()?.items?.length);
   [
     generarCotizacionButton,
     vistaPreviaCotizacionButton,
@@ -158,15 +179,21 @@ function actualizarBotonesCotizacion(habilitado) {
     generarCotizacionDesdeResultadoButton
   ].forEach((boton) => {
     if (boton) {
-      boton.disabled = !habilitado;
+      boton.disabled = !(habilitado || cotizacionConItems);
     }
   });
 
+  if (agregarCalculoCotizacionButton) {
+    agregarCalculoCotizacionButton.disabled = !habilitado;
+  }
+
   if (cotizacionMessage) {
-    cotizacionMessage.classList.toggle("empty-state", !habilitado);
-    cotizacionMessage.textContent = habilitado
-      ? "El cálculo está listo para generar una cotización."
-      : "Primero realiza un cálculo para generar una cotización.";
+    cotizacionMessage.classList.toggle("empty-state", !(habilitado || cotizacionConItems));
+    cotizacionMessage.textContent = cotizacionConItems
+      ? "La cotización comercial está lista para revisar o imprimir."
+      : habilitado
+        ? "El cálculo está listo para generar una cotización."
+        : "Primero realiza un cálculo para generar una cotización.";
   }
 }
 
@@ -588,6 +615,7 @@ function aplicarConfiguracion(configuracion, mostrarMensaje = false, opciones = 
   actualizarVistaPreviaMoneda();
   ultimosSupuestosBasicos = obtenerSupuestosBasicos();
   renderizarSupuestosBasicos(ultimosSupuestosBasicos);
+  actualizarResumenFilamento("basico");
   cambiarModo(configuracion.modoActual === "avanzado" ? "avanzado" : "basico");
   window.cambiarIdioma(languageSelectBasico.value || "es");
 
@@ -766,6 +794,76 @@ function cargarSelectorPreset(selector, lista) {
   });
 }
 
+function obtenerPerfilImpresora(selector) {
+  const valor = selector?.value || "";
+  if (!valor.startsWith("perfil:")) return null;
+  return window.ImpresorasPrecio3D?.obtenerImpresoraPorId(valor.slice(7)) || null;
+}
+
+function crearSnapshotImpresora(impresora, modo = "") {
+  const origen = impresoraTrabajoCargada || impresora;
+  if (!origen) return null;
+  const snapshot = {
+    nombre: origen.nombre,
+    marca: origen.marca,
+    modelo: origen.modelo,
+    variante: origen.variante || "",
+    tecnologia: origen.tecnologia,
+    costoCompra: Number(origen.costoCompra) || 0,
+    monedaCompra: origen.monedaCompra || "CLP",
+    costoHerramientas: Number(origen.costoHerramientas) || 0,
+    potenciaPromedioWatts: Number(origen.potenciaPromedioWatts) || 0,
+    anosVidaUtil: Number(origen.anosVidaUtil) || 0,
+    diasOperativosAno: Number(origen.diasOperativosAno) || 0,
+    horasProductivasDia: Number(origen.horasProductivasDia) || 0,
+    porcentajeMantenimiento: Number(origen.porcentajeMantenimiento) || 0,
+    costoHoraEstimado: Number(origen.costoHoraEstimado) || null
+  };
+
+  if (modo === "basico" || modo === "avanzado") {
+    const sufijo = modo === "basico" ? "Basico" : "Avanzado";
+    snapshot.costoCompra = leerNumero(`costoImpresora${sufijo}`);
+    snapshot.costoHerramientas = leerNumero(`costoHerramientas${sufijo}`);
+    snapshot.potenciaPromedioWatts = leerNumero(`wattsPromedio${sufijo}`);
+    snapshot.anosVidaUtil = leerNumero(`anosVida${sufijo}`);
+    snapshot.diasOperativosAno = leerNumero(`diasOperativosAno${sufijo}`);
+    snapshot.horasProductivasDia = leerNumero(`horasProductivasDia${sufijo}`);
+    snapshot.porcentajeMantenimiento = leerPorcentaje(`mantenimiento${sufijo}`);
+    snapshot.costoHoraEstimado = window.ImpresorasPrecio3D?.calcularCostoHoraEstimado(snapshot);
+  }
+
+  return snapshot;
+}
+
+function cargarSelectorPerfilesImpresora(selector) {
+  if (!selector) return;
+  const anterior = selector.value;
+  const perfiles = (window.ImpresorasPrecio3D?.obtenerImpresoras() || []).filter((item) => item.estado === "Activa");
+  const predeterminada = perfiles.find((item) => item.esPredeterminada);
+  selector.innerHTML = "";
+  perfiles.forEach((perfil) => {
+    const option = document.createElement("option");
+    option.value = `perfil:${perfil.id}`;
+    option.textContent = perfil.esPredeterminada ? `Predeterminada · ${perfil.nombre}` : perfil.nombre;
+    selector.appendChild(option);
+  });
+  [["manual", "Configuración manual"], ["ninguna", "Sin impresora seleccionada"]].forEach(([value, label]) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    selector.appendChild(option);
+  });
+  const valores = [...selector.options].map((option) => option.value);
+  selector.value = valores.includes(anterior)
+    ? anterior
+    : predeterminada ? `perfil:${predeterminada.id}` : "manual";
+}
+
+function cargarSelectoresPerfilesImpresora() {
+  cargarSelectorPerfilesImpresora(impresoraBasico);
+  cargarSelectorPerfilesImpresora(impresoraAvanzado);
+}
+
 function cargarMonedas() {
   cargarSelectorMonedas(currencySelect);
   cargarSelectorMonedas(currencySelectBasico);
@@ -785,8 +883,7 @@ function cargarPresetsVisuales() {
 
   cargarSelectorPreset(materialBasico, presets.materiales);
   cargarSelectorPreset(materialAvanzado, presets.materiales);
-  cargarSelectorPreset(impresoraBasico, presets.impresoras);
-  cargarSelectorPreset(impresoraAvanzado, presets.impresoras);
+  cargarSelectoresPerfilesImpresora();
   cargarSelectorPreset(canalVentaBasico, presets.canalesVenta);
   cargarSelectorPreset(canalVentaAvanzado, presets.canalesVenta);
 }
@@ -1103,6 +1200,219 @@ function alternarSupuestosEditables() {
   indicador.textContent = estaAbierto ? "Mostrar" : "Ocultar";
 }
 
+function obtenerControlesFilamento(modo) {
+  const esBasico = modo === "basico";
+  return {
+    selector: esBasico ? filamentoBasico : filamentoAvanzado,
+    resumen: esBasico ? filamentoResumenBasico : filamentoResumenAvanzado,
+    acciones: (esBasico ? filamentoResumenBasico : filamentoResumenAvanzado)?.nextElementSibling,
+    botonMoneda: esBasico ? cambiarMonedaFilamentoBasico : cambiarMonedaFilamentoAvanzado,
+    botonCostoActual: esBasico ? usarCostoActualFilamentoBasico : usarCostoActualFilamentoAvanzado,
+    botonManual: esBasico ? usarCostoManualBasico : usarCostoManualAvanzado,
+    moneda: esBasico ? currencySelectBasico : currencySelect,
+    material: esBasico ? materialBasico : materialAvanzado
+  };
+}
+
+function obtenerBobinasDisponibles() {
+  return (window.FilamentosPrecio3D?.obtenerBobinas?.() || []).filter((bobina) =>
+    ["Sellada", "En uso"].includes(bobina.estado) && Number(bobina.pesoRestanteGramos) > 0
+  );
+}
+
+function textoOpcionBobina(bobina) {
+  const costo = window.FilamentosPrecio3D?.calcularCostoPorGramo?.(bobina) || Number(bobina.costoPorGramo) || 0;
+  const identidad = [bobina.materialNombre, bobina.marca, bobina.colorNombre].filter(Boolean).join(" · ");
+  return `${identidad || bobina.nombre || "Bobina"} — ${Number(bobina.pesoRestanteGramos) || 0} g — ${costo.toLocaleString("es-CL", { maximumFractionDigits: 4 })} ${bobina.monedaCompra || "CLP"}/g`;
+}
+
+function cargarSelectoresFilamentos() {
+  ["basico", "avanzado"].forEach((modo) => {
+    const { selector } = obtenerControlesFilamento(modo);
+    if (!selector) return;
+    const valorActual = selector.value;
+    selector.innerHTML = "";
+    selector.add(new Option("Sin bobina / costo manual", ""));
+    obtenerBobinasDisponibles().forEach((bobina) => selector.add(new Option(textoOpcionBobina(bobina), bobina.id)));
+    if (filamentoTrabajoCargadoId && !Array.from(selector.options).some((opcion) => opcion.value === filamentoTrabajoCargadoId)) {
+      const nombre = filamentoTrabajoCargado?.nombre || filamentoTrabajoCargado?.materialNombre || "Bobina histórica";
+      selector.add(new Option(`${nombre} — referencia histórica no disponible`, filamentoTrabajoCargadoId));
+    }
+    selector.value = Array.from(selector.options).some((opcion) => opcion.value === valorActual)
+      ? valorActual
+      : filamentoTrabajoCargadoId || "";
+  });
+  actualizarResumenFilamento("basico");
+  actualizarResumenFilamento("avanzado");
+}
+
+function obtenerFuenteFilamento(modo) {
+  const { selector } = obtenerControlesFilamento(modo);
+  const id = selector?.value || "";
+  if (!id) return null;
+  if (id === filamentoTrabajoCargadoId && filamentoTrabajoCargado) {
+    return { id, bobina: window.FilamentosPrecio3D?.obtenerBobinaPorId?.(id) || null, snapshot: filamentoTrabajoCargado };
+  }
+  const bobina = window.FilamentosPrecio3D?.obtenerBobinaPorId?.(id) || null;
+  return bobina ? { id, bobina, snapshot: null } : null;
+}
+
+function estimarConsumoFilamento(modo) {
+  const esBasico = modo === "basico";
+  const sufijo = esBasico ? "Basico" : "Avanzado";
+  const cantidad = Math.max(1, leerNumero(`cantidad${sufijo}`) || 1);
+  const peso = (leerNumero(`pesoPieza${sufijo}`) + leerNumero(`pesoSoportesPurga${sufijo}`)) * cantidad;
+  let merma = 0;
+  if (esBasico) {
+    merma = leerPorcentaje("mermaBasico");
+  } else {
+    const material = obtenerPorId(obtenerPresets()?.materiales, materialAvanzado?.value);
+    merma = Number(material?.mermaSugerida) || Number(obtenerPresets()?.supuestosBasicos?.merma) || 0;
+  }
+  return peso * (1 + merma);
+}
+
+function actualizarResumenFilamento(modo) {
+  const controles = obtenerControlesFilamento(modo);
+  const fuente = obtenerFuenteFilamento(modo);
+  if (!controles.resumen) return;
+  if (!fuente) {
+    controles.resumen.classList.remove("warning-text");
+    controles.resumen.textContent = "Selecciona una bobina para usar su costo por gramo y estimar el consumo.";
+    if (controles.acciones) controles.acciones.hidden = true;
+    return;
+  }
+
+  const referencia = fuente.snapshot || fuente.bobina;
+  const monedaBobina = String(referencia.monedaCompra || "CLP").toUpperCase();
+  const monedaCalculo = String(controles.moneda?.value || "CLP").toUpperCase();
+  const costoActual = fuente.snapshot
+    ? Number(fuente.snapshot.costoPorGramoUsado ?? fuente.snapshot.costoPorGramo) || 0
+    : window.FilamentosPrecio3D?.calcularCostoPorGramo?.(fuente.bobina) || 0;
+  const consumo = estimarConsumoFilamento(modo);
+  const stock = Number(fuente.bobina?.pesoRestanteGramos ?? referencia.pesoDisponibleAlCalcular ?? referencia.pesoRestanteAlCalcular) || 0;
+
+  if (monedaBobina !== monedaCalculo) {
+    controles.resumen.classList.add("warning-text");
+    controles.resumen.textContent = `La bobina está registrada en ${monedaBobina} y el cálculo utiliza ${monedaCalculo}. Selecciona una moneda compatible o ingresa manualmente el costo por gramo.`;
+    if (controles.botonMoneda) controles.botonMoneda.hidden = false;
+    if (controles.botonCostoActual) controles.botonCostoActual.hidden = true;
+    if (controles.botonManual) controles.botonManual.hidden = false;
+    if (controles.acciones) controles.acciones.hidden = false;
+    return;
+  }
+
+  const stockInsuficiente = Boolean(fuente.bobina && consumo > stock);
+  const stockBajo = Boolean(fuente.bobina && window.FilamentosPrecio3D?.tieneStockBajo?.(fuente.bobina));
+  controles.resumen.classList.toggle("warning-text", stockInsuficiente || stockBajo);
+  const avisoStock = stockInsuficiente
+    ? " El consumo estimado supera el stock disponible de esta bobina."
+    : fuente.bobina ? " Stock suficiente para este cálculo." : " La bobina original ya no está disponible.";
+  const avisoStockBajo = stockBajo ? " Esta bobina tiene stock bajo." : "";
+  const costoVigente = fuente.snapshot && fuente.bobina
+    ? window.FilamentosPrecio3D?.calcularCostoPorGramo?.(fuente.bobina) || 0
+    : costoActual;
+  const diferenciaCosto = fuente.snapshot && fuente.bobina && Math.abs(costoVigente - costoActual) > 0.000001
+    ? ` Costo vigente: ${costoVigente.toLocaleString("es-CL", { maximumFractionDigits: 4 })} ${monedaBobina}/g; se conserva el costo histórico.`
+    : "";
+  const stockMinimo = Number(fuente.bobina?.stockMinimoGramos ?? referencia.stockMinimoGramos) || 0;
+  const estado = fuente.bobina?.estado || referencia.estadoAlCalcular || "No disponible";
+  controles.resumen.textContent = `${referencia.materialNombre || referencia.nombre || "Bobina"}${referencia.colorNombre ? ` ${referencia.colorNombre}` : ""}${referencia.marca ? ` · ${referencia.marca}` : ""}. Costo cargado desde la bobina seleccionada: ${costoActual.toLocaleString("es-CL", { maximumFractionDigits: 4 })} ${monedaBobina}/g. Disponible: ${stock.toLocaleString("es-CL", { maximumFractionDigits: 2 })} g. Stock mínimo: ${stockMinimo.toLocaleString("es-CL")} g. Estado: ${estado}. Consumo estimado de inventario: ${consumo.toLocaleString("es-CL", { maximumFractionDigits: 2 })} g.${diferenciaCosto}${avisoStock}${avisoStockBajo}`;
+  if (controles.botonMoneda) controles.botonMoneda.hidden = true;
+  if (controles.botonCostoActual) controles.botonCostoActual.hidden = !diferenciaCosto;
+  if (controles.botonManual) controles.botonManual.hidden = !diferenciaCosto;
+  if (controles.acciones) controles.acciones.hidden = !diferenciaCosto;
+}
+
+function aplicarFilamentoSeleccionado(modo) {
+  const controles = obtenerControlesFilamento(modo);
+  const fuente = obtenerFuenteFilamento(modo);
+  if (!fuente) {
+    filamentoTrabajoCargado = null;
+    filamentoTrabajoCargadoId = "";
+    actualizarResumenFilamento(modo);
+    return;
+  }
+  if (fuente.id !== filamentoTrabajoCargadoId) {
+    filamentoTrabajoCargado = null;
+    filamentoTrabajoCargadoId = "";
+  }
+  const referencia = fuente.snapshot || fuente.bobina;
+  if (String(referencia.monedaCompra || "CLP").toUpperCase() !== String(controles.moneda?.value || "CLP").toUpperCase()) {
+    actualizarResumenFilamento(modo);
+    return;
+  }
+  const costo = fuente.snapshot
+    ? Number(fuente.snapshot.costoPorGramoUsado ?? fuente.snapshot.costoPorGramo) || 0
+    : window.FilamentosPrecio3D?.calcularCostoPorGramo?.(fuente.bobina) || 0;
+  const materialId = referencia.materialId || "";
+  if (materialId && Array.from(controles.material?.options || []).some((opcion) => opcion.value === materialId)) {
+    controles.material.value = materialId;
+  } else if (referencia.materialNombre) {
+    asignarSelectPorTexto(controles.material?.id, referencia.materialNombre);
+  }
+  cambiarModoCostoMaterial(modo, false);
+  escribirCostoMaterialDesdeGramo(modo, costo);
+  actualizarResumenFilamento(modo);
+}
+
+function usarCostoManualFilamento(modo) {
+  const { selector } = obtenerControlesFilamento(modo);
+  if (selector) selector.value = "";
+  filamentoTrabajoCargado = null;
+  filamentoTrabajoCargadoId = "";
+  actualizarResumenFilamento(modo);
+}
+
+function usarMonedaDeFilamento(modo) {
+  const controles = obtenerControlesFilamento(modo);
+  const fuente = obtenerFuenteFilamento(modo);
+  const moneda = String((fuente?.snapshot || fuente?.bobina)?.monedaCompra || "").toUpperCase();
+  if (!moneda || !controles.moneda) return;
+  controles.moneda.value = moneda;
+  sincronizarMonedas(controles.moneda, { manual: true });
+  aplicarFilamentoSeleccionado(modo);
+}
+
+function usarCostoActualFilamento(modo) {
+  const { selector } = obtenerControlesFilamento(modo);
+  const id = selector?.value || "";
+  const bobina = window.FilamentosPrecio3D?.obtenerBobinaPorId?.(id);
+  if (!bobina) return;
+  filamentoTrabajoCargado = null;
+  filamentoTrabajoCargadoId = "";
+  cambiarModoCostoMaterial(modo, false);
+  escribirCostoMaterialDesdeGramo(modo, window.FilamentosPrecio3D.calcularCostoPorGramo(bobina));
+  actualizarResumenFilamento(modo);
+}
+
+function crearSnapshotFilamento(modo, costoPorGramoUsado) {
+  const fuente = obtenerFuenteFilamento(modo);
+  if (!fuente) return null;
+  const referencia = fuente.snapshot || fuente.bobina;
+  const monedaCalculo = String(obtenerControlesFilamento(modo).moneda?.value || "CLP").toUpperCase();
+  if (String(referencia.monedaCompra || "CLP").toUpperCase() !== monedaCalculo) return null;
+  return {
+    id: fuente.id,
+    nombre: referencia.nombre || "",
+    marca: referencia.marca || "",
+    materialId: referencia.materialId || "",
+    materialNombre: referencia.materialNombre || "",
+    varianteMaterial: referencia.varianteMaterial || "",
+    colorNombre: referencia.colorNombre || "",
+    diametroMm: referencia.diametroMm || "",
+    monedaCompra: referencia.monedaCompra || monedaCalculo,
+    costoPorGramo: Number(costoPorGramoUsado) || 0,
+    costoPorGramoUsado: Number(costoPorGramoUsado) || 0,
+    pesoDisponibleAlCalcular: Number(fuente.bobina?.pesoRestanteGramos ?? referencia.pesoDisponibleAlCalcular ?? referencia.pesoRestanteAlCalcular) || 0,
+    pesoRestanteAlCalcular: Number(fuente.bobina?.pesoRestanteGramos ?? referencia.pesoRestanteAlCalcular ?? referencia.pesoDisponibleAlCalcular) || 0,
+    stockMinimoGramos: Number(fuente.bobina?.stockMinimoGramos ?? referencia.stockMinimoGramos) || 0,
+    consumoEstimadoGramos: estimarConsumoFilamento(modo),
+    estadoAlCalcular: fuente.bobina?.estado || referencia.estadoAlCalcular || "No disponible",
+    fechaSnapshot: new Date().toISOString()
+  };
+}
+
 function aplicarMaterialBasico() {
   const presets = obtenerPresets();
   const material = obtenerPorId(presets?.materiales, materialBasico.value);
@@ -1115,31 +1425,40 @@ function aplicarMaterialBasico() {
   document.querySelector("#mermaBasico").value = (Number(material.mermaSugerida) * 100).toFixed(1);
   ultimosSupuestosBasicos = obtenerSupuestosBasicos();
   renderizarSupuestosBasicos(ultimosSupuestosBasicos);
+  actualizarResumenFilamento("basico");
 }
 
 function aplicarImpresoraBasico() {
   const presets = obtenerPresets();
   const base = presets?.supuestosBasicos;
-  const impresora = obtenerPorId(presets?.impresoras, impresoraBasico.value);
+  const impresora = obtenerPerfilImpresora(impresoraBasico);
 
   if (!base) {
     return;
   }
 
-  document.querySelector("#wattsPromedioBasico").value = impresora?.wattsPromedio || base.wattsPromedio;
+  if (!impresora) {
+    impresoraTrabajoCargada = null;
+    impresoraTrabajoCargadaId = "";
+    if (impresoraPerfilNotaBasico) impresoraPerfilNotaBasico.textContent = impresoraBasico.value === "ninguna"
+      ? "No hay una impresora asociada. Se mantendrán los valores visibles."
+      : "Estás usando valores manuales para esta cotización.";
+    if (actualizarPerfilBasico) actualizarPerfilBasico.hidden = true;
+    return;
+  }
+
+  impresoraTrabajoCargada = null;
+  impresoraTrabajoCargadaId = "";
+  document.querySelector("#wattsPromedioBasico").value = impresora.potenciaPromedioWatts;
   document.querySelector("#tarifaKwhBasico").value = base.tarifaKwh;
-  document.querySelector("#costoImpresoraBasico").value =
-    impresora?.costoImpresora || base.costoImpresora;
-  document.querySelector("#costoHerramientasBasico").value =
-    impresora?.costoHerramientas || base.costoHerramientas;
-  document.querySelector("#anosVidaBasico").value = impresora?.anosVida || base.anosVida;
-  document.querySelector("#diasOperativosAnoBasico").value =
-    impresora?.diasOperativosAno || base.diasOperativosAno;
-  document.querySelector("#horasProductivasDiaBasico").value =
-    impresora?.horasProductivasDia || base.horasProductivasDia;
-  document.querySelector("#mantenimientoBasico").value = (
-    Number(impresora?.mantenimiento ?? base.mantenimiento) * 100
-  ).toFixed(1);
+  document.querySelector("#costoImpresoraBasico").value = impresora.costoCompra;
+  document.querySelector("#costoHerramientasBasico").value = impresora.costoHerramientas;
+  document.querySelector("#anosVidaBasico").value = impresora.anosVidaUtil;
+  document.querySelector("#diasOperativosAnoBasico").value = impresora.diasOperativosAno;
+  document.querySelector("#horasProductivasDiaBasico").value = impresora.horasProductivasDia;
+  document.querySelector("#mantenimientoBasico").value = (Number(impresora.porcentajeMantenimiento) * 100).toFixed(1);
+  if (impresoraPerfilNotaBasico) impresoraPerfilNotaBasico.textContent = `Se utilizarán los costos y consumo guardados en “${impresora.nombre}”. Puedes editarlos solo para esta cotización.`;
+  if (actualizarPerfilBasico) actualizarPerfilBasico.hidden = false;
   ultimosSupuestosBasicos = obtenerSupuestosBasicos();
   renderizarSupuestosBasicos(ultimosSupuestosBasicos);
 }
@@ -1163,23 +1482,31 @@ function aplicarMaterialAvanzado() {
   if (material) {
     escribirCostoMaterialDesdeGramo("avanzado", material.costoUnidad);
   }
+  actualizarResumenFilamento("avanzado");
 }
 
 function aplicarImpresoraAvanzado() {
-  const presets = obtenerPresets();
-  const impresora = obtenerPorId(presets?.impresoras, impresoraAvanzado.value);
+  const impresora = obtenerPerfilImpresora(impresoraAvanzado);
 
   if (!impresora) {
+    impresoraTrabajoCargada = null;
+    impresoraTrabajoCargadaId = "";
+    if (impresoraPerfilNotaAvanzado) impresoraPerfilNotaAvanzado.textContent = "Valores manuales. Los cambios afectan solo a esta cotización.";
+    if (actualizarPerfilAvanzado) actualizarPerfilAvanzado.hidden = true;
     return;
   }
 
-  document.querySelector("#wattsPromedioAvanzado").value = impresora.wattsPromedio;
-  document.querySelector("#costoImpresoraAvanzado").value = impresora.costoImpresora;
+  impresoraTrabajoCargada = null;
+  impresoraTrabajoCargadaId = "";
+  document.querySelector("#wattsPromedioAvanzado").value = impresora.potenciaPromedioWatts;
+  document.querySelector("#costoImpresoraAvanzado").value = impresora.costoCompra;
   document.querySelector("#costoHerramientasAvanzado").value = impresora.costoHerramientas;
-  document.querySelector("#anosVidaAvanzado").value = impresora.anosVida;
+  document.querySelector("#anosVidaAvanzado").value = impresora.anosVidaUtil;
   document.querySelector("#diasOperativosAnoAvanzado").value = impresora.diasOperativosAno;
   document.querySelector("#horasProductivasDiaAvanzado").value = impresora.horasProductivasDia;
-  document.querySelector("#mantenimientoAvanzado").value = (Number(impresora.mantenimiento) * 100).toFixed(1);
+  document.querySelector("#mantenimientoAvanzado").value = (Number(impresora.porcentajeMantenimiento) * 100).toFixed(1);
+  if (impresoraPerfilNotaAvanzado) impresoraPerfilNotaAvanzado.textContent = `Valores cargados desde “${impresora.nombre}”. Permanecen editables para esta cotización.`;
+  if (actualizarPerfilAvanzado) actualizarPerfilAvanzado.hidden = false;
 }
 
 function aplicarCanalAvanzado() {
@@ -1277,10 +1604,17 @@ function construirDatosBasicos() {
 
   const cantidad = Math.max(1, leerNumero("cantidadBasico") || 1);
   const manoObraTotal = leerNumero("manoObraSimpleBasico") * cantidad;
+  const perfilImpresora = obtenerPerfilImpresora(impresoraBasico);
+  const costoUnidad = leerCostoMaterialPorGramo("basico");
+  const filamentoSnapshot = crearSnapshotFilamento("basico", costoUnidad);
 
   return {
     datos: {
       nombreTrabajo: obtenerNombreTrabajo("nombreTrabajoBasico"),
+      impresoraId: perfilImpresora?.id || impresoraTrabajoCargadaId || null,
+      impresoraSnapshot: crearSnapshotImpresora(perfilImpresora, "basico"),
+      filamentoId: filamentoSnapshot?.id || "",
+      filamentoSnapshot,
       cliente: "",
       cantidadProductos: cantidad,
       material: textoSeleccionado("materialBasico"),
@@ -1289,7 +1623,7 @@ function construirDatosBasicos() {
       moneda: currencySelectBasico?.value || "CLP",
       pesoPieza: leerNumero("pesoPiezaBasico") * cantidad,
       pesoSoportesPurga: leerNumero("pesoSoportesPurgaBasico") * cantidad,
-      costoUnidad: leerCostoMaterialPorGramo("basico"),
+      costoUnidad,
       merma: supuestos.merma,
       horasImpresion:
         leerHorasYMinutos("horasImpresionHorasBasico", "horasImpresionMinutosBasico") * cantidad,
@@ -1328,13 +1662,20 @@ function construirDatosAvanzados() {
   }
 
   const cantidad = Math.max(1, leerNumero("cantidadAvanzado") || 1);
+  const perfilImpresora = obtenerPerfilImpresora(impresoraAvanzado);
   const material = obtenerPorId(presets.materiales, materialAvanzado.value);
   const impresora = obtenerPorId(presets.impresoras, impresoraAvanzado.value);
   const supuestos = { ...presets.supuestosBasicos, ...(impresora || {}) };
+  const costoUnidad = leerCostoMaterialPorGramo("avanzado");
+  const filamentoSnapshot = crearSnapshotFilamento("avanzado", costoUnidad);
 
   return {
     datos: {
       nombreTrabajo: obtenerNombreTrabajo("nombreTrabajoAvanzado"),
+      impresoraId: perfilImpresora?.id || impresoraTrabajoCargadaId || null,
+      impresoraSnapshot: crearSnapshotImpresora(perfilImpresora, "avanzado"),
+      filamentoId: filamentoSnapshot?.id || "",
+      filamentoSnapshot,
       cliente: valorCampo("clienteAvanzado").trim(),
       cantidadProductos: cantidad,
       material: textoSeleccionado("materialAvanzado"),
@@ -1343,18 +1684,30 @@ function construirDatosAvanzados() {
       moneda: currencySelect?.value || "CLP",
       pesoPieza: leerNumero("pesoPiezaAvanzado") * cantidad,
       pesoSoportesPurga: leerNumero("pesoSoportesPurgaAvanzado") * cantidad,
-      costoUnidad: leerCostoMaterialPorGramo("avanzado"),
+      costoUnidad,
       merma: Number(material?.mermaSugerida) || supuestos.merma,
       horasImpresion:
         leerHorasYMinutos("horasImpresionHorasAvanzado", "horasImpresionMinutosAvanzado") * cantidad,
-      wattsPromedio: leerNumero("wattsPromedioAvanzado") || supuestos.wattsPromedio,
-      tarifaKwh: leerNumero("tarifaKwhAvanzado") || supuestos.tarifaKwh,
-      costoImpresora: leerNumero("costoImpresoraAvanzado") || supuestos.costoImpresora,
-      costoHerramientas: leerNumero("costoHerramientasAvanzado") || supuestos.costoHerramientas,
+      wattsPromedio: tieneValor("wattsPromedioAvanzado")
+        ? leerNumero("wattsPromedioAvanzado")
+        : supuestos.wattsPromedio,
+      tarifaKwh: tieneValor("tarifaKwhAvanzado")
+        ? leerNumero("tarifaKwhAvanzado")
+        : supuestos.tarifaKwh,
+      costoImpresora: tieneValor("costoImpresoraAvanzado")
+        ? leerNumero("costoImpresoraAvanzado")
+        : supuestos.costoImpresora,
+      costoHerramientas: tieneValor("costoHerramientasAvanzado")
+        ? leerNumero("costoHerramientasAvanzado")
+        : supuestos.costoHerramientas,
       mantenimiento: leerPorcentajeConFallback("mantenimientoAvanzado", supuestos.mantenimiento),
-      anosVida: leerNumero("anosVidaAvanzado") || supuestos.anosVida,
-      diasOperativosAno: leerNumero("diasOperativosAnoAvanzado") || supuestos.diasOperativosAno,
-      horasProductivasDia: leerNumero("horasProductivasDiaAvanzado") || supuestos.horasProductivasDia,
+      anosVida: tieneValor("anosVidaAvanzado") ? leerNumero("anosVidaAvanzado") : supuestos.anosVida,
+      diasOperativosAno: tieneValor("diasOperativosAnoAvanzado")
+        ? leerNumero("diasOperativosAnoAvanzado")
+        : supuestos.diasOperativosAno,
+      horasProductivasDia: tieneValor("horasProductivasDiaAvanzado")
+        ? leerNumero("horasProductivasDiaAvanzado")
+        : supuestos.horasProductivasDia,
       horasPreparacion: leerHoras("horasPreparacionAvanzado"),
       horasPostprocesado: leerHoras("horasPostprocesadoAvanzado") * cantidad,
       horasQA: supuestos.horasQA,
@@ -1839,7 +2192,7 @@ function construirTrabajoActual() {
   const clienteGuardado = obtenerClienteGuardado(clienteId);
   const nombreCliente = clienteGuardado?.nombre || valorCampo("trabajoCliente").trim() || ultimoDatosCalculo.cliente || "";
 
-  return {
+  const cotizacion = {
     nombreTrabajo: ultimoDatosCalculo.nombreTrabajo || "Trabajo sin nombre",
     cliente: nombreCliente,
     clienteId: clienteGuardado?.id || "",
@@ -1853,11 +2206,27 @@ function construirTrabajoActual() {
     costoTotal: ultimoResultadoCalculo.costoTotal,
     utilidadObjetivo: obtenerUtilidadEstimada(ultimoResultadoCalculo),
     margenReal: obtenerMargenRealDesdeResultado(ultimoResultadoCalculo),
+    impresoraId: ultimoDatosCalculo.impresoraId || "",
+    impresoraSnapshot: ultimoDatosCalculo.impresoraSnapshot
+      ? { ...ultimoDatosCalculo.impresoraSnapshot }
+      : null,
+    filamentoId: ultimoDatosCalculo.filamentoId || "",
+    filamentoSnapshot: ultimoDatosCalculo.filamentoSnapshot
+      ? { ...ultimoDatosCalculo.filamentoSnapshot }
+      : null,
+    consumoInventario: {
+      registrado: false,
+      estado: "No registrado",
+      totalRegistradoGramos: 0,
+      movimientosIds: [],
+      fechaUltimoRegistro: null
+    },
     moneda: ultimoDatosCalculo.moneda || obtenerCodigoMonedaActivo(),
     numeroCotizacion: numeroCotizacionActual || "",
     datos: { ...ultimoDatosCalculo, cliente: nombreCliente, clienteId: clienteGuardado?.id || "" },
     resultado: { ...ultimoResultadoCalculo }
   };
+  return cotizacion;
 }
 
 function renderizarResumenTrabajos(trabajos) {
@@ -1982,6 +2351,21 @@ function cargarTrabajoEnCalculadora(trabajo) {
   const monedaTrabajo = trabajo.moneda || datos.moneda || "CLP";
   ultimoDatosCalculo.moneda = monedaTrabajo;
   const cantidad = Math.max(1, Number(datos.cantidadProductos) || 1);
+  const impresoraIdTrabajo = trabajo.impresoraId || datos.impresoraId || "";
+  const snapshotTrabajo = trabajo.impresoraSnapshot || datos.impresoraSnapshot || null;
+  const perfilTrabajo = impresoraIdTrabajo
+    ? window.ImpresorasPrecio3D?.obtenerImpresoraPorId(impresoraIdTrabajo)
+    : null;
+  impresoraTrabajoCargada = snapshotTrabajo ? { ...snapshotTrabajo } : null;
+  impresoraTrabajoCargadaId = impresoraIdTrabajo;
+  const valorSelectorImpresora = perfilTrabajo ? `perfil:${perfilTrabajo.id}` : "manual";
+  if (impresoraBasico) impresoraBasico.value = valorSelectorImpresora;
+  if (impresoraAvanzado) impresoraAvanzado.value = valorSelectorImpresora;
+  filamentoTrabajoCargadoId = trabajo.filamentoId || datos.filamentoId || "";
+  filamentoTrabajoCargado = trabajo.filamentoSnapshot || datos.filamentoSnapshot || null;
+  cargarSelectoresFilamentos();
+  if (filamentoBasico) filamentoBasico.value = filamentoTrabajoCargadoId;
+  if (filamentoAvanzado) filamentoAvanzado.value = filamentoTrabajoCargadoId;
 
   cambiarModo(ultimoModoCalculo);
 
@@ -2050,6 +2434,12 @@ function cargarTrabajoEnCalculadora(trabajo) {
     asignarValorCampo("mantenimientoBasico", (Number(datos.mantenimiento) || 0) * 100);
   }
 
+  const nombreImpresoraTrabajo = snapshotTrabajo?.nombre || perfilTrabajo?.nombre || "configuración manual";
+  if (impresoraPerfilNotaBasico) impresoraPerfilNotaBasico.textContent = `Valores restaurados desde el trabajo: ${nombreImpresoraTrabajo}.`;
+  if (impresoraPerfilNotaAvanzado) impresoraPerfilNotaAvanzado.textContent = `Valores restaurados desde el trabajo: ${nombreImpresoraTrabajo}.`;
+  if (actualizarPerfilBasico) actualizarPerfilBasico.hidden = !perfilTrabajo;
+  if (actualizarPerfilAvanzado) actualizarPerfilAvanzado.hidden = !perfilTrabajo;
+
   asignarValorCampo("currencySelect", monedaTrabajo);
   asignarValorCampo("currencySelectBasico", monedaTrabajo);
 
@@ -2061,6 +2451,8 @@ function cargarTrabajoEnCalculadora(trabajo) {
   }
   sugerirClienteCotizacion(trabajo.cliente || datos.cliente);
   actualizarAyudaCostoMaterial(ultimoModoCalculo);
+  actualizarResumenFilamento("basico");
+  actualizarResumenFilamento("avanzado");
   actualizarVistaPreviaMoneda();
   actualizarSupuestosEditablesBasico();
 
@@ -2096,6 +2488,13 @@ function cargarTrabajoEnCalculadora(trabajo) {
 }
 
 function prepararCotizacionDesdeTrabajo(trabajo) {
+  if (window.PanelCotizacionesPrecio3D?.agregarTrabajo) {
+    window.PanelCotizacionesPrecio3D.nuevaCotizacion();
+    window.PanelCotizacionesPrecio3D.agregarTrabajo(trabajo);
+    document.dispatchEvent(new CustomEvent("precio3d:cotizacion-trabajo"));
+    return;
+  }
+
   if (!trabajo?.datos || !trabajo?.resultado || trabajo.resultado.precioNeto === null) {
     mostrarMensajeTrabajos("El trabajo no contiene un cálculo válido para cotizar.", true);
     return;
@@ -2247,6 +2646,9 @@ function exportarCalculoActualCSV() {
     ["Cantidad", ultimoDatosCalculo.cantidadProductos],
     ["Canal", ultimoDatosCalculo.canalVenta],
     ["Método de pago", ultimoDatosCalculo.metodoPago],
+    ["Bobina de filamento", ultimoDatosCalculo.filamentoSnapshot?.nombre || ultimoDatosCalculo.filamentoSnapshot?.materialNombre || "Uso manual"],
+    ["Costo histórico por gramo", ultimoDatosCalculo.filamentoSnapshot?.costoPorGramoUsado ?? ultimoDatosCalculo.costoUnidad],
+    ["Consumo estimado de filamento", ultimoDatosCalculo.filamentoSnapshot?.consumoEstimadoGramos || ""],
     ["Moneda", monedaCalculo]
   ];
 
@@ -2282,6 +2684,16 @@ function exportarTrabajosCSV() {
       "Monto abonado",
       "Total pagado",
       "Saldo pendiente",
+      "Bobina de filamento",
+      "Marca de filamento",
+      "Material de filamento",
+      "Color de filamento",
+      "Costo por gramo usado",
+      "Moneda del filamento",
+      "Consumo estimado (g)",
+      "Consumo registrado (g)",
+      "Consumo de inventario",
+      "IDs de movimientos de inventario",
       "Moneda"
     ],
     ...trabajos.map((trabajo) => {
@@ -2312,6 +2724,16 @@ function exportarTrabajosCSV() {
         formatearMoneda(trabajo.montoAbonado, moneda, true),
         formatearMoneda(totalPagado, moneda, true),
         formatearMoneda(Math.max(0, precioCobro - totalPagado), moneda, true),
+        trabajo.filamentoSnapshot?.nombre || trabajo.filamentoSnapshot?.materialNombre || "",
+        trabajo.filamentoSnapshot?.marca || "",
+        trabajo.filamentoSnapshot?.materialNombre || trabajo.datos?.material || "",
+        trabajo.filamentoSnapshot?.colorNombre || "",
+        trabajo.filamentoSnapshot?.costoPorGramo ?? trabajo.filamentoSnapshot?.costoPorGramoUsado ?? "",
+        trabajo.filamentoSnapshot?.monedaCompra || "",
+        trabajo.filamentoSnapshot?.consumoEstimadoGramos || "",
+        trabajo.consumoInventario?.totalRegistradoGramos || 0,
+        trabajo.consumoInventario?.estado || (trabajo.consumoInventario?.registrado ? "Registrado" : "No registrado"),
+        (trabajo.consumoInventario?.movimientosIds || []).join(" | "),
         moneda
       ];
     })
@@ -2664,6 +3086,10 @@ function prepararCotizacionActual() {
 }
 
 function renderizarCotizacionCliente() {
+  if (window.PanelCotizacionesPrecio3D?.renderizarVistaPrevia) {
+    return window.PanelCotizacionesPrecio3D.renderizarVistaPrevia();
+  }
+
   const datos = obtenerDatosCotizacionActuales();
 
   if (!datos) {
@@ -2752,6 +3178,11 @@ function renderizarCotizacionCliente() {
 }
 
 function imprimirCotizacionCliente() {
+  if (window.PanelCotizacionesPrecio3D?.imprimir) {
+    window.PanelCotizacionesPrecio3D.imprimir();
+    return;
+  }
+
   const generada = cotizacionClienteVista && !cotizacionClienteVista.hidden
     ? true
     : renderizarCotizacionCliente();
@@ -2778,6 +3209,11 @@ function imprimirCotizacionCliente() {
 }
 
 function iniciarNuevaCotizacion() {
+  if (window.PanelCotizacionesPrecio3D?.nuevaCotizacion) {
+    window.PanelCotizacionesPrecio3D.nuevaCotizacion();
+    return;
+  }
+
   numeroCotizacionActual = "";
   referenciaCotizacionActual = "";
 
@@ -3001,6 +3437,10 @@ function calcularModoAvanzado() {
 function limpiarFormulario(opciones = {}) {
   const monedaAnterior = obtenerCodigoMonedaActivo();
   trabajoCotizacionTemporal = null;
+  impresoraTrabajoCargada = null;
+  impresoraTrabajoCargadaId = "";
+  filamentoTrabajoCargado = null;
+  filamentoTrabajoCargadoId = "";
   document.querySelectorAll("input").forEach((input) => {
     input.value = "";
   });
@@ -3041,12 +3481,34 @@ function limpiarFormulario(opciones = {}) {
   aplicarMaterialAvanzado();
   aplicarImpresoraAvanzado();
   aplicarCanalAvanzado();
+  cargarSelectoresFilamentos();
   ultimoResultadoBasico = null;
   ultimoFeeEstimadoBasico = 0;
   ultimosSupuestosBasicos = obtenerSupuestosBasicos();
   actualizarVistaPreviaMoneda();
   renderizarSupuestosBasicos(ultimosSupuestosBasicos);
   window.cambiarIdioma("es");
+}
+
+function actualizarPerfilDesdeFormulario(modo) {
+  const selector = modo === "basico" ? impresoraBasico : impresoraAvanzado;
+  const perfil = obtenerPerfilImpresora(selector);
+  if (!perfil) return;
+  if (!confirm(`¿Actualizar el perfil “${perfil.nombre}” con los valores visibles? Esta acción no modifica trabajos anteriores.`)) return;
+  const sufijo = modo === "basico" ? "Basico" : "Avanzado";
+  const cambios = {
+    costoCompra: leerNumero(`costoImpresora${sufijo}`),
+    costoHerramientas: leerNumero(`costoHerramientas${sufijo}`),
+    potenciaPromedioWatts: leerNumero(`wattsPromedio${sufijo}`),
+    anosVidaUtil: leerNumero(`anosVida${sufijo}`),
+    diasOperativosAno: leerNumero(`diasOperativosAno${sufijo}`),
+    horasProductivasDia: leerNumero(`horasProductivasDia${sufijo}`),
+    porcentajeMantenimiento: leerPorcentaje(`mantenimiento${sufijo}`)
+  };
+  const actualizada = window.ImpresorasPrecio3D?.actualizarImpresora(perfil.id, cambios);
+  if (!actualizada) {
+    alert("No fue posible actualizar el perfil. Revisa los valores ingresados.");
+  }
 }
 
 calculateButton.addEventListener("click", calcularModoAvanzado);
@@ -3065,28 +3527,58 @@ verCalculoAvanzado.addEventListener("click", () => cambiarModo("avanzado"));
 volverModoBasico.addEventListener("click", () => cambiarModo("basico"));
 nivelTrabajoBasico.addEventListener("change", actualizarManoObraPorNivel);
 materialBasico.addEventListener("change", aplicarMaterialBasico);
+filamentoBasico?.addEventListener("change", () => aplicarFilamentoSeleccionado("basico"));
+cambiarMonedaFilamentoBasico?.addEventListener("click", () => usarMonedaDeFilamento("basico"));
+usarCostoActualFilamentoBasico?.addEventListener("click", () => usarCostoActualFilamento("basico"));
+usarCostoManualBasico?.addEventListener("click", () => usarCostoManualFilamento("basico"));
 impresoraBasico.addEventListener("change", aplicarImpresoraBasico);
+usarValoresManualesBasico?.addEventListener("click", () => {
+  impresoraBasico.value = "manual";
+  aplicarImpresoraBasico();
+  panelSupuestosEditables.hidden = false;
+  toggleSupuestosEditables.setAttribute("aria-expanded", "true");
+  toggleSupuestosEditables.querySelector(".collapse-indicator").textContent = "Ocultar";
+  document.querySelector("#wattsPromedioBasico")?.focus();
+});
+actualizarPerfilBasico?.addEventListener("click", () => actualizarPerfilDesdeFormulario("basico"));
 canalVentaBasico.addEventListener("change", aplicarCanalBasico);
 modoCostoGramoBasico.addEventListener("click", () => cambiarModoCostoMaterial("basico", false));
 modoCostoKiloBasico.addEventListener("click", () => cambiarModoCostoMaterial("basico", true));
 document
   .querySelector("#costoUnidadBasico")
-  .addEventListener("input", () => actualizarAyudaCostoMaterial("basico"));
+  .addEventListener("input", () => {
+    actualizarAyudaCostoMaterial("basico");
+    actualizarResumenFilamento("basico");
+  });
 document.querySelectorAll(
   "#mermaBasico, #wattsPromedioBasico, #tarifaKwhBasico, #costoImpresoraBasico, #costoHerramientasBasico, #anosVidaBasico, #diasOperativosAnoBasico, #horasProductivasDiaBasico, #mantenimientoBasico"
 ).forEach((input) => {
   input.addEventListener("input", actualizarSupuestosEditablesBasico);
 });
 materialAvanzado.addEventListener("change", aplicarMaterialAvanzado);
+filamentoAvanzado?.addEventListener("change", () => aplicarFilamentoSeleccionado("avanzado"));
+cambiarMonedaFilamentoAvanzado?.addEventListener("click", () => usarMonedaDeFilamento("avanzado"));
+usarCostoActualFilamentoAvanzado?.addEventListener("click", () => usarCostoActualFilamento("avanzado"));
+usarCostoManualAvanzado?.addEventListener("click", () => usarCostoManualFilamento("avanzado"));
 impresoraAvanzado.addEventListener("change", aplicarImpresoraAvanzado);
+actualizarPerfilAvanzado?.addEventListener("click", () => actualizarPerfilDesdeFormulario("avanzado"));
 canalVentaAvanzado.addEventListener("change", aplicarCanalAvanzado);
 modoCostoGramoAvanzado.addEventListener("click", () => cambiarModoCostoMaterial("avanzado", false));
 modoCostoKiloAvanzado.addEventListener("click", () => cambiarModoCostoMaterial("avanzado", true));
 document
   .querySelector("#costoUnidadAvanzado")
-  .addEventListener("input", () => actualizarAyudaCostoMaterial("avanzado"));
-currencySelect.addEventListener("change", () => sincronizarMonedas(currencySelect, { manual: true }));
-currencySelectBasico.addEventListener("change", () => sincronizarMonedas(currencySelectBasico, { manual: true }));
+  .addEventListener("input", () => {
+    actualizarAyudaCostoMaterial("avanzado");
+    actualizarResumenFilamento("avanzado");
+  });
+currencySelect.addEventListener("change", () => {
+  sincronizarMonedas(currencySelect, { manual: true });
+  actualizarResumenFilamento("avanzado");
+});
+currencySelectBasico.addEventListener("change", () => {
+  sincronizarMonedas(currencySelectBasico, { manual: true });
+  actualizarResumenFilamento("basico");
+});
 detectarMonedaAvanzado?.addEventListener("click", detectarMonedaNuevamente);
 detectarMonedaBasico?.addEventListener("click", detectarMonedaNuevamente);
 languageSelect.addEventListener("change", () => sincronizarIdiomas(languageSelect));
@@ -3120,6 +3612,7 @@ borrarTrabajosButton.addEventListener("click", borrarTodosLosTrabajos);
 window.PanelTrabajosPrecio3D?.inicializar({
   cargarTrabajo: cargarTrabajoEnCalculadora,
   generarCotizacion: prepararCotizacionDesdeTrabajo,
+  agregarACotizacion: (trabajo) => window.PanelCotizacionesPrecio3D?.agregarTrabajo?.(trabajo),
   mostrarMensaje: mostrarMensajeTrabajos,
   formatearMoneda
 });
@@ -3138,6 +3631,14 @@ nuevaCotizacionButton?.addEventListener("click", iniciarNuevaCotizacion);
 cargarUltimoCalculoButton.addEventListener("click", cargarUltimoCalculoGuardado);
 borrarUltimoCalculoButton.addEventListener("click", borrarUltimoCalculoGuardado);
 window.addEventListener("precio3d:clientes-actualizados", poblarSelectoresClientes);
+window.addEventListener("precio3d:impresoras-actualizadas", cargarSelectoresPerfilesImpresora);
+window.addEventListener("precio3d:filamentos-actualizados", cargarSelectoresFilamentos);
+[
+  "cantidadBasico", "pesoPiezaBasico", "pesoSoportesPurgaBasico", "mermaBasico",
+  "cantidadAvanzado", "pesoPiezaAvanzado", "pesoSoportesPurgaAvanzado"
+].forEach((id) => document.querySelector(`#${id}`)?.addEventListener("input", () => {
+  actualizarResumenFilamento(id.endsWith("Basico") ? "basico" : "avanzado");
+}));
 document.addEventListener("precio3d:usar-cliente-trabajo", (event) => {
   seleccionarClienteTrabajo(event.detail?.cliente);
 });
@@ -3158,6 +3659,7 @@ document.addEventListener("precio3d:cliente-eliminado", (event) => {
 cargarMonedas();
 cargarIdiomas();
 cargarPresetsVisuales();
+cargarSelectoresFilamentos();
 cargarMetodosPagoComparador();
 aplicarMaterialBasico();
 aplicarImpresoraBasico();
@@ -3172,6 +3674,16 @@ renderizarSupuestosBasicos(ultimosSupuestosBasicos);
 cargarConfiguracionInicial();
 inicializarDeteccionMoneda();
 cargarDatosCotizacionIniciales();
+window.PanelCotizacionesPrecio3D?.inicializar({
+  obtenerCalculoActual: () => ({
+    datos: ultimoDatosCalculo ? { ...ultimoDatosCalculo } : null,
+    resultado: ultimoResultadoCalculo ? { ...ultimoResultadoCalculo } : null
+  }),
+  obtenerDatosNegocio: obtenerDatosNegocioFormulario,
+  obtenerDatosCliente: obtenerDatosClienteCotizacionFormulario,
+  obtenerCondiciones: obtenerConfigCotizacionFormulario,
+  formatearMoneda
+});
 renderizarUltimoCalculoGuardado();
 renderizarTrabajos();
 registrarAutoguardado();

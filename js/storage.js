@@ -243,6 +243,28 @@ function normalizarTrabajo(trabajo) {
         direccion: String(trabajo.clienteSnapshot.direccion || "")
       }
     : null;
+  const impresoraSnapshot = trabajo.impresoraSnapshot && typeof trabajo.impresoraSnapshot === "object"
+    ? { ...trabajo.impresoraSnapshot }
+    : trabajo.datos?.impresoraSnapshot && typeof trabajo.datos.impresoraSnapshot === "object"
+      ? { ...trabajo.datos.impresoraSnapshot }
+      : null;
+  const filamentoSnapshot = trabajo.filamentoSnapshot && typeof trabajo.filamentoSnapshot === "object"
+    ? { ...trabajo.filamentoSnapshot }
+    : trabajo.datos?.filamentoSnapshot && typeof trabajo.datos.filamentoSnapshot === "object"
+      ? { ...trabajo.datos.filamentoSnapshot }
+      : null;
+  const consumoEntrada = trabajo.consumoInventario && typeof trabajo.consumoInventario === "object"
+    ? trabajo.consumoInventario
+    : {};
+  const consumoInventario = {
+    registrado: Boolean(consumoEntrada.registrado),
+    estado: String(consumoEntrada.estado || (consumoEntrada.registrado ? "Registrado" : "No registrado")),
+    totalRegistradoGramos: numeroSeguro(consumoEntrada.totalRegistradoGramos),
+    movimientosIds: Array.isArray(consumoEntrada.movimientosIds)
+      ? [...new Set(consumoEntrada.movimientosIds.map(String).filter(Boolean))]
+      : [],
+    fechaUltimoRegistro: consumoEntrada.fechaUltimoRegistro || null
+  };
 
   return {
     id: String(trabajo.id || crearIdTrabajo()),
@@ -251,6 +273,11 @@ function normalizarTrabajo(trabajo) {
     cliente: String(trabajo.cliente || ""),
     clienteId: String(trabajo.clienteId || ""),
     clienteSnapshot,
+    impresoraId: String(trabajo.impresoraId || trabajo.datos?.impresoraId || ""),
+    impresoraSnapshot,
+    filamentoId: String(trabajo.filamentoId || trabajo.datos?.filamentoId || ""),
+    filamentoSnapshot,
+    consumoInventario,
     descripcion: String(trabajo.descripcion || ""),
     fechaCreacion,
     fechaActualizacion,
@@ -281,6 +308,10 @@ function normalizarTrabajo(trabajo) {
     notasVenta: String(trabajo.notasVenta || ""),
     moneda: String(trabajo.moneda || trabajo.datos?.moneda || "CLP").toUpperCase(),
     numeroCotizacion: String(trabajo.numeroCotizacion || ""),
+    cotizacionId: String(trabajo.cotizacionId || ""),
+    itemsCotizacion: Array.isArray(trabajo.itemsCotizacion)
+      ? trabajo.itemsCotizacion.map((item) => ({ ...item }))
+      : [],
     datos: trabajo.datos && typeof trabajo.datos === "object" ? trabajo.datos : {},
     resultado: trabajo.resultado && typeof trabajo.resultado === "object" ? trabajo.resultado : {}
   };
@@ -395,7 +426,14 @@ function duplicarTrabajo(id) {
     fechaVenta: "",
     fechaPago: "",
     fechaAceptacion: "",
-    notasVenta: ""
+    notasVenta: "",
+    consumoInventario: {
+      registrado: false,
+      estado: "No registrado",
+      totalRegistradoGramos: 0,
+      movimientosIds: [],
+      fechaUltimoRegistro: null
+    }
   });
 }
 

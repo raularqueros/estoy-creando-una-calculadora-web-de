@@ -259,6 +259,60 @@
     return estados.map((estado) => `<option value="${escapar(estado)}" ${estado === actual ? "selected" : ""}>${escapar(estado)}</option>`).join("");
   }
 
+  function movimientosInventarioTrabajo(trabajoId) {
+    return (window.FilamentosPrecio3D?.obtenerBobinas?.() || []).flatMap((bobina) =>
+      (bobina.movimientos || [])
+        .filter((movimiento) => movimiento.referenciaTipo === "trabajo" && movimiento.referenciaId === trabajoId)
+        .map((movimiento) => ({ bobina, movimiento }))
+    );
+  }
+
+  function resumenConsumoInventario(trabajo) {
+    const registros = movimientosInventarioTrabajo(trabajo.id);
+    const revertidos = new Set(
+      registros
+        .filter(({ movimiento }) => movimiento.tipo === "reversion_consumo_trabajo")
+        .map(({ movimiento }) => movimiento.movimientoOriginalId)
+    );
+    const consumosActivos = registros.filter(({ movimiento }) =>
+      movimiento.tipo === "consumo_trabajo" && !revertidos.has(movimiento.id)
+    );
+    const total = consumosActivos.reduce((acumulado, { movimiento }) => acumulado + numero(movimiento.cantidadGramos), 0);
+    const estimado = consumoEstimado({ id: trabajo.id, ...trabajo });
+    const huboReversion = registros.some(({ movimiento }) => movimiento.tipo === "reversion_consumo_trabajo");
+    const estado = consumosActivos.length
+      ? huboReversion ? "Corregido" : estimado > 0 && total + 0.001 < estimado ? "Parcial" : "Registrado"
+      : registros.length ? "Revertido" : "No registrado";
+    return {
+      registros,
+      consumosActivos,
+      total,
+      registrado: consumosActivos.length > 0,
+      estado
+    };
+  }
+
+  function sincronizarConsumoTrabajo(trabajoId, filamentoId = "") {
+    const trabajo = buscarTrabajo(trabajoId);
+    if (!trabajo) return null;
+    const resumen = resumenConsumoInventario(trabajo);
+    const ids = resumen.registros.map(({ movimiento }) => movimiento.id);
+    return window.StoragePrecio3D?.actualizarTrabajo?.(trabajoId, {
+      filamentoId: filamentoId || trabajo.filamentoId,
+      consumoInventario: {
+        registrado: resumen.registrado,
+        estado: resumen.estado,
+        totalRegistradoGramos: resumen.total,
+        movimientosIds: ids,
+        fechaUltimoRegistro: resumen.registros.at(-1)?.movimiento.createdAt || ""
+      }
+    });
+  }
+
+  function tieneMaterialAsociado(trabajo) {
+    return Boolean(trabajo.filamentoId || trabajo.filamentoSnapshot || trabajo.datos?.filamentoSnapshot);
+  }
+
   function filaTrabajo(trabajo) {
     const moneda = monedaTrabajo(trabajo);
     const utilidad = utilidadReal(trabajo) ?? numero(trabajo.utilidadObjetivo);
@@ -280,8 +334,10 @@
               <button type="button" data-commercial-action="detalle" data-job-id="${escapar(trabajo.id)}">Ver detalle</button>
               <button type="button" data-commercial-action="cargar" data-job-id="${escapar(trabajo.id)}">Cargar y editar</button>
               <button type="button" data-commercial-action="cotizacion" data-job-id="${escapar(trabajo.id)}">Generar cotización</button>
+              <button type="button" data-commercial-action="agregar-cotizacion" data-job-id="${escapar(trabajo.id)}">Agregar a cotización</button>
               <button type="button" data-commercial-action="venta" data-job-id="${escapar(trabajo.id)}">Registrar venta</button>
               <button type="button" data-commercial-action="pago" data-job-id="${escapar(trabajo.id)}">Registrar pago</button>
+              ${tieneMaterialAsociado(trabajo) ? `<button type="button" data-commercial-action="consumo-material" data-job-id="${escapar(trabajo.id)}">Registrar consumo de material</button>` : ""}
               <button type="button" data-commercial-action="duplicar" data-job-id="${escapar(trabajo.id)}">Duplicar</button>
               <button type="button" class="danger-button" data-commercial-action="eliminar" data-job-id="${escapar(trabajo.id)}">Eliminar</button>
             </div>
@@ -316,6 +372,48 @@
 
   function detalleItem(etiqueta, valor) {
     return `<div class="job-detail-item"><span>${escapar(etiqueta)}</span><strong>${escapar(valor || "No registrado")}</strong></div>`;
+  }
+
+  function renderizarMaterialInventario(trabajo) {
+    const snapshot = trabajo.filamentoSnapshot || trabajo.datos?.filamentoSnapshot || null;
+    const bobina = trabajo.filamentoId ? window.FilamentosPrecio3D?.obtenerBobinaPorId?.(trabajo.filamentoId) : null;
+    const resumen = resumenConsumoInventario(trabajo);
+    const idsActivos = new Set(resumen.consumosActivos.map(({ movimiento }) => movimiento.id));
+    const historial = resumen.registros.length
+      ? `<div class="job-material-history">${resumen.registros.map(({ bobina: bobinaMovimiento, movimiento }) => {
+          const esConsumo = movimiento.tipo === "consumo_trabajo";
+          const tipo = movimiento.tipo === "reversion_consumo_trabajo"
+            ? "Reversión"
+            : movimiento.esAdicional ? "Consumo adicional" : "Consumo";
+          return `<article>
+            <div><strong>${escapar(tipo)} · ${numero(movimiento.cantidadGramos).toLocaleString("es-CL")} g</strong><small>${escapar(bobinaMovimiento.nombre || bobinaMovimiento.materialNombre || "Bobina")} · ${escapar(formatearFecha(movimiento.fecha))}</small>${movimiento.nota ? `<p>${escapar(movimiento.nota)}</p>` : ""}</div>
+            ${esConsumo && idsActivos.has(movimiento.id) ? `<div class="compact-actions">
+              <button type="button" class="secondary compact-button" data-commercial-action="corregir-consumo" data-job-id="${escapar(trabajo.id)}" data-bobina-id="${escapar(bobinaMovimiento.id)}" data-movimiento-id="${escapar(movimiento.id)}">Corregir</button>
+              <button type="button" class="secondary compact-button" data-commercial-action="revertir-consumo" data-job-id="${escapar(trabajo.id)}" data-bobina-id="${escapar(bobinaMovimiento.id)}" data-movimiento-id="${escapar(movimiento.id)}">Revertir</button>
+            </div>` : ""}
+          </article>`;
+        }).join("")}</div>`
+      : '<p class="empty-state compact-empty">Aún no se ha descontado material para este trabajo.</p>';
+    const costoHistorico = numero(snapshot?.costoPorGramoUsado ?? snapshot?.costoPorGramo);
+
+    return `<details><summary>Material e inventario</summary>
+      <div class="job-detail-grid">
+        ${detalleItem("Bobina asociada", bobina?.nombre || snapshot?.nombre || snapshot?.materialNombre || "Sin bobina")}
+        ${detalleItem("Material", snapshot?.materialNombre || trabajo.datos?.material)}
+        ${detalleItem("Marca", snapshot?.marca || bobina?.marca)}
+        ${detalleItem("Color", snapshot?.colorNombre || bobina?.colorNombre)}
+        ${detalleItem("Costo histórico", costoHistorico ? `${costoHistorico.toLocaleString("es-CL", { maximumFractionDigits: 4 })} ${snapshot?.monedaCompra || monedaTrabajo(trabajo)}/g` : "No registrado")}
+        ${detalleItem("Consumo estimado", snapshot?.consumoEstimadoGramos ? `${numero(snapshot.consumoEstimadoGramos).toLocaleString("es-CL")} g` : "No registrado")}
+        ${detalleItem("Consumo registrado", `${resumen.total.toLocaleString("es-CL")} g`)}
+        ${detalleItem("Estado", resumen.estado)}
+        ${detalleItem("Stock actual", bobina ? `${numero(bobina.pesoRestanteGramos).toLocaleString("es-CL")} g` : "Bobina no disponible")}
+      </div>
+      <div class="actions job-material-actions">
+        ${tieneMaterialAsociado(trabajo) ? `<button type="button" data-commercial-action="consumo-material" data-job-id="${escapar(trabajo.id)}">Registrar consumo de material</button>` : ""}
+        ${resumen.registrado ? `<button type="button" class="secondary" data-commercial-action="consumo-adicional" data-job-id="${escapar(trabajo.id)}">Agregar consumo adicional</button>` : ""}
+      </div>
+      ${historial}
+    </details>`;
   }
 
   function renderizarDetalle(trabajo) {
@@ -366,6 +464,7 @@
           ${detalleItem("Cantidad", datos.cantidadProductos)}${detalleItem("Tiempo", `${numero(datos.horasImpresion).toFixed(2)} h`)}
           ${detalleItem("Impresora", datos.impresora)}${detalleItem("Modo", trabajo.modoUsado)}
         </div></details>
+        ${renderizarMaterialInventario(trabajo)}
         <details><summary>Seguimiento</summary><div class="job-detail-grid">
           ${detalleItem("Fecha de creación", formatearFecha(trabajo.fechaCreacion))}
           ${detalleItem("Actualización", formatearFecha(trabajo.fechaActualizacion))}
@@ -377,8 +476,10 @@
       <div class="actions job-detail-actions">
         <button type="button" data-commercial-action="cargar" data-job-id="${escapar(trabajo.id)}">Cargar y editar</button>
         <button type="button" class="secondary" data-commercial-action="cotizacion" data-job-id="${escapar(trabajo.id)}">Generar cotización</button>
+        <button type="button" class="secondary" data-commercial-action="agregar-cotizacion" data-job-id="${escapar(trabajo.id)}">Agregar a cotización</button>
         <button type="button" class="secondary" data-commercial-action="venta" data-job-id="${escapar(trabajo.id)}">Registrar venta</button>
         <button type="button" class="secondary" data-commercial-action="pago" data-job-id="${escapar(trabajo.id)}">Registrar pago</button>
+        ${tieneMaterialAsociado(trabajo) ? `<button type="button" class="secondary" data-commercial-action="consumo-material" data-job-id="${escapar(trabajo.id)}">Registrar consumo de material</button>` : ""}
         <button type="button" class="secondary" data-commercial-action="duplicar" data-job-id="${escapar(trabajo.id)}">Duplicar</button>
       </div>
     `;
@@ -418,6 +519,95 @@
     modal.hidden = true;
     document.body.classList.remove("modal-open");
     elementoFocoAnterior?.focus?.();
+  }
+
+  function opcionesBobinasConsumo(trabajo, soloBobinaId = "") {
+    return (window.FilamentosPrecio3D?.obtenerBobinas?.() || [])
+      .filter((bobina) => ["Sellada", "En uso"].includes(bobina.estado) && numero(bobina.pesoRestanteGramos) > 0 && (!soloBobinaId || bobina.id === soloBobinaId))
+      .map((bobina) => `<option value="${escapar(bobina.id)}" ${bobina.id === trabajo.filamentoId ? "selected" : ""}>${escapar([bobina.materialNombre, bobina.marca, bobina.colorNombre].filter(Boolean).join(" · ") || bobina.nombre || "Bobina")} — ${escapar(numero(bobina.pesoRestanteGramos).toLocaleString("es-CL"))} g</option>`)
+      .join("");
+  }
+
+  function consumoEstimado(trabajo) {
+    const snapshot = trabajo.filamentoSnapshot || trabajo.datos?.filamentoSnapshot;
+    if (numero(snapshot?.consumoEstimadoGramos) > 0) return numero(snapshot.consumoEstimadoGramos);
+    const datos = trabajo.datos || {};
+    return (numero(datos.pesoPieza) + numero(datos.pesoSoportesPurga)) * (1 + numero(datos.merma));
+  }
+
+  function abrirConsumoMaterial(trabajo, esAdicional = false) {
+    const resumen = resumenConsumoInventario(trabajo);
+    const opciones = opcionesBobinasConsumo(trabajo, resumen.registros.length ? trabajo.filamentoId : "");
+    if (!opciones) {
+      mostrarMensaje(resumen.registros.length
+        ? "La bobina asociada no está disponible. Revierte los consumos existentes antes de cambiarla."
+        : "No hay bobinas activas con stock disponible.", true);
+      return;
+    }
+    if (!esAdicional && resumen.consumosActivos.some(({ movimiento }) => !movimiento.esAdicional)) {
+      mostrarMensaje("Este trabajo ya tiene un consumo principal. Usa consumo adicional, corregir o revertir.", true);
+      trabajoDetalleId = trabajo.id;
+      renderizarDetalle(trabajo);
+      return;
+    }
+    const estimado = consumoEstimado(trabajo);
+    const hoy = new Date().toISOString().slice(0, 10);
+    abrirModal(esAdicional ? "Agregar consumo adicional" : "Registrar consumo de material", `
+      <form id="consumoTrabajoForm" data-job-id="${escapar(trabajo.id)}" data-adicional="${String(esAdicional)}">
+        <p>El inventario solo se descontará cuando confirmes esta operación.</p>
+        <div class="field-grid">
+          <label class="field-wide">Bobina utilizada<select id="consumoBobinaId" required>${opciones}</select></label>
+          <label>Consumo estimado<input type="number" value="${estimado}" disabled></label>
+          <label>Consumo real en gramos<input id="consumoCantidad" type="number" min="0.01" step="0.01" required value="${estimado || ""}"></label>
+          <label>Fecha<input id="consumoFecha" type="date" value="${hoy}"></label>
+          <label class="field-wide">Nota${esAdicional ? " (obligatoria)" : ""}<textarea id="consumoNota" rows="3" ${esAdicional ? "required" : ""} placeholder="Ej: pieza fallida, repetición o ajuste de producción"></textarea></label>
+        </div>
+        <div id="consumoStockResumen" class="job-modal-summary" aria-live="polite"></div>
+        <p class="help-text">Puedes reasignar la bobina antes del primer registro. El costo histórico de la cotización no cambiará.</p>
+        <div class="actions"><button type="submit">Confirmar descuento</button><button type="button" class="secondary" data-commercial-action="cerrar-modal">Cancelar</button></div>
+      </form>
+    `);
+    ["#consumoBobinaId", "#consumoCantidad"].forEach((selector) => $(selector)?.addEventListener("input", actualizarResumenModalConsumo));
+    $("#consumoBobinaId")?.addEventListener("change", actualizarResumenModalConsumo);
+    actualizarResumenModalConsumo();
+  }
+
+  function actualizarResumenModalConsumo() {
+    const bobina = window.FilamentosPrecio3D?.obtenerBobinaPorId?.($("#consumoBobinaId")?.value || "");
+    const cantidad = numero($("#consumoCantidad")?.value);
+    const stock = numero(bobina?.pesoRestanteGramos);
+    const resultante = stock - cantidad;
+    const destino = $("#consumoStockResumen");
+    if (!destino) return;
+    destino.classList.toggle("warning-text", resultante < 0);
+    destino.innerHTML = `${detalleItem("Stock actual", `${stock.toLocaleString("es-CL")} g`)}${detalleItem("Consumo real", `${cantidad.toLocaleString("es-CL")} g`)}${detalleItem("Stock resultante", resultante < 0 ? "No hay suficiente material" : `${resultante.toLocaleString("es-CL")} g`)}`;
+  }
+
+  function abrirReversionConsumo(trabajo, bobinaId, movimientoId) {
+    const bobina = window.FilamentosPrecio3D?.obtenerBobinaPorId?.(bobinaId);
+    const movimiento = bobina?.movimientos?.find((item) => item.id === movimientoId);
+    if (!movimiento) return mostrarMensaje("No se encontró el consumo seleccionado.", true);
+    abrirModal("Revertir consumo", `
+      <form id="reversionConsumoForm" data-job-id="${escapar(trabajo.id)}" data-bobina-id="${escapar(bobinaId)}" data-movimiento-id="${escapar(movimientoId)}">
+        <p>Se devolverán <strong>${numero(movimiento.cantidadGramos).toLocaleString("es-CL")} g</strong> a la bobina. El movimiento original se conservará.</p>
+        <label>Motivo de la reversión<textarea id="reversionNota" rows="3" required></textarea></label>
+        <div class="actions"><button type="submit">Confirmar reversión</button><button type="button" class="secondary" data-commercial-action="cerrar-modal">Cancelar</button></div>
+      </form>
+    `);
+  }
+
+  function abrirCorreccionConsumo(trabajo, bobinaId, movimientoId) {
+    const bobina = window.FilamentosPrecio3D?.obtenerBobinaPorId?.(bobinaId);
+    const movimiento = bobina?.movimientos?.find((item) => item.id === movimientoId);
+    if (!movimiento) return mostrarMensaje("No se encontró el consumo seleccionado.", true);
+    abrirModal("Corregir consumo", `
+      <form id="correccionConsumoForm" data-job-id="${escapar(trabajo.id)}" data-bobina-id="${escapar(bobinaId)}" data-movimiento-id="${escapar(movimientoId)}" data-adicional="${String(Boolean(movimiento.esAdicional))}">
+        <p>El registro de ${numero(movimiento.cantidadGramos).toLocaleString("es-CL")} g se revertirá y se creará uno nuevo, manteniendo la trazabilidad.</p>
+        <label>Consumo corregido en gramos<input id="correccionCantidad" type="number" min="0.01" step="0.01" required value="${numero(movimiento.cantidadGramos)}"></label>
+        <label>Motivo de la corrección<textarea id="correccionNota" rows="3" required></textarea></label>
+        <div class="actions"><button type="submit">Guardar corrección</button><button type="button" class="secondary" data-commercial-action="cerrar-modal">Cancelar</button></div>
+      </form>
+    `);
   }
 
   function resumenVenta(trabajo) {
@@ -542,10 +732,30 @@
       configuracion.cargarTrabajo?.(trabajo);
     } else if (accion === "cotizacion") {
       configuracion.generarCotizacion?.(trabajo);
+    } else if (accion === "agregar-cotizacion") {
+      configuracion.agregarACotizacion?.(trabajo);
     } else if (accion === "venta") {
       abrirVenta(trabajo);
     } else if (accion === "pago") {
       abrirPago(trabajo);
+    } else if (accion === "consumo-material") {
+      abrirConsumoMaterial(trabajo, false);
+    } else if (accion === "consumo-adicional") {
+      abrirConsumoMaterial(trabajo, true);
+    } else if (accion === "revertir-consumo") {
+      abrirReversionConsumo(trabajo, objetivo.dataset.bobinaId, objetivo.dataset.movimientoId);
+    } else if (accion === "corregir-consumo") {
+      abrirCorreccionConsumo(trabajo, objetivo.dataset.bobinaId, objetivo.dataset.movimientoId);
+    } else if (accion === "ver-consumos") {
+      cerrarModal();
+      trabajoDetalleId = id;
+      renderizarDetalle(trabajo);
+      $("#trabajoDetallePanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (accion === "eliminar-manteniendo-consumos") {
+      const eliminado = window.StoragePrecio3D?.eliminarTrabajo?.(id);
+      mostrarMensaje(eliminado ? "Trabajo eliminado. Los movimientos de inventario se conservaron." : "No se pudo eliminar el trabajo.", !eliminado);
+      cerrarModal();
+      renderizar();
     } else if (accion === "vincular-cliente") {
       const clienteId = $("#clienteTrabajoVinculo")?.value || "";
       const cliente = window.ClientesPrecio3D?.obtenerClientePorId?.(clienteId);
@@ -560,10 +770,22 @@
       const duplicado = window.StoragePrecio3D?.duplicarTrabajo?.(id);
       mostrarMensaje(duplicado ? "Trabajo duplicado." : "No se pudo duplicar el trabajo.", !duplicado);
       renderizar();
-    } else if (accion === "eliminar" && confirm("¿Seguro que quieres eliminar este trabajo?")) {
-      const eliminado = window.StoragePrecio3D?.eliminarTrabajo?.(id);
-      mostrarMensaje(eliminado ? "Trabajo eliminado." : "No se pudo eliminar el trabajo.", !eliminado);
-      renderizar();
+    } else if (accion === "eliminar") {
+      const tieneConsumos = movimientosInventarioTrabajo(id).length > 0;
+      if (tieneConsumos) {
+        abrirModal("Trabajo con consumo de inventario", `
+          <p>Este trabajo tiene movimientos de inventario registrados. Eliminarlo no devolverá automáticamente el material.</p>
+          <div class="actions">
+            <button type="button" data-commercial-action="ver-consumos" data-job-id="${escapar(id)}">Ver y revertir consumos</button>
+            <button type="button" class="danger-button" data-commercial-action="eliminar-manteniendo-consumos" data-job-id="${escapar(id)}">Eliminar manteniendo movimientos</button>
+            <button type="button" class="secondary" data-commercial-action="cerrar-modal">Cancelar</button>
+          </div>
+        `);
+      } else if (confirm("¿Seguro que quieres eliminar este trabajo?")) {
+        const eliminado = window.StoragePrecio3D?.eliminarTrabajo?.(id);
+        mostrarMensaje(eliminado ? "Trabajo eliminado." : "No se pudo eliminar el trabajo.", !eliminado);
+        renderizar();
+      }
     }
   }
 
@@ -571,6 +793,9 @@
     if (event.target.matches("[data-commercial-action='estado']")) {
       const actualizado = window.StoragePrecio3D?.cambiarEstadoTrabajo?.(event.target.dataset.jobId, event.target.value);
       mostrarMensaje(actualizado ? "Estado e historial actualizados." : "No se pudo actualizar el estado.", !actualizado);
+      if (actualizado && ["En producción", "Terminado"].includes(event.target.value) && !resumenConsumoInventario(actualizado).registrado && tieneMaterialAsociado(actualizado)) {
+        mostrarMensaje("Recuerda registrar el consumo de material cuando conozcas el uso real.");
+      }
       renderizar();
     }
   }
@@ -606,6 +831,79 @@
           abrirConfirmacionPagado(actualizado);
         }
       }
+      renderizar();
+    }
+
+    if (event.target.id === "consumoTrabajoForm") {
+      event.preventDefault();
+      const trabajo = buscarTrabajo(event.target.dataset.jobId);
+      const bobinaId = $("#consumoBobinaId")?.value || "";
+      const cantidad = numero($("#consumoCantidad")?.value);
+      const esAdicional = event.target.dataset.adicional === "true";
+      if (!trabajo || !bobinaId || cantidad <= 0) return mostrarMensaje("Revisa la bobina y el consumo ingresado.", true);
+      if (!esAdicional && resumenConsumoInventario(trabajo).consumosActivos.some(({ movimiento }) => !movimiento.esAdicional)) {
+        return mostrarMensaje("El consumo principal ya está registrado.", true);
+      }
+      if (!confirm(`Se descontarán ${cantidad.toLocaleString("es-CL")} g del inventario. ¿Confirmas?`)) return;
+      const boton = event.submitter;
+      if (boton) boton.disabled = true;
+      const fueReasignada = Boolean(trabajo.filamentoId && trabajo.filamentoId !== bobinaId);
+      const notaUsuario = $("#consumoNota")?.value || "";
+      const notaMovimiento = fueReasignada
+        ? `Bobina reasignada desde ${trabajo.filamentoId}. ${notaUsuario}`.trim()
+        : notaUsuario;
+      const resultado = window.FilamentosPrecio3D?.registrarConsumoTrabajo?.(bobinaId, trabajo, {
+        cantidadGramos: cantidad,
+        fecha: $("#consumoFecha")?.value,
+        nota: notaMovimiento,
+        esAdicional
+      });
+      if (!resultado?.ok) {
+        if (boton) boton.disabled = false;
+        return mostrarMensaje(resultado?.error || "No se pudo registrar el consumo.", true);
+      }
+      const actualizado = sincronizarConsumoTrabajo(trabajo.id, bobinaId);
+      mostrarMensaje(actualizado ? "Consumo de material registrado." : "El stock cambió, pero no se pudo actualizar el resumen del trabajo.", !actualizado);
+      cerrarModal();
+      renderizar();
+    }
+
+    if (event.target.id === "reversionConsumoForm") {
+      event.preventDefault();
+      const { jobId, bobinaId, movimientoId } = event.target.dataset;
+      if (!confirm("El material volverá al stock y se conservará la trazabilidad. ¿Confirmas?")) return;
+      const resultado = window.FilamentosPrecio3D?.revertirConsumoTrabajo?.(bobinaId, movimientoId, {
+        nota: $("#reversionNota")?.value
+      });
+      if (!resultado?.ok) return mostrarMensaje(resultado?.error || "No se pudo revertir el consumo.", true);
+      sincronizarConsumoTrabajo(jobId, bobinaId);
+      mostrarMensaje("Consumo revertido y stock restaurado.");
+      cerrarModal();
+      renderizar();
+    }
+
+    if (event.target.id === "correccionConsumoForm") {
+      event.preventDefault();
+      const { jobId, bobinaId, movimientoId } = event.target.dataset;
+      const trabajo = buscarTrabajo(jobId);
+      const cantidad = numero($("#correccionCantidad")?.value);
+      const nota = $("#correccionNota")?.value || "";
+      if (!trabajo || cantidad <= 0) return mostrarMensaje("Ingresa un consumo corregido válido.", true);
+      if (!confirm("Se revertirá el registro anterior y se guardará el consumo corregido. ¿Confirmas?")) return;
+      const reversion = window.FilamentosPrecio3D?.revertirConsumoTrabajo?.(bobinaId, movimientoId, { nota: `Corrección: ${nota}` });
+      if (!reversion?.ok) return mostrarMensaje(reversion?.error || "No se pudo revertir el consumo anterior.", true);
+      const nuevo = window.FilamentosPrecio3D?.registrarConsumoTrabajo?.(bobinaId, trabajo, {
+        cantidadGramos: cantidad,
+        nota: `Consumo corregido: ${nota}`,
+        esAdicional: event.target.dataset.adicional === "true"
+      });
+      sincronizarConsumoTrabajo(jobId, bobinaId);
+      if (!nuevo?.ok) {
+        mostrarMensaje(`El consumo anterior fue revertido, pero el nuevo no pudo registrarse: ${nuevo?.error || "error desconocido"}`, true);
+      } else {
+        mostrarMensaje("Consumo corregido con trazabilidad completa.");
+      }
+      cerrarModal();
       renderizar();
     }
   }

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculadora de Precio para Impresión 3D</title>
-  <link rel="stylesheet" href="styles.css?v=20260714-clients-v1">
+  <link rel="stylesheet" href="styles.css?v=20260715-filaments-jobs-v2">
 </head>
 <body>
   <header class="site-header">
@@ -42,6 +42,18 @@
         <button type="button" class="dashboard-nav__button" data-section="clientes" data-tooltip="Mis clientes">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a4 4 0 100-8 4 4 0 000 8zM3 21v-3a5 5 0 015-5h2a5 5 0 015 5v3M16 10a3 3 0 100-6M15 14h1a5 5 0 015 5v2"/></svg>
           <span class="dashboard-nav__label">Mis clientes</span>
+        </button>
+        <button type="button" class="dashboard-nav__button" data-section="impresoras" data-tooltip="Mis impresoras">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5H7zM5 8h14v9H5zM8 17h8v4H8zM9 11h6M17 11h.01"/></svg>
+          <span class="dashboard-nav__label">Mis impresoras</span>
+        </button>
+        <button type="button" class="dashboard-nav__button" data-section="filamentos" data-tooltip="Inventario de filamentos">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 4h7v5M12 20H5v-5"/></svg>
+          <span class="dashboard-nav__label">Inventario de filamentos</span>
+        </button>
+        <button type="button" class="dashboard-nav__button" data-section="cotizaciones" data-tooltip="Mis cotizaciones">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM15 3v4h4M9 11h6M9 15h6M9 19h4"/></svg>
+          <span class="dashboard-nav__label">Mis cotizaciones</span>
         </button>
         <button type="button" class="dashboard-nav__button" data-section="cotizacion-cliente" data-tooltip="Cotización">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM15 3v4h4M9 11h6M9 15h6"/></svg>
@@ -99,6 +111,20 @@
               <button type="button" class="info-btn" data-help="datosImpresion" aria-label="Información sobre datos de la impresión">i</button>
             </h3>
             <div class="field-grid">
+              <div class="field-block field-wide filament-picker">
+                <label for="filamentoBasico">Bobina de inventario <span class="optional-label">(opcional)</span></label>
+                <select id="filamentoBasico">
+                  <option value="">Sin bobina / costo manual</option>
+                </select>
+                <div id="filamentoResumenBasico" class="filament-picker-summary" aria-live="polite">
+                  Selecciona una bobina para usar su costo por gramo y estimar el consumo.
+                </div>
+                <div class="filament-picker-actions" hidden>
+                  <button type="button" id="cambiarMonedaFilamentoBasico" class="secondary compact-button">Usar moneda de la bobina</button>
+                  <button type="button" id="usarCostoActualFilamentoBasico" class="secondary compact-button" hidden>Usar costo actual</button>
+                  <button type="button" id="usarCostoManualBasico" class="ghost-button compact-button">Seguir con costo manual</button>
+                </div>
+              </div>
               <label>
                 Material
                 <select id="materialBasico"></select>
@@ -204,6 +230,13 @@
               Impresora
               <select id="impresoraBasico"></select>
             </label>
+            <div class="printer-profile-note field-wide">
+              <p id="impresoraPerfilNotaBasico" class="help-text">Puedes usar una impresora guardada o mantener valores manuales.</p>
+              <div class="compact-actions">
+                <button type="button" id="usarValoresManualesBasico" class="secondary compact-button">Usar valores manuales</button>
+                <button type="button" id="actualizarPerfilBasico" class="secondary compact-button" hidden>Actualizar perfil con estos valores</button>
+              </div>
+            </div>
             <label>
               Pérdidas o fallas estimadas
               <button type="button" class="info-btn info-btn--campo inline-info" data-help="mermaCampo" aria-label="Información sobre pérdidas o fallas estimadas">i</button>
@@ -381,6 +414,20 @@
     <section class="panel">
       <h2>3. Material</h2>
       <div class="field-grid">
+        <div class="field-block field-wide filament-picker">
+          <label for="filamentoAvanzado">Bobina de inventario <span class="optional-label">(opcional)</span></label>
+          <select id="filamentoAvanzado">
+            <option value="">Sin bobina / costo manual</option>
+          </select>
+          <div id="filamentoResumenAvanzado" class="filament-picker-summary" aria-live="polite">
+            Selecciona una bobina para usar su costo por gramo y estimar el consumo.
+          </div>
+          <div class="filament-picker-actions" hidden>
+            <button type="button" id="cambiarMonedaFilamentoAvanzado" class="secondary compact-button">Usar moneda de la bobina</button>
+            <button type="button" id="usarCostoActualFilamentoAvanzado" class="secondary compact-button" hidden>Usar costo actual</button>
+            <button type="button" id="usarCostoManualAvanzado" class="ghost-button compact-button">Seguir con costo manual</button>
+          </div>
+        </div>
         <label>
           Tipo de material
           <select id="materialAvanzado"></select>
@@ -445,6 +492,10 @@
           Impresora
           <select id="impresoraAvanzado"></select>
         </label>
+        <div class="printer-profile-note field-wide">
+          <p id="impresoraPerfilNotaAvanzado" class="help-text">Puedes usar una impresora guardada o mantener la configuración manual.</p>
+          <button type="button" id="actualizarPerfilAvanzado" class="secondary compact-button" hidden>Actualizar perfil con estos valores</button>
+        </div>
         <label>
           Costo de impresora
           <button type="button" class="info-btn info-btn--campo inline-info" data-help="costoImpresoraCampo" aria-label="Información sobre costo de impresora">i</button>
@@ -680,6 +731,12 @@
       <div id="cotizacionClienteVista" class="client-quote-preview" hidden></div>
     </section>
 
+    <section id="misCotizacionesPanel" class="panel result-panel quotes-panel">
+      <h2>Mis cotizaciones</h2>
+      <p class="help-text">Guarda propuestas comerciales con varios productos o servicios, sin mezclar sus datos con el cálculo interno.</p>
+      <div id="cotizacionesDashboard"></div>
+    </section>
+
     <section id="misTrabajosPanel" class="panel result-panel jobs-panel">
       <details class="collapsible-section" open>
         <summary data-i18n="misTrabajos">Mis trabajos</summary>
@@ -839,6 +896,116 @@
       <p id="clientesMessage" class="help-text" role="status"></p>
     </section>
 
+    <section id="misImpresorasPanel" class="panel result-panel printers-panel">
+      <div class="clients-heading printers-heading">
+        <div>
+          <p class="eyebrow">Equipo de producción</p>
+          <h2>Mis impresoras</h2>
+          <p class="help-text">Guarda los costos y características de tus impresoras para reutilizarlos en tus cotizaciones.</p>
+        </div>
+        <button type="button" id="nuevaImpresoraButton">+ Agregar impresora</button>
+      </div>
+
+      <div id="impresorasResumen" class="jobs-kpi-grid printers-kpi-grid" aria-live="polite"></div>
+
+      <div class="jobs-filters printers-filters">
+        <label class="jobs-search-field">
+          Buscar
+          <input type="search" id="impresorasBusqueda" placeholder="Nombre, marca o modelo">
+        </label>
+        <label>
+          Mostrar
+          <select id="impresorasFiltro">
+            <option value="todas">Todas</option>
+            <option value="Activa">Activas</option>
+            <option value="En mantenimiento">En mantenimiento</option>
+            <option value="Fuera de servicio">Fuera de servicio</option>
+            <option value="Retirada">Retiradas</option>
+            <option value="FDM / FFF">FDM / FFF</option>
+            <option value="Resina">Resina</option>
+          </select>
+        </label>
+        <label>
+          Ordenar
+          <select id="impresorasOrden">
+            <option value="nombre">Nombre</option>
+            <option value="recientes">Más recientes</option>
+            <option value="mayor_costo">Mayor costo por hora</option>
+            <option value="menor_costo">Menor costo por hora</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="impresorasListado" class="printers-list"></div>
+      <section id="impresoraDetallePanel" class="client-detail-panel printer-detail-panel" aria-live="polite" hidden></section>
+
+      <div class="actions clients-data-actions">
+        <button type="button" id="exportarImpresorasCsvButton" class="secondary">Exportar impresoras CSV</button>
+        <button type="button" id="exportarImpresorasJsonButton" class="secondary">Exportar impresoras JSON</button>
+        <button type="button" id="importarImpresorasButton" class="secondary">Importar impresoras JSON</button>
+        <input type="file" id="importarImpresorasInput" accept="application/json,.json" hidden>
+      </div>
+      <p id="impresorasMessage" class="help-text" role="status"></p>
+    </section>
+
+    <section id="inventarioFilamentosPanel" class="panel result-panel filaments-panel">
+      <div class="clients-heading filaments-heading">
+        <div>
+          <p class="eyebrow">Materiales</p>
+          <h2 data-i18n="inventarioFilamentos">Inventario de filamentos</h2>
+          <p class="help-text">Registra tus bobinas, controla el material disponible y utiliza su costo real por gramo.</p>
+        </div>
+        <button type="button" id="nuevaBobinaButton">+ Agregar bobina</button>
+      </div>
+
+      <div id="filamentosResumen" class="jobs-kpi-grid filaments-kpi-grid" aria-live="polite"></div>
+
+      <div class="jobs-filters filaments-filters">
+        <label class="jobs-search-field" for="filamentosBusqueda">Buscar
+          <input type="search" id="filamentosBusqueda" placeholder="Nombre, marca, material, color o ubicación">
+        </label>
+        <label for="filamentosEstadoFiltro">Mostrar
+          <select id="filamentosEstadoFiltro">
+            <option value="activas">Activas</option>
+            <option value="todas">Todas</option>
+            <option value="Sellada">Selladas</option>
+            <option value="En uso">En uso</option>
+            <option value="Agotada">Agotadas</option>
+            <option value="Archivada">Archivadas</option>
+            <option value="stock_bajo">Stock bajo</option>
+          </select>
+        </label>
+        <label for="filamentosMaterialFiltro">Material
+          <select id="filamentosMaterialFiltro"><option value="">Todos</option></select>
+        </label>
+        <label for="filamentosMarcaFiltro">Marca
+          <select id="filamentosMarcaFiltro"><option value="">Todas</option></select>
+        </label>
+        <label for="filamentosOrden">Ordenar
+          <select id="filamentosOrden">
+            <option value="recientes">Más recientes</option>
+            <option value="nombre">Nombre</option>
+            <option value="menor_stock">Menor stock</option>
+            <option value="mayor_stock">Mayor stock</option>
+            <option value="mayor_costo">Mayor costo por gramo</option>
+            <option value="material">Material</option>
+            <option value="marca">Marca</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="filamentosListado" class="filaments-list"></div>
+      <section id="filamentoDetallePanel" class="client-detail-panel filament-detail-panel" aria-live="polite" hidden></section>
+
+      <div class="actions clients-data-actions">
+        <button type="button" id="exportarFilamentosCsvButton" class="secondary">Exportar inventario CSV</button>
+        <button type="button" id="exportarFilamentosJsonButton" class="secondary">Exportar inventario JSON</button>
+        <button type="button" id="importarFilamentosButton" class="secondary">Importar inventario JSON</button>
+        <input type="file" id="importarFilamentosInput" accept="application/json,.json" hidden>
+      </div>
+      <p id="filamentosMessage" class="help-text" role="status"></p>
+    </section>
+
     <section id="comparadorCanalesPanel" class="panel result-panel comparator-panel">
       <h2 class="section-heading">
         <span data-i18n="comparadorCanales">Comparador de canales</span>
@@ -883,6 +1050,53 @@
         <p id="storageMessage" class="help-text" role="status"></p>
       </details>
     </section>
+
+    <section id="respaldoIntegridadPanel" class="panel backup-panel">
+      <div class="backup-heading">
+        <div>
+          <p class="section-kicker">Protección de datos locales</p>
+          <h2>Respaldo y restauración</h2>
+          <p class="help-text">Tus datos se guardan en este navegador. Descarga respaldos periódicamente para evitar pérdidas o trasladar la información a otro dispositivo.</p>
+        </div>
+        <button type="button" id="descargarRespaldoCompletoButton">Descargar respaldo completo</button>
+      </div>
+
+      <div id="backupSummary" class="backup-summary" aria-live="polite">
+        <div><strong id="backupTotalClientes">0</strong><span>Clientes</span></div>
+        <div><strong id="backupTotalCotizaciones">0</strong><span>Cotizaciones</span></div>
+        <div><strong id="backupTotalTrabajos">0</strong><span>Trabajos</span></div>
+        <div><strong id="backupTotalImpresoras">0</strong><span>Impresoras</span></div>
+        <div><strong id="backupTotalBobinas">0</strong><span>Bobinas</span></div>
+        <div><strong id="backupTotalMovimientos">0</strong><span>Movimientos</span></div>
+      </div>
+
+      <dl class="backup-metadata">
+        <div><dt>Almacenamiento actual</dt><dd>Este dispositivo</dd></div>
+        <div><dt>Último respaldo</dt><dd id="backupLastDate">Aún no registrado</dd></div>
+        <div><dt>Almacenamiento aproximado</dt><dd id="backupStorageSize">0 KB</dd></div>
+      </dl>
+
+      <details class="backup-storage-details">
+        <summary>Ver uso aproximado por módulo</summary>
+        <dl id="backupStorageBreakdown" class="backup-storage-breakdown">
+          <div><dt>Configuración</dt><dd id="backupSizeConfiguracion">0 B</dd></div>
+          <div><dt>Clientes</dt><dd id="backupSizeClientes">0 B</dd></div>
+          <div><dt>Cotizaciones</dt><dd id="backupSizeCotizaciones">0 B</dd></div>
+          <div><dt>Trabajos</dt><dd id="backupSizeTrabajos">0 B</dd></div>
+          <div><dt>Impresoras</dt><dd id="backupSizeImpresoras">0 B</dd></div>
+          <div><dt>Inventario</dt><dd id="backupSizeInventario">0 B</dd></div>
+        </dl>
+      </details>
+
+      <div class="actions backup-actions">
+        <button type="button" id="importarRespaldoCompletoButton" class="secondary">Importar respaldo</button>
+        <input type="file" id="importarRespaldoCompletoInput" accept="application/json,.json" hidden>
+        <button type="button" id="revisarIntegridadButton" class="secondary">Revisar integridad</button>
+        <button type="button" id="descargarRespaldoPrevioButton" class="secondary" disabled>Descargar respaldo previo</button>
+      </div>
+      <p id="backupMessage" class="help-text" role="status"></p>
+      <div id="integrityReport" class="integrity-report" aria-live="polite"></div>
+    </section>
   </main>
   </div>
 
@@ -906,6 +1120,9 @@
   </nav>
   <div class="mobile-more-menu" id="mobileMoreMenu" hidden>
     <button type="button" data-section="clientes">Mis clientes</button>
+    <button type="button" data-section="impresoras">Mis impresoras</button>
+    <button type="button" data-section="filamentos">Inventario de filamentos</button>
+    <button type="button" data-section="cotizaciones">Mis cotizaciones</button>
     <button type="button" data-section="cotizacion-cliente">Cotización</button>
     <button type="button" data-section="datos-cotizacion">Datos comerciales</button>
     <button type="button" data-section="configuracion">Configuración</button>
@@ -948,6 +1165,283 @@
     </section>
   </div>
 
+  <div id="impresoraModal" class="job-modal" hidden>
+    <div class="job-modal__backdrop" data-printer-close></div>
+    <section class="job-modal__content printer-modal__content" role="dialog" aria-modal="true" aria-labelledby="impresoraModalTitle">
+      <button type="button" class="job-modal__close" data-printer-close aria-label="Cerrar formulario">×</button>
+      <h2 id="impresoraModalTitle">Agregar impresora</h2>
+      <form id="impresoraForm" novalidate>
+        <input type="hidden" id="impresoraFormId">
+
+        <fieldset class="printer-form-section">
+          <legend>Identificación</legend>
+          <label class="field-wide">Buscar marca o modelo
+            <input type="search" id="impresoraCatalogoBusqueda" placeholder="Ej: P1S, Ender, K1 o Prusa" autocomplete="off">
+          </label>
+          <div id="impresoraCatalogoResultados" class="printer-catalog-results" hidden></div>
+          <input type="hidden" id="impresoraCatalogoModeloId" name="catalogoModeloId">
+          <div class="field-grid">
+            <label>Marca
+              <select id="impresoraMarcaCatalogo"><option value="">Selecciona una marca</option></select>
+            </label>
+            <label>Modelo
+              <select id="impresoraModeloCatalogo" disabled><option value="">Selecciona un modelo</option></select>
+            </label>
+            <label>Variante
+              <select id="impresoraVarianteCatalogo" disabled><option value="">Sin variante</option></select>
+            </label>
+            <label>Nombre personalizado *
+              <input type="text" id="impresoraNombre" name="nombre" required aria-describedby="error-impresora-nombre">
+              <span class="field-error" id="error-impresora-nombre" data-printer-error="nombre"></span>
+            </label>
+            <label>Tecnología *
+              <select id="impresoraTecnologia" name="tecnologia" required aria-describedby="error-impresora-tecnologia">
+                <option>FDM / FFF</option><option>Resina</option><option>SLS</option><option>Otra</option>
+              </select>
+              <span class="field-error" id="error-impresora-tecnologia" data-printer-error="tecnologia"></span>
+            </label>
+            <label>Estado
+              <select id="impresoraEstado" name="estado">
+                <option>Activa</option><option>En mantenimiento</option><option>Fuera de servicio</option><option>Retirada</option>
+              </select>
+            </label>
+          </div>
+          <button type="button" id="impresoraModoPersonalizado" class="secondary compact-button">No encuentro mi impresora</button>
+          <div id="impresoraIdentificacionManual" class="field-grid printer-manual-fields" hidden>
+            <label>Marca manual<input type="text" id="impresoraMarca" name="marca"></label>
+            <label>Modelo manual<input type="text" id="impresoraModelo" name="modelo"></label>
+            <label>Variante opcional<input type="text" id="impresoraVariante" name="variante"></label>
+          </div>
+          <p id="impresoraCatalogoMeta" class="help-text" aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset class="printer-form-section">
+          <legend>Compra y equipo</legend>
+          <div class="field-grid">
+            <label>Costo de compra *
+              <input type="number" id="impresoraCostoCompra" name="costoCompra" min="0" step="any" required aria-describedby="error-impresora-costo">
+              <small class="help-text">Ingresa el precio que realmente pagaste por esta impresora.</small>
+              <span class="field-error" id="error-impresora-costo" data-printer-error="costoCompra"></span>
+            </label>
+            <label>Moneda de compra<select id="impresoraMonedaCompra" name="monedaCompra"></select></label>
+            <label>Costo de herramientas y accesorios
+              <input type="number" id="impresoraCostoHerramientas" name="costoHerramientas" min="0" step="any" aria-describedby="error-impresora-herramientas">
+              <span class="field-error" id="error-impresora-herramientas" data-printer-error="costoHerramientas"></span>
+            </label>
+            <label>Fecha de compra<input type="date" id="impresoraFechaCompra" name="fechaCompra"></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="printer-form-section">
+          <legend>Operación</legend>
+          <div class="field-grid">
+            <label>Potencia promedio (W) *
+              <input type="number" id="impresoraPotencia" name="potenciaPromedioWatts" min="0.01" step="any" required aria-describedby="error-impresora-potencia">
+              <small class="help-text">Puedes usar el consumo promedio medido o una estimación propia.</small>
+              <span class="field-error" id="error-impresora-potencia" data-printer-error="potenciaPromedioWatts"></span>
+            </label>
+            <label>Vida útil (años)
+              <input type="number" id="impresoraAnosVida" name="anosVidaUtil" min="0.01" step="any" aria-describedby="error-impresora-vida">
+              <span class="field-error" id="error-impresora-vida" data-printer-error="anosVidaUtil"></span>
+            </label>
+            <label>Días operativos por año
+              <input type="number" id="impresoraDiasOperativos" name="diasOperativosAno" min="0.01" step="any" aria-describedby="error-impresora-dias">
+              <span class="field-error" id="error-impresora-dias" data-printer-error="diasOperativosAno"></span>
+            </label>
+            <label>Horas productivas por día
+              <input type="number" id="impresoraHorasProductivas" name="horasProductivasDia" min="0.01" step="any" aria-describedby="error-impresora-horas">
+              <span class="field-error" id="error-impresora-horas" data-printer-error="horasProductivasDia"></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="printer-form-section">
+          <legend>Mantenimiento</legend>
+          <div class="field-grid">
+            <label>Porcentaje estimado de mantenimiento
+              <input type="number" id="impresoraMantenimiento" name="porcentajeMantenimiento" min="0" max="100" step="any" aria-describedby="error-impresora-mantenimiento">
+              <span class="field-error" id="error-impresora-mantenimiento" data-printer-error="porcentajeMantenimiento"></span>
+            </label>
+            <label>Costo de mantenimiento anual
+              <input type="number" id="impresoraMantenimientoAnual" name="costoMantenimientoAnual" min="0" step="any" aria-describedby="error-impresora-mantenimiento-anual">
+              <span class="field-error" id="error-impresora-mantenimiento-anual" data-printer-error="costoMantenimientoAnual"></span>
+            </label>
+          </div>
+          <p class="help-text">El costo anual se muestra como dato adicional y no se suma al porcentaje para evitar cobrar mantenimiento dos veces.</p>
+        </fieldset>
+
+        <fieldset class="printer-form-section">
+          <legend>Otros</legend>
+          <label class="field-wide">Notas<textarea id="impresoraNotas" name="notas" rows="3"></textarea></label>
+          <label class="printer-default-check"><input type="checkbox" id="impresoraPredeterminada" name="esPredeterminada"> Usar como impresora predeterminada</label>
+        </fieldset>
+
+        <aside class="printer-cost-preview" aria-live="polite">
+          <span>Costo por hora estimado</span>
+          <strong id="impresoraCostoHoraPreview">No calculable</strong>
+          <small>Estimación basada en costo de compra, herramientas, mantenimiento, vida útil y horas productivas.</small>
+        </aside>
+        <p id="impresoraFormMessage" class="help-text" role="alert"></p>
+        <div class="actions">
+          <button type="submit">Guardar impresora</button>
+          <button type="button" class="secondary" data-printer-close>Cancelar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="filamentoModal" class="job-modal" hidden>
+    <div class="job-modal__backdrop" data-filament-close></div>
+    <section class="job-modal__content filament-modal__content" role="dialog" aria-modal="true" aria-labelledby="filamentoModalTitle">
+      <button type="button" class="job-modal__close" data-filament-close aria-label="Cerrar formulario">×</button>
+      <h2 id="filamentoModalTitle">Agregar bobina</h2>
+      <form id="filamentoForm" novalidate>
+        <input type="hidden" id="filamentoFormId">
+
+        <fieldset class="filament-form-section">
+          <legend>Identificación</legend>
+          <div class="field-grid">
+            <label for="filamentoNombre">Nombre personalizado
+              <input type="text" id="filamentoNombre" placeholder="Ej: PLA negro para producción">
+            </label>
+            <label for="filamentoMarca">Marca
+              <input type="text" id="filamentoMarca">
+            </label>
+            <label for="filamentoMaterial">Material *</label>
+            <select id="filamentoMaterial" required aria-describedby="error-filamento-material"></select>
+            <span class="field-error" id="error-filamento-material" data-filament-error="materialNombre"></span>
+            <label for="filamentoVariante">Variante
+              <input type="text" id="filamentoVariante" placeholder="Ej: alta velocidad">
+            </label>
+            <label for="filamentoColorNombre">Color
+              <input type="text" id="filamentoColorNombre" placeholder="Ej: Negro mate">
+            </label>
+            <label for="filamentoColorHex">Color visual opcional
+              <input type="color" id="filamentoColorHex" value="#111827">
+            </label>
+            <label for="filamentoDiametro">Diámetro
+              <select id="filamentoDiametro">
+                <option value="1.75">1,75 mm</option>
+                <option value="2.85">2,85 mm</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="filament-form-section">
+          <legend>Peso y stock</legend>
+          <div class="field-grid">
+            <label for="filamentoPesoInicial">Peso neto inicial (g) *
+              <input type="number" id="filamentoPesoInicial" min="0.01" step="any" value="1000" required aria-describedby="error-filamento-peso">
+              <span class="field-error" id="error-filamento-peso" data-filament-error="pesoNetoInicialGramos"></span>
+            </label>
+            <label for="filamentoPesoRestante">Peso restante (g)
+              <input type="number" id="filamentoPesoRestante" min="0" step="any" value="1000">
+            </label>
+            <label for="filamentoTara">Tara de la bobina (g)
+              <input type="number" id="filamentoTara" min="0" step="any">
+              <small class="help-text">Si pesas la bobina completa, resta la tara para estimar cuánto filamento queda.</small>
+            </label>
+            <label for="filamentoStockMinimo">Stock mínimo (g)
+              <input type="number" id="filamentoStockMinimo" min="0" step="any" value="200">
+            </label>
+          </div>
+          <div class="filament-weight-tool">
+            <label for="filamentoPesoMedido">Peso total medido (g)
+              <input type="number" id="filamentoPesoMedido" min="0" step="any">
+            </label>
+            <div aria-live="polite"><span>Peso restante estimado</span><strong id="filamentoPesoEstimado">—</strong></div>
+            <button type="button" id="aplicarPesoEstimadoButton" class="secondary compact-button" disabled>Aplicar estimación</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="filament-form-section">
+          <legend>Costo</legend>
+          <label for="filamentoModoCosto">¿Cómo quieres ingresar el costo?</label>
+          <select id="filamentoModoCosto" aria-describedby="error-filamento-modo">
+            <option value="precio_total">Precio total de la bobina</option>
+            <option value="precio_kilo">Precio por kilo</option>
+          </select>
+          <span class="field-error" id="error-filamento-modo" data-filament-error="modoCosto"></span>
+          <div class="field-grid filament-cost-fields">
+            <label id="filamentoPrecioTotalGrupo" for="filamentoPrecioTotal">Precio total de la bobina *
+              <input type="number" id="filamentoPrecioTotal" min="0" step="any" aria-describedby="error-filamento-precio-total">
+              <span class="field-error" id="error-filamento-precio-total" data-filament-error="precioCompraTotal"></span>
+            </label>
+            <label id="filamentoPrecioKiloGrupo" for="filamentoPrecioKilo" hidden>Precio por kilo *
+              <input type="number" id="filamentoPrecioKilo" min="0" step="any" aria-describedby="error-filamento-precio-kilo">
+              <span class="field-error" id="error-filamento-precio-kilo" data-filament-error="precioPorKilo"></span>
+            </label>
+            <label for="filamentoMoneda">Moneda de compra *</label>
+            <select id="filamentoMoneda" required aria-describedby="error-filamento-moneda"></select>
+            <span class="field-error" id="error-filamento-moneda" data-filament-error="monedaCompra"></span>
+          </div>
+          <aside class="filament-cost-preview" aria-live="polite">
+            <span>Costo por gramo calculado</span>
+            <strong id="filamentoCostoGramoPreview">—</strong>
+            <small>El costo por gramo se calcula usando el precio y el peso neto del filamento, sin incluir el peso de la bobina.</small>
+          </aside>
+        </fieldset>
+
+        <fieldset class="filament-form-section">
+          <legend>Compra y organización</legend>
+          <div class="field-grid">
+            <label for="filamentoProveedor">Proveedor<input type="text" id="filamentoProveedor"></label>
+            <label for="filamentoLote">Lote o SKU<input type="text" id="filamentoLote"></label>
+            <label for="filamentoUbicacion">Ubicación<input type="text" id="filamentoUbicacion"></label>
+            <label for="filamentoFechaCompra">Fecha de compra<input type="date" id="filamentoFechaCompra"></label>
+            <label for="filamentoFechaApertura">Fecha de apertura<input type="date" id="filamentoFechaApertura"></label>
+            <label for="filamentoEstado">Estado
+              <select id="filamentoEstado">
+                <option>Sellada</option><option>En uso</option><option>Agotada</option><option>Archivada</option>
+              </select>
+            </label>
+          </div>
+          <label class="field-wide" for="filamentoNotas">Notas
+            <textarea id="filamentoNotas" rows="3"></textarea>
+          </label>
+        </fieldset>
+
+        <p id="filamentoFormMessage" class="help-text" role="alert"></p>
+        <div class="actions filament-modal-actions">
+          <button type="submit">Guardar bobina</button>
+          <button type="button" class="secondary" data-filament-close>Cancelar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="filamentoStockModal" class="job-modal" hidden>
+    <div class="job-modal__backdrop" data-stock-close></div>
+    <section class="job-modal__content filament-stock-modal__content" role="dialog" aria-modal="true" aria-labelledby="filamentoStockModalTitle">
+      <button type="button" class="job-modal__close" data-stock-close aria-label="Cerrar ajuste de stock">×</button>
+      <h2 id="filamentoStockModalTitle">Ajustar stock</h2>
+      <form id="filamentoStockForm" novalidate>
+        <input type="hidden" id="filamentoStockId">
+        <label for="filamentoStockTipo">Tipo de ajuste
+          <select id="filamentoStockTipo">
+            <option value="consumo_manual">Registrar consumo</option>
+            <option value="correccion">Establecer peso restante</option>
+            <option value="ajuste_entrada">Registrar entrada</option>
+            <option value="ajuste_salida">Registrar salida</option>
+          </select>
+        </label>
+        <label for="filamentoStockCantidad"><span id="filamentoStockCantidadLabel">Cantidad (g)</span>
+          <input type="number" id="filamentoStockCantidad" min="0" step="any" required>
+        </label>
+        <label for="filamentoStockNota">Nota
+          <textarea id="filamentoStockNota" rows="3"></textarea>
+        </label>
+        <p id="filamentoStockMessage" class="help-text" role="alert"></p>
+        <div class="actions">
+          <button type="submit">Guardar ajuste</button>
+          <button type="button" class="secondary" data-stock-close>Cancelar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
   <div id="helpModal" class="help-modal" hidden>
     <div class="help-modal__backdrop" data-help-close></div>
     <section class="help-modal__content" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
@@ -957,18 +1451,55 @@
     </section>
   </div>
 
+  <div id="backupImportModal" class="job-modal" hidden>
+    <div class="job-modal__backdrop" data-backup-close></div>
+    <section class="job-modal__content backup-import-modal__content" role="dialog" aria-modal="true" aria-labelledby="backupImportModalTitle" aria-describedby="backupImportPreview">
+      <button type="button" class="job-modal__close" data-backup-close aria-label="Cerrar importación">×</button>
+      <h2 id="backupImportModalTitle">Revisar respaldo antes de importar</h2>
+      <div id="backupImportPreview" class="backup-import-preview"></div>
+      <fieldset class="backup-import-options">
+        <legend>¿Cómo quieres restaurar los datos?</legend>
+        <label><input type="radio" name="backupImportMode" value="combinar" checked> Combinar con los datos actuales</label>
+        <label><input type="radio" name="backupImportMode" value="reemplazar"> Reemplazar todos los datos actuales</label>
+      </fieldset>
+      <label class="backup-conflict-option">
+        En caso de conflicto
+        <select id="backupConflictPolicy">
+          <option value="actual">Conservar el registro actual</option>
+          <option value="importado">Usar el registro importado</option>
+          <option value="ambos">Conservar ambos cuando sea seguro</option>
+        </select>
+      </label>
+      <p id="backupReplaceWarning" class="backup-warning" hidden>Reemplazar eliminará los datos locales actuales. Antes de continuar se creará un respaldo previo descargable.</p>
+      <div class="actions">
+        <button type="button" id="confirmarImportacionButton">Importar datos</button>
+        <button type="button" id="descargarRespaldoPrevioModalButton" class="secondary" hidden>Descargar respaldo previo</button>
+        <button type="button" class="secondary" data-backup-close>Cancelar</button>
+      </div>
+    </section>
+  </div>
+
   <script src="js/formulas.js"></script>
   <script src="js/currencies.js"></script>
+  <script src="js/printer-catalog-data.js?v=20260715-catalog-v1"></script>
+  <script src="js/printer-catalog.js?v=20260715-catalog-v1"></script>
+  <script src="js/printers.js?v=20260715-printers-v2"></script>
   <script src="js/geolocation.js"></script>
-  <script src="js/i18n.js"></script>
+  <script src="js/i18n.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/presets.js"></script>
+  <script src="js/filaments.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/comparator.js"></script>
-  <script src="js/storage.js?v=20260714-clients-v1"></script>
+  <script src="js/storage.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/clients.js?v=20260714-clients-v1"></script>
-  <script src="js/jobs-dashboard.js?v=20260714-clients-v1"></script>
+  <script src="js/quotes.js?v=20260715-quotes-v2"></script>
+  <script src="js/jobs-dashboard.js?v=20260715-filaments-jobs-v2"></script>
+  <script src="js/backup.js?v=20260715-backup-v1"></script>
   <script src="js/help.js"></script>
-  <script src="js/navigation.js?v=20260714-dashboard-shell2"></script>
+  <script src="js/navigation.js?v=20260715-filaments-v1"></script>
   <script src="js/clients-dashboard.js?v=20260714-clients-v3"></script>
-  <script src="app.js?v=20260714-clients-v1"></script>
+  <script src="js/printers-dashboard.js?v=20260715-printers-v2"></script>
+  <script src="js/filaments-dashboard.js?v=20260715-filaments-jobs-v2"></script>
+  <script src="js/quotes-dashboard.js?v=20260715-quotes-v2"></script>
+  <script src="app.js?v=20260715-filaments-jobs-v2"></script>
 </body>
 </html>

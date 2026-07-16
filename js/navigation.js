@@ -22,6 +22,9 @@
     resultado: ["Resultado", "Revisa el precio sugerido, tus costos y la utilidad estimada."],
     trabajos: ["Mis trabajos", "Guarda y organiza tus cotizaciones, ventas y pedidos."],
     clientes: ["Mis clientes", "Guarda y reutiliza los datos de tus clientes en trabajos y cotizaciones."],
+    impresoras: ["Mis impresoras", "Guarda los costos y características de tus impresoras para reutilizarlos en tus cotizaciones."],
+    filamentos: ["Inventario de filamentos", "Registra tus bobinas, controla el material disponible y utiliza su costo real por gramo."],
+    cotizaciones: ["Mis cotizaciones", "Crea, guarda y administra propuestas comerciales con varios productos o servicios."],
     "datos-cotizacion": ["Datos comerciales", "Configura los datos de tu negocio, cliente y condiciones comerciales."],
     "cotizacion-cliente": ["Cotización para cliente", "Prepara una cotización limpia para imprimir o guardar como PDF."],
     configuracion: ["Configuración", "Personaliza los costos y preferencias utilizados en los cálculos."],
@@ -67,9 +70,13 @@
     ultimoCalculo: document.querySelector("#ultimoCalculoPanel"),
     trabajos: document.querySelector("#misTrabajosPanel"),
     clientes: document.querySelector("#misClientesPanel"),
+    impresoras: document.querySelector("#misImpresorasPanel"),
+    filamentos: document.querySelector("#inventarioFilamentosPanel"),
+    cotizaciones: document.querySelector("#misCotizacionesPanel"),
     cotizacionCliente: document.querySelector("#cotizacionClientePanel"),
     datosCotizacion: document.querySelector("#datosCotizacionPanel"),
-    configuracion: document.querySelector(".storage-panel:not(#ultimoCalculoPanel)")
+    configuracion: document.querySelector(".storage-panel:not(#ultimoCalculoPanel)"),
+    respaldo: document.querySelector("#respaldoIntegridadPanel")
   };
 
   main.replaceChildren(fragmento);
@@ -171,6 +178,7 @@
     </div>
     <div class="actions">
       <button type="button" id="guardarDesdeResultadoButton" disabled>Guardar como trabajo</button>
+      <button type="button" id="agregarCalculoCotizacionButton" class="secondary" disabled>Agregar cálculo a cotización</button>
       <button type="button" id="generarCotizacionDesdeResultadoButton" class="secondary" disabled>Generar cotización</button>
       <button type="button" id="volverACotizarDesdeResultadoButton" class="secondary">Nuevo cálculo</button>
     </div>
@@ -194,6 +202,9 @@
 
   mover("trabajos", [paneles.trabajos]);
   mover("clientes", [paneles.clientes]);
+  mover("impresoras", [paneles.impresoras]);
+  mover("filamentos", [paneles.filamentos]);
+  mover("cotizaciones", [paneles.cotizaciones]);
   mover("cotizacion-cliente", [paneles.cotizacionCliente]);
   mover("datos-cotizacion", [paneles.datosCotizacion]);
 
@@ -234,7 +245,8 @@
 
   mover("configuracion", [
     panelCostos,
-    paneles.configuracion
+    paneles.configuracion,
+    paneles.respaldo
   ]);
 
   contenido("ayuda").innerHTML = `
@@ -326,6 +338,9 @@
       "cotizacion-cliente",
       "datos-cotizacion",
       "clientes",
+      "impresoras",
+      "filamentos",
+      "cotizaciones",
       "configuracion",
       "ayuda"
     ]);
@@ -408,6 +423,11 @@
 
   document.querySelector("#generarCotizacionDesdeResultadoButton")?.addEventListener("click", () => {
     document.dispatchEvent(new CustomEvent("precio3d:abrir-cotizacion-actual"));
+    mostrarSeccion("cotizacion-cliente", { enfocar: true });
+  });
+
+  document.querySelector("#agregarCalculoCotizacionButton")?.addEventListener("click", () => {
+    document.dispatchEvent(new CustomEvent("precio3d:agregar-calculo-cotizacion"));
     mostrarSeccion("cotizacion-cliente", { enfocar: true });
   });
 
