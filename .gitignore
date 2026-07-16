@@ -1,0 +1,48 @@
+# Entorno local
+.env
+.env.*
+!.env.example
+
+# Logs y temporales
+*.log
+*.tmp
+*.temp
+tmp/
+temp/
+.cache/
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Carpetas locales de Codex o pruebas manuales
+.codex-local-ignore-backup/
+.agents/
+.codex/
+outputs/
+work/
+local/
+sandbox/
+
+# Respaldos y exportaciones personales
+backups/
+respaldos/
+exports/
+exportaciones/
+datos-exportados/
+clientes-exportados/
+*.backup.json
+*respaldo*.json
+*backup*.json
+clientes-impresion-3d.json
+trabajos-impresion-3d.json
+cotizaciones-impresion-3d.json
+impresoras-impresion-3d.json
+bobinas-impresion-3d.json
+respaldo-precio3d-*.json
+
+# Archivos de prueba local no necesarios para GitHub Pages
+coverage/
+dist-local/
+server.log

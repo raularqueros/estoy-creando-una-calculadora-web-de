@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-15",
+  "posts": [
+    {
+      "id": "draft-como-calcular-precio-impresion-3d",
+      "slug": "como-calcular-precio-impresion-3d",
+      "title": "Cómo calcular el precio de una impresión 3D",
+      "description": "Borrador estructural para preparar un artículo educativo sobre costos, tiempo, trabajo, margen y precio final en impresión 3D.",
+      "datePublished": "2026-07-15",
+      "dateModified": "2026-07-15",
+      "category": "Costos",
+      "tags": ["impresión 3D", "precios", "costos"],
+      "image": "../assets/images/blog/placeholder-articulo.svg",
+      "author": "",
+      "status": "draft",
+      "featured": false
+    }
+  ]
+}

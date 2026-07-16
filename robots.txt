@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/sitemap.xml

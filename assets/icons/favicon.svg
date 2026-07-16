@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Icono de calculadora de impresion 3D</title>
+  <desc id="desc">Cubo de impresion 3D con marca de calculo.</desc>
+  <rect width="64" height="64" rx="14" fill="#0f766e"/>
+  <path d="M32 10 50 20.4v21.2L32 52 14 41.6V20.4L32 10Z" fill="#e8f7f3" stroke="#ffffff" stroke-width="2"/>
+  <path d="M32 10v21m18-10.6L32 31 14 20.4M32 52V31" fill="none" stroke="#0f766e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M23 40h18M27 35h10M30 45h4" stroke="#f4b63f" stroke-width="3" stroke-linecap="round"/>
+</svg>

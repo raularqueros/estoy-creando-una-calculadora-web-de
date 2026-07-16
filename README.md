@@ -1,238 +1,127 @@
-# Calculadora de precio final para impresion 3D
+# Calculadora de precio final para impresión 3D
 
-## Descripcion
+Aplicación web estática en HTML, CSS y JavaScript puro para calcular precios de trabajos de impresión 3D, preparar cotizaciones, organizar clientes, registrar trabajos, controlar impresoras y bobinas de filamento, y revisar resultados financieros.
 
-Calculadora web HTML5 + CSS + JavaScript puro para estimar el precio final de trabajos de impresion 3D. Funciona sin backend, sin frameworks y sin librerias externas.
+Funciona sin backend, sin cuentas, sin base de datos externa y sin frameworks. Es compatible con alojamiento estático como GitHub Pages.
 
-El objetivo del MVP es ayudar a calcular un precio sugerido considerando costos reales, fees, impuestos y margen, sin depender solo del peso del material.
+## Enlace público
 
-## Publico objetivo
+URL configurada para publicación:
 
-- Makers
-- Emprendedores de impresion 3D
-- Talleres pequenos
-- Vendedores online
+https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/
 
-## Que problema resuelve
+## Funciones principales
 
-Cobrar solo gramos de material y horas de impresion suele dejar costos importantes fuera del precio. Esta calculadora separa los componentes principales de una cotizacion:
+- Modo Básico y Modo Avanzado de cálculo.
+- Costo de filamento por gramo o por kilo, normalizado internamente a costo por gramo.
+- Costos de material, electricidad, amortización, mano de obra, logística, fees, impuestos y margen.
+- Comparador de canales de venta.
+- Gestión de trabajos y estados.
+- Gestión de clientes.
+- Gestión de cotizaciones para cliente.
+- Registro de venta real y pagos asociados a trabajos.
+- Gestión de impresoras.
+- Inventario de filamentos, bobinas y consumos.
+- Panel financiero con reportes y exportaciones CSV.
+- Exportación/importación JSON y respaldo completo.
+- Páginas públicas informativas.
+- SEO técnico básico, `robots.txt`, `sitemap.xml`, `404.html`, favicon e imagen social.
+- Blog estático preparado para artículos educativos.
 
-- Material
-- Soportes, purga o merma
-- Electricidad
-- Amortizacion del equipo
-- Mano de obra
-- Embalaje
-- Envio
-- Fees de canal y pago
-- Impuestos
-- Margen de ganancia
+## Almacenamiento local
 
-## Modos de uso
+Los datos se guardan en `LocalStorage` del navegador. Esto significa que:
 
-### Modo Basico / Cotizacion rapida
+- los datos quedan en el navegador y dispositivo usado;
+- si se borran los datos del navegador, se pueden perder registros;
+- para cambiar de computador conviene exportar un respaldo JSON e importarlo en el otro navegador;
+- no existe sincronización automática en la nube.
 
-Pensado para cotizaciones rapidas con pocos datos visibles y supuestos editables. Usa presets de material, impresora y canal de venta, pero permite modificar valores clave como merma, electricidad, margen, impuesto, embalaje, envio y fees.
+Antes de publicar o usar comercialmente, revisa `pages/privacidad.html` y `pages/terminos.html`.
 
-### Modo Avanzado
+## Cómo ejecutar localmente
 
-Permite ingresar datos con mas detalle: tiempos de preparacion y postprocesado, consumo electrico, costos de equipo, logistica, fees e impuestos. Usa el mismo motor de formulas que el modo basico.
+Opción simple:
 
-## Funciones actuales del MVP
+1. Abrir `index.html` en el navegador.
+2. Completar una cotización.
+3. Presionar `Calcular`.
 
-- Calculo de costo material
-- Switch de costo de filamento por gramo o por kilo
-- Normalizacion interna a costo por gramo
-- Calculo de electricidad
-- Calculo de amortizacion del equipo
-- Mano de obra
-- Logistica
-- Margen de ganancia
-- Impuestos
-- Fees fijos y porcentuales
-- Comparador de canales de venta
-- Metodo de pago seleccionable en el comparador
-- Prevencion de doble comision cuando un marketplace integra el cobro
-- LocalStorage para configuracion del usuario
-- Exportar e importar configuracion JSON
-- Ultimo calculo guardado
-- Selector de moneda para formato visual
-- Estructura base de i18n para idiomas
+Opción con servidor local, útil para probar el blog y `fetch` de archivos JSON:
 
-## Formulas principales
-
-### Costo material
-
-```text
-(pesoPieza + pesoSoportesPurga) * costoUnidad * (1 + merma)
+```bash
+python -m http.server 8767
 ```
 
-`costoUnidad` siempre debe llegar al motor como costo por gramo. Si el usuario ingresa precio por kilo, la app calcula:
+Luego abrir:
 
 ```text
-costoUnidad = precioKilo / 1000
+http://127.0.0.1:8767/index.html
 ```
 
-### Costo electricidad
-
-```text
-horasImpresion * kWPromedio * tarifaKwh
-```
-
-Donde:
-
-```text
-kWPromedio = wattsPromedio / 1000
-```
-
-### Costo equipo hora
-
-```text
-((costoImpresora + costoHerramientas) * (1 + mantenimiento)) / (anosVida * diasOperativosAno * horasProductivasDia)
-```
-
-### Amortizacion
-
-```text
-costoEquipoHora * horasImpresion
-```
-
-### Mano de obra
-
-```text
-(horasPreparacion + horasPostprocesado + horasQA) * tarifaHora
-```
-
-### Costo total
-
-```text
-material + electricidad + amortizacion + manoObra + logistica + marketing + otros
-```
-
-### Utilidad
-
-```text
-costoTotal * margen
-```
-
-### Precio neto
-
-```text
-(costoTotal + utilidad + feeFijoTotal) / (1 - feePorcentualTotal)
-```
-
-### Impuesto
-
-```text
-precioNeto * tasaImpuesto
-```
-
-### Precio final
-
-```text
-precioNeto + impuesto
-```
-
-## Regla critica de fees
-
-Los fees porcentuales se resuelven dentro de la ecuacion del precio neto. No se suman al final.
-
-Esto es importante porque si una plataforma cobra un porcentaje sobre el precio de venta, el precio final debe cubrir ese porcentaje desde la formula:
-
-```text
-precioNeto = (costoTotal + utilidad + feeFijoTotal) / (1 - feePorcentualTotal)
-```
-
-Si `feePorcentualTotal` es igual o mayor a 100%, el calculo no es valido porque implicaria dividir por cero o por un valor negativo.
-
-## Estructura de archivos
+## Estructura principal
 
 ```text
 index.html
 styles.css
 app.js
-js/formulas.js
-js/presets.js
-js/currencies.js
-js/i18n.js
-js/comparator.js
-js/storage.js
+404.html
+robots.txt
+sitemap.xml
+assets/
+blog/
+docs/
+js/
+pages/
+styles/
+tests/
 ```
 
-- `index.html`: estructura de la interfaz, secciones, formularios, resultados y carga de scripts.
-- `styles.css`: estilos responsive para escritorio y celular.
-- `app.js`: conecta la interfaz con formulas, presets, comparador, moneda, idioma y almacenamiento local.
-- `js/formulas.js`: motor unico de formulas puras.
-- `js/presets.js`: materiales, impresoras, canales, metodos de pago, impuestos, envios y supuestos base.
-- `js/currencies.js`: monedas disponibles y locales de formato.
-- `js/i18n.js`: estructura base de textos por idioma.
-- `js/comparator.js`: comparador de canales usando el motor de formulas.
-- `js/storage.js`: guardado, carga, importacion y exportacion de configuracion con LocalStorage.
+Archivos clave:
 
-## Como usar localmente
+- `js/formulas.js`: motor único de fórmulas puras.
+- `js/storage.js`: persistencia, importación, exportación y respaldo.
+- `js/navigation.js`: navegación por secciones.
+- `js/clients.js` y `js/clients-dashboard.js`: clientes.
+- `js/quotes.js` y `js/quotes-dashboard.js`: cotizaciones.
+- `js/printers.js` y `js/printers-dashboard.js`: impresoras.
+- `js/filaments.js` y `js/filaments-dashboard.js`: bobinas y consumos.
+- `js/reports.js` y `js/reports-dashboard.js`: panel financiero.
+- `js/backup.js`: respaldo completo e integridad.
+- `blog/posts.json`: índice de artículos del blog.
 
-1. Abrir `index.html` en el navegador.
-2. Completar los datos del modo basico o avanzado.
-3. Presionar `Calcular`.
-4. Revisar el resultado y el comparador de canales.
+## Fórmula base de material
 
-No requiere instalacion, backend, cuenta de usuario ni internet para el calculo base.
+```text
+(pesoPieza + pesoSoportesPurga) * costoUnidad * (1 + merma)
+```
 
-## Como probar
+Si el usuario ingresa precio por kilo:
 
-### Caso A: costo por gramo
+```text
+costoUnidad = precioKilo / 1000
+```
 
-Datos:
-
-- Peso pieza: `50`
-- Soportes/purga: `5`
-- Costo por gramo: `12`
-- Merma: `10%`
-
-Resultado esperado de costo material:
+Caso de prueba esperado:
 
 ```text
 (50 + 5) * 12 * (1 + 0.10) = 726
 ```
 
-### Caso B: precio por kilo
+El mismo resultado debe obtenerse usando `12` por gramo o `12000` por kilo.
 
-Datos:
+## Publicación
 
-- Peso pieza: `50`
-- Soportes/purga: `5`
-- Precio por kilo: `12000`
-- Merma: `10%`
+Antes de actualizar GitHub Pages, revisar:
 
-Normalizacion:
+- `docs/CHECKLIST_PUBLICACION.md`
+- `docs/SEO_Y_PUBLICACION.md`
+- `docs/PAGINAS_PUBLICAS.md`
+- `docs/COMO_PUBLICAR_ARTICULOS.md`
+- `docs/RESPALDO_E_INTEGRIDAD.md`
 
-```text
-12000 / 1000 = 12 por gramo
-```
+No subir respaldos personales, exportaciones JSON con datos reales, archivos `.env`, logs ni archivos temporales.
 
-Resultado esperado de costo material:
+## Estado del proyecto
 
-```text
-(50 + 5) * 12 * (1 + 0.10) = 726
-```
-
-Ambos casos deben dar el mismo costo material.
-
-## Advertencias
-
-- Los fees son referenciales.
-- Los impuestos son referenciales.
-- Esta herramienta no es asesoria contable, tributaria ni legal.
-- Las tarifas cambian segun pais, fecha, plataforma, categoria y tipo de cuenta.
-- El usuario debe verificar sus valores antes de cotizar o vender.
-- La moneda seleccionada solo cambia el formato visual; no realiza conversion automatica.
-
-## Pendientes / Roadmap
-
-- Exportacion real a Excel
-- Graficos
-- PDF
-- Compartir calculo por enlace
-- Edicion avanzada de presets desde interfaz
-- Publicacion en GitHub Pages
-- Posible importacion de `.gcode` o `.3mf` en una version futura
+Versión experimental pública preparada hasta Fase 5B.4: auditoría final y preparación de publicación.

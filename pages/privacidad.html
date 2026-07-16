@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacidad | Calculadora de precio de impresión 3D</title>
+  <meta name="description" content="Política informativa sobre datos locales, LocalStorage, respaldos, detección de moneda y servicios externos usados por la calculadora de impresión 3D.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/pages/privacidad.html">
+  <link rel="icon" href="../assets/icons/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Privacidad de la calculadora de precio de impresión 3D">
+  <meta property="og:description" content="Cómo se guardan datos en el navegador y qué servicios externos se usan realmente.">
+  <meta property="og:url" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/pages/privacidad.html">
+  <meta property="og:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
+  <meta property="og:site_name" content="Calculadora de precio de impresión 3D">
+  <meta property="og:locale" content="es_CL">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Privacidad de la calculadora de precio de impresión 3D">
+  <meta name="twitter:description" content="Datos locales, respaldos y servicios externos usados por la herramienta.">
+  <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
+  <link rel="stylesheet" href="../styles/public-pages.css">
+</head>
+<body>
+  <header class="public-header">
+    <nav class="public-nav" aria-label="Navegación pública">
+      <a class="public-brand" href="../index.html">Calculadora 3D</a>
+      <div class="public-nav__links">
+        <a href="acerca-de.html">Acerca de</a>
+        <a href="como-funciona.html">Cómo funciona</a>
+        <a href="preguntas-frecuentes.html">Preguntas frecuentes</a>
+        <a href="privacidad.html">Privacidad</a>
+        <a href="terminos.html">Términos</a>
+      </div>
+    </nav>
+    <section class="public-hero">
+      <p>Privacidad</p>
+      <h1>Datos locales y uso real de servicios externos.</h1>
+      <p class="lead">Esta página describe el comportamiento actual de la aplicación estática.</p>
+    </section>
+  </header>
+
+  <main class="public-content">
+    <section class="public-card">
+      <h2>Datos guardados localmente</h2>
+      <p>La aplicación guarda información en LocalStorage del navegador. Puede incluir configuración, último cálculo, trabajos, clientes, cotizaciones, datos del negocio, preferencias de navegación, impresoras, bobinas, movimientos de inventario, reportes y respaldos recientes.</p>
+      <p>Esos datos quedan asociados al navegador y dispositivo donde se usan. Si cambias de navegador o computador, no aparecerán automáticamente.</p>
+    </section>
+
+    <section class="public-card">
+      <h2>Exportar, importar y eliminar</h2>
+      <p>La aplicación incluye exportaciones JSON, CSV y respaldo completo para trasladar o conservar información. También existen acciones para borrar datos en módulos específicos.</p>
+      <p>Si limpias los datos del navegador, usas modo incógnito o el navegador elimina almacenamiento local, puedes perder la información guardada si no tienes un respaldo.</p>
+    </section>
+
+    <section class="public-card">
+      <h2>Servicios externos identificados</h2>
+      <p>La calculadora puede solicitar una detección aproximada de país para sugerir moneda. Para eso intenta consultar <code>https://ipapi.co/json/</code> y, si falla, <code>https://api.country.is/</code>.</p>
+      <p>Estos servicios pueden recibir la dirección IP como parte normal de cualquier conexión web. La aplicación guarda localmente el país y moneda sugeridos durante un período limitado para no consultar en cada carga.</p>
+      <p>La calculadora no solicita GPS, cámara ni micrófono.</p>
+    </section>
+
+    <section class="public-grid">
+      <article class="public-card">
+        <h2>Cookies, analítica y anuncios</h2>
+        <p>En el estado actual no se agregó analítica, publicidad ni cookies propias para seguimiento. Si se agregan esos servicios en el futuro, esta página debe actualizarse antes de publicarlos.</p>
+      </article>
+      <article class="public-card">
+        <h2>Sin cuentas ni servidor propio</h2>
+        <p>La versión actual no tiene login, usuarios, base de datos externa ni backend propio para guardar tus trabajos.</p>
+      </article>
+    </section>
+
+    <section class="public-card public-note">
+      <p>Este texto es informativo y debe revisarse si el proyecto incorpora cuentas, pagos, analítica, anuncios, backend o servicios externos adicionales.</p>
+    </section>
+
+    <div class="public-actions">
+      <a class="public-button" href="../index.html">Volver a la calculadora</a>
+      <a class="public-button secondary" href="terminos.html">Ver términos</a>
+    </div>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-footer__inner">
+      <p>Calculadora de precio de impresión 3D · <span class="public-year">2026</span></p>
+      <nav aria-label="Enlaces públicos">
+        <a href="../index.html">Calculadora</a>
+        <a href="acerca-de.html">Acerca de</a>
+        <a href="como-funciona.html">Cómo funciona</a>
+        <a href="../blog/index.html">Blog</a>
+        <a href="privacidad.html">Privacidad</a>
+        <a href="terminos.html">Términos</a>
+        <a href="preguntas-frecuentes.html">FAQ</a>
+      </nav>
+    </div>
+  </footer>
+  <script>
+    document.querySelector(".public-year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

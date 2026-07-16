@@ -24,6 +24,7 @@
     clientes: ["Mis clientes", "Guarda y reutiliza los datos de tus clientes en trabajos y cotizaciones."],
     impresoras: ["Mis impresoras", "Guarda los costos y características de tus impresoras para reutilizarlos en tus cotizaciones."],
     filamentos: ["Inventario de filamentos", "Registra tus bobinas, controla el material disponible y utiliza su costo real por gramo."],
+    finanzas: ["Panel financiero", "Analiza tus ventas, cobros, costos y rentabilidad utilizando los datos registrados en la aplicaciÃ³n."],
     cotizaciones: ["Mis cotizaciones", "Crea, guarda y administra propuestas comerciales con varios productos o servicios."],
     "datos-cotizacion": ["Datos comerciales", "Configura los datos de tu negocio, cliente y condiciones comerciales."],
     "cotizacion-cliente": ["Cotización para cliente", "Prepara una cotización limpia para imprimir o guardar como PDF."],
@@ -72,6 +73,7 @@
     clientes: document.querySelector("#misClientesPanel"),
     impresoras: document.querySelector("#misImpresorasPanel"),
     filamentos: document.querySelector("#inventarioFilamentosPanel"),
+    finanzas: document.querySelector("#panelFinancieroPanel"),
     cotizaciones: document.querySelector("#misCotizacionesPanel"),
     cotizacionCliente: document.querySelector("#cotizacionClientePanel"),
     datosCotizacion: document.querySelector("#datosCotizacionPanel"),
@@ -204,6 +206,7 @@
   mover("clientes", [paneles.clientes]);
   mover("impresoras", [paneles.impresoras]);
   mover("filamentos", [paneles.filamentos]);
+  mover("finanzas", [paneles.finanzas]);
   mover("cotizaciones", [paneles.cotizaciones]);
   mover("cotizacion-cliente", [paneles.cotizacionCliente]);
   mover("datos-cotizacion", [paneles.datosCotizacion]);
@@ -257,6 +260,17 @@
       <div class="actions">
         <a class="button-link secondary" href="docs/FUENTES.md" target="_blank" rel="noopener">Ver fuentes del proyecto</a>
         <a class="button-link secondary" href="README.md" target="_blank" rel="noopener">Ver documentación</a>
+      </div>
+    </section>
+    <section class="panel help-sources-panel">
+      <h2>Páginas informativas</h2>
+      <p>Información pública sobre el alcance de la calculadora, privacidad, preguntas frecuentes y términos de uso.</p>
+      <div class="actions">
+        <a class="button-link secondary" href="pages/acerca-de.html">Acerca de</a>
+        <a class="button-link secondary" href="pages/como-funciona.html">Cómo funciona</a>
+        <a class="button-link secondary" href="pages/preguntas-frecuentes.html">Preguntas frecuentes</a>
+        <a class="button-link secondary" href="pages/privacidad.html">Privacidad</a>
+        <a class="button-link secondary" href="pages/terminos.html">Términos</a>
       </div>
     </section>
   `;
@@ -340,6 +354,7 @@
       "clientes",
       "impresoras",
       "filamentos",
+      "finanzas",
       "cotizaciones",
       "configuracion",
       "ayuda"

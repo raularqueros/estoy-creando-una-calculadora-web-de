@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Calculadora de precio de impresion 3D</title>
+  <desc id="desc">Vista promocional neutral de una herramienta para calcular costos, cotizaciones e inventario de impresion 3D.</desc>
+  <rect width="1200" height="630" fill="#eef6f5"/>
+  <rect x="70" y="70" width="1060" height="490" rx="28" fill="#ffffff" stroke="#c8ddd9" stroke-width="3"/>
+  <rect x="110" y="110" width="280" height="410" rx="22" fill="#0f766e"/>
+  <path d="M250 170 330 216v92l-80 46-80-46v-92l80-46Z" fill="#e8f7f3" stroke="#ffffff" stroke-width="5"/>
+  <path d="M250 170v94m80-48-80 48-80-48M250 354v-90" fill="none" stroke="#0f766e" stroke-width="6" stroke-linecap="round"/>
+  <rect x="450" y="130" width="420" height="34" rx="17" fill="#c8ddd9"/>
+  <rect x="450" y="190" width="570" height="44" rx="12" fill="#17212f"/>
+  <rect x="450" y="258" width="520" height="26" rx="13" fill="#5b6f7d"/>
+  <rect x="450" y="318" width="190" height="110" rx="16" fill="#e8f7f3" stroke="#b6d8d1" stroke-width="3"/>
+  <rect x="670" y="318" width="190" height="110" rx="16" fill="#fff5dc" stroke="#eed08d" stroke-width="3"/>
+  <rect x="890" y="318" width="190" height="110" rx="16" fill="#edf4ff" stroke="#bfd2ea" stroke-width="3"/>
+  <rect x="450" y="470" width="420" height="22" rx="11" fill="#c8ddd9"/>
+  <text x="450" y="156" fill="#0f766e" font-family="Arial, sans-serif" font-size="28" font-weight="700">IMPRESION 3D</text>
+  <text x="450" y="224" fill="#17212f" font-family="Arial, sans-serif" font-size="42" font-weight="800">Calculadora de precio final</text>
+  <text x="450" y="282" fill="#5b6f7d" font-family="Arial, sans-serif" font-size="24">Costos, cotizaciones, impresoras e inventario</text>
+  <text x="480" y="378" fill="#0f766e" font-family="Arial, sans-serif" font-size="22" font-weight="700">Costos</text>
+  <text x="704" y="378" fill="#9a6700" font-family="Arial, sans-serif" font-size="22" font-weight="700">Precios</text>
+  <text x="920" y="378" fill="#245780" font-family="Arial, sans-serif" font-size="22" font-weight="700">Reportes</text>
+</svg>

@@ -3,8 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Precio para Impresión 3D</title>
+  <title>Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario</title>
+  <meta name="description" content="Calcula costos de impresión 3D, define precios rentables, crea cotizaciones y gestiona impresoras e inventario de filamentos desde una herramienta local.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <link rel="canonical" href="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
+  <meta property="og:description" content="Calcula costos, define precios, crea cotizaciones y gestiona impresoras e inventario de filamentos para trabajos de impresión 3D.">
+  <meta property="og:url" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/">
+  <meta property="og:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
+  <meta property="og:site_name" content="Calculadora de precio de impresión 3D">
+  <meta property="og:locale" content="es_CL">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
+  <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
+  <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
   <link rel="stylesheet" href="styles.css?v=20260715-filaments-jobs-v2">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Calculadora de precio final para impresión 3D",
+      "description": "Herramienta local para calcular costos, definir precios, crear cotizaciones y gestionar impresoras e inventario de filamentos para trabajos de impresión 3D.",
+      "url": "https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Navegador web",
+      "inLanguage": "es",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  </script>
 </head>
 <body>
   <header class="site-header">
@@ -12,11 +48,13 @@
       <p class="eyebrow">Impresión 3D</p>
       <h1 data-i18n="tituloApp">Calculadora de precio final</h1>
       <p class="intro">Calcula cuánto cobrar por una impresión 3D considerando material, tiempo, trabajo, envío, comisiones e impuestos.</p>
+      <p class="intro intro-secondary">Diseñada para emprendedores, makers y talleres que necesitan cotizar trabajos, organizar clientes, controlar impresoras, registrar bobinas de filamento y revisar resultados financieros sin backend.</p>
       <div class="header-badges" aria-label="Estado de la herramienta">
         <span class="badge">MVP funcional</span>
         <span class="badge">100% local</span>
         <span class="badge">Sin backend</span>
       </div>
+      <p class="estimation-notice">Los resultados son estimaciones basadas en los datos ingresados. <a href="pages/como-funciona.html">Más información</a></p>
     </div>
   </header>
 
@@ -50,6 +88,10 @@
         <button type="button" class="dashboard-nav__button" data-section="filamentos" data-tooltip="Inventario de filamentos">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 4h7v5M12 20H5v-5"/></svg>
           <span class="dashboard-nav__label">Inventario de filamentos</span>
+        </button>
+        <button type="button" class="dashboard-nav__button" data-section="finanzas" data-tooltip="Panel financiero">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3M7 7l4 3 4-5 4 4"/></svg>
+          <span class="dashboard-nav__label">Panel financiero</span>
         </button>
         <button type="button" class="dashboard-nav__button" data-section="cotizaciones" data-tooltip="Mis cotizaciones">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM15 3v4h4M9 11h6M9 15h6M9 19h4"/></svg>
@@ -385,7 +427,7 @@
     <!-- Datos entregados por el slicer -->
     <section class="panel">
       <h2>2. Datos del slicer</h2>
-      <div class="field-grid">
+      <div class="field-grid field-grid--slicer">
         <div class="field-block field-block--time">
           <span class="field-label">Tiempo estimado</span>
           <div class="time-inputs">
@@ -399,10 +441,10 @@
             </label>
           </div>
         </div>
-        <label>
-          Filamento usado
+        <div class="field-block field-block--slicer-weight">
+          <span class="field-label">Filamento usado</span>
           <input type="number" id="pesoPiezaAvanzado" min="0" placeholder="Gramos">
-        </label>
+        </div>
         <label>
           Altura de capa
           <input type="text" placeholder="Ej: 0.20 mm">
@@ -1006,6 +1048,111 @@
       <p id="filamentosMessage" class="help-text" role="status"></p>
     </section>
 
+    <section id="panelFinancieroPanel" class="panel result-panel financial-panel">
+      <div class="clients-heading report-heading">
+        <div>
+          <p class="eyebrow">Reportes operativos</p>
+          <h2 data-i18n="panelFinanciero">Panel financiero</h2>
+          <p class="help-text">Analiza tus ventas, cobros, costos y rentabilidad utilizando los datos registrados en la aplicación.</p>
+          <p class="report-warning">Este panel es una herramienta de gestión. No reemplaza la contabilidad, los registros tributarios ni las declaraciones oficiales.</p>
+        </div>
+        <div class="actions report-actions">
+          <button type="button" id="reporteExportarResumen" class="secondary" data-i18n="exportarResumen">Exportar resumen</button>
+          <button type="button" id="reporteExportarDetalle" class="secondary" data-i18n="exportarDetalle">Exportar detalle</button>
+          <button type="button" id="reporteImprimir" class="secondary" data-i18n="imprimirReporte">Imprimir reporte</button>
+        </div>
+      </div>
+
+      <details class="collapsible-section report-filters-panel" open>
+        <summary>Filtros del reporte</summary>
+        <div class="field-grid report-filters">
+          <label for="reportePeriodo">Período
+            <select id="reportePeriodo" data-report-filter>
+              <option value="hoy">Hoy</option>
+              <option value="ultimos_7">Últimos 7 días</option>
+              <option value="este_mes" selected>Este mes</option>
+              <option value="mes_anterior">Mes anterior</option>
+              <option value="ultimos_90">Últimos 90 días</option>
+              <option value="este_ano">Este año</option>
+              <option value="ano_anterior">Año anterior</option>
+              <option value="todo">Todo el período</option>
+              <option value="personalizado">Rango personalizado</option>
+            </select>
+          </label>
+          <label for="reporteMoneda">Moneda
+            <select id="reporteMoneda" data-report-filter></select>
+          </label>
+          <label for="reporteFechaInicio">Fecha inicial
+            <input type="date" id="reporteFechaInicio" data-report-filter>
+          </label>
+          <label for="reporteFechaFin">Fecha final
+            <input type="date" id="reporteFechaFin" data-report-filter>
+          </label>
+          <label for="reporteEstado">Estado
+            <select id="reporteEstado" data-report-filter></select>
+          </label>
+          <label for="reporteCliente">Cliente
+            <select id="reporteCliente" data-report-filter></select>
+          </label>
+          <label for="reporteImpresora">Impresora
+            <select id="reporteImpresora" data-report-filter></select>
+          </label>
+          <label for="reporteMaterial">Material
+            <select id="reporteMaterial" data-report-filter></select>
+          </label>
+          <label for="reporteCanal">Canal de venta
+            <select id="reporteCanal" data-report-filter></select>
+          </label>
+          <label for="reporteMetodoPago">Método de pago
+            <select id="reporteMetodoPago" data-report-filter></select>
+          </label>
+          <label for="reporteModo">Modo
+            <select id="reporteModo" data-report-filter></select>
+          </label>
+        </div>
+        <div class="actions report-filter-actions">
+          <button type="button" id="reporteAplicarRango">Aplicar</button>
+          <button type="button" id="reporteLimpiarFiltros" class="secondary">Limpiar filtros</button>
+        </div>
+      </details>
+
+      <p id="reporteEstadoPanel" class="report-status" role="status"></p>
+      <div id="reporteKpis" class="report-kpi-grid" aria-live="polite"></div>
+
+      <section class="panel report-section report-print-section">
+        <h3 data-i18n="evolucionResultados">Evolución de resultados</h3>
+        <p class="help-text">Las ventas se agrupan por la fecha del trabajo o venta. Los pagos se agrupan por la fecha en que fueron registrados.</p>
+        <div id="reporteGrafico"></div>
+      </section>
+
+      <details class="collapsible-section report-section" open>
+        <summary>Rentabilidad por producto, cliente, impresora y material</summary>
+        <div class="report-grid-2">
+          <section><h3 data-i18n="rentabilidadProducto">Rentabilidad por producto</h3><div id="reporteProductos"></div></section>
+          <section><h3 data-i18n="rentabilidadCliente">Rentabilidad por cliente</h3><div id="reporteClientes"></div></section>
+          <section><h3 data-i18n="rentabilidadImpresora">Rentabilidad por impresora</h3><div id="reporteImpresoras"></div></section>
+          <section><h3 data-i18n="rentabilidadMaterial">Rentabilidad por material</h3><div id="reporteMateriales"></div></section>
+        </div>
+      </details>
+
+      <details class="collapsible-section report-section" open>
+        <summary>Cuentas por cobrar y ranking de trabajos</summary>
+        <section><h3 data-i18n="pagosPendientes">Pagos pendientes</h3><div id="reporteCuentasPorCobrar"></div></section>
+        <section><div id="reporteRankingTrabajos"></div></section>
+      </details>
+
+      <details class="collapsible-section report-section">
+        <summary>Canales, métodos de pago, estados y costos</summary>
+        <div id="reporteCanalesPago"></div>
+        <div id="reporteEstadosCostos"></div>
+      </details>
+
+      <details class="collapsible-section report-section">
+        <summary data-i18n="calidadDatos">Calidad de los datos</summary>
+        <div id="reporteCalidadDatos"></div>
+      </details>
+    </section>
+
     <section id="comparadorCanalesPanel" class="panel result-panel comparator-panel">
       <h2 class="section-heading">
         <span data-i18n="comparadorCanales">Comparador de canales</span>
@@ -1100,6 +1247,20 @@
   </main>
   </div>
 
+  <footer class="site-footer" aria-label="Información pública del sitio">
+    <div class="site-footer__inner">
+      <p>Calculadora de precio de impresión 3D · <span id="siteFooterYear">2026</span></p>
+      <nav class="site-footer__links" aria-label="Enlaces públicos">
+        <a href="pages/acerca-de.html">Acerca de</a>
+        <a href="pages/como-funciona.html">Cómo funciona</a>
+        <a href="pages/preguntas-frecuentes.html">Preguntas frecuentes</a>
+        <a href="blog/index.html">Blog</a>
+        <a href="pages/privacidad.html">Privacidad</a>
+        <a href="pages/terminos.html">Términos</a>
+      </nav>
+    </div>
+  </footer>
+
   <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Navegación móvil">
     <button type="button" data-section="cotizar">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8M6 6h12v15H6zM9 10h6M9 14h6"/></svg>
@@ -1122,6 +1283,7 @@
     <button type="button" data-section="clientes">Mis clientes</button>
     <button type="button" data-section="impresoras">Mis impresoras</button>
     <button type="button" data-section="filamentos">Inventario de filamentos</button>
+    <button type="button" data-section="finanzas">Panel financiero</button>
     <button type="button" data-section="cotizaciones">Mis cotizaciones</button>
     <button type="button" data-section="cotizacion-cliente">Cotización</button>
     <button type="button" data-section="datos-cotizacion">Datos comerciales</button>
@@ -1479,6 +1641,7 @@
     </section>
   </div>
 
+  <script src="js/site-config.js?v=20260715-seo-v1"></script>
   <script src="js/formulas.js"></script>
   <script src="js/currencies.js"></script>
   <script src="js/printer-catalog-data.js?v=20260715-catalog-v1"></script>
@@ -1494,12 +1657,17 @@
   <script src="js/quotes.js?v=20260715-quotes-v2"></script>
   <script src="js/jobs-dashboard.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/backup.js?v=20260715-backup-v1"></script>
+  <script src="js/reports.js?v=20260715-reports-v1"></script>
   <script src="js/help.js"></script>
   <script src="js/navigation.js?v=20260715-filaments-v1"></script>
   <script src="js/clients-dashboard.js?v=20260714-clients-v3"></script>
   <script src="js/printers-dashboard.js?v=20260715-printers-v2"></script>
   <script src="js/filaments-dashboard.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/quotes-dashboard.js?v=20260715-quotes-v2"></script>
+  <script src="js/reports-dashboard.js?v=20260715-reports-v1"></script>
   <script src="app.js?v=20260715-filaments-jobs-v2"></script>
+  <script>
+    document.getElementById("siteFooterYear").textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>

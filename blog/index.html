@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog de impresión 3D | Costos, precios y gestión</title>
+  <meta name="description" content="Artículos educativos sobre costos de impresión 3D, precios, filamentos, mantenimiento, cotizaciones y gestión de pequeños emprendimientos.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/blog/">
+  <link rel="icon" href="../assets/icons/favicon.svg" type="image/svg+xml">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Blog de impresión 3D | Costos, precios y gestión">
+  <meta property="og:description" content="Guías y artículos educativos para cotizar trabajos de impresión 3D con mejores datos.">
+  <meta property="og:url" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/blog/">
+  <meta property="og:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
+  <meta property="og:site_name" content="Calculadora de precio de impresión 3D">
+  <meta property="og:locale" content="es_CL">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Blog de impresión 3D | Costos, precios y gestión">
+  <meta name="twitter:description" content="Contenido educativo para emprendedores, makers y talleres de impresión 3D.">
+  <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
+  <link rel="stylesheet" href="../styles/blog.css">
+</head>
+<body>
+  <header class="blog-header">
+    <nav class="blog-nav" aria-label="Navegación pública">
+      <a class="blog-brand" href="../index.html">Calculadora 3D</a>
+      <div class="blog-nav__links">
+        <a href="../index.html">Calculadora</a>
+        <a href="../pages/como-funciona.html">Cómo funciona</a>
+        <a href="../pages/preguntas-frecuentes.html">FAQ</a>
+        <a href="../pages/privacidad.html">Privacidad</a>
+        <a href="../pages/terminos.html">Términos</a>
+      </div>
+    </nav>
+
+    <section class="blog-hero">
+      <p>Blog</p>
+      <h1>Guías para cotizar mejor tus trabajos de impresión 3D.</h1>
+      <p class="lead">Una base educativa para publicar artículos sobre costos, precios, filamentos, mantenimiento, cotizaciones y gestión de pequeños emprendimientos.</p>
+    </section>
+  </header>
+
+  <main class="blog-content">
+    <section class="blog-card blog-controls" aria-labelledby="blogFilterTitle">
+      <div>
+        <h2 id="blogFilterTitle">Buscar artículos</h2>
+        <p>El listado muestra solamente artículos publicados. Los borradores quedan ocultos hasta que los revises.</p>
+      </div>
+      <form class="blog-filters" id="blogFilters">
+        <label>
+          Buscar
+          <input type="search" id="blogSearch" name="q" placeholder="Ej: filamento, precios, mantenimiento">
+        </label>
+        <label>
+          Categoría
+          <select id="blogCategory" name="category">
+            <option value="">Todas las categorías publicadas</option>
+          </select>
+        </label>
+      </form>
+    </section>
+
+    <section class="blog-card" aria-labelledby="featuredTitle">
+      <h2 id="featuredTitle">Artículos destacados</h2>
+      <div id="featuredPosts" class="post-grid" aria-live="polite">
+        <p class="empty-state">Aún no hay artículos destacados publicados.</p>
+      </div>
+    </section>
+
+    <section class="blog-card" aria-labelledby="postsTitle">
+      <h2 id="postsTitle">Todos los artículos</h2>
+      <div id="postsList" class="post-grid" aria-live="polite">
+        <p class="empty-state">Aún no hay artículos publicados. Los borradores no se muestran en esta lista.</p>
+      </div>
+      <noscript>
+        <p class="empty-state">El blog funciona sin JavaScript para leer artículos enlazados directamente, pero el filtro necesita JavaScript.</p>
+      </noscript>
+    </section>
+
+    <section class="blog-card blog-note">
+      <h2>Publicación estática</h2>
+      <p>Los artículos se publican como páginas HTML independientes para facilitar indexación, accesibilidad, enlaces directos y compatibilidad con GitHub Pages.</p>
+      <a class="blog-button secondary" href="../docs/COMO_PUBLICAR_ARTICULOS.md">Ver guía de publicación</a>
+    </section>
+  </main>
+
+  <footer class="blog-footer">
+    <div class="blog-footer__inner">
+      <p>Calculadora de precio de impresión 3D · <span id="blogFooterYear">2026</span></p>
+      <nav aria-label="Enlaces públicos">
+        <a href="../index.html">Calculadora</a>
+        <a href="../pages/acerca-de.html">Acerca de</a>
+        <a href="../pages/como-funciona.html">Cómo funciona</a>
+        <a href="index.html">Blog</a>
+        <a href="../pages/privacidad.html">Privacidad</a>
+        <a href="../pages/terminos.html">Términos</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="blog.js"></script>
+</body>
+</html>
