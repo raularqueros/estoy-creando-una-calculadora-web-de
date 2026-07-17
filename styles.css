@@ -51,7 +51,7 @@ body {
   margin: 0 auto;
 }
 
-/* Gestión local de impresoras */
+/* GestiÃ³n local de impresoras */
 .printers-panel,
 .printers-list,
 .printers-table-scroll {
@@ -1502,6 +1502,130 @@ textarea {
   font-size: 0.84rem;
   font-weight: 700;
 }
+.comparator-card-list {
+  display: none;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.comparator-card {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-left: 4px solid #9bb6c4;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(31, 41, 51, 0.05);
+  overflow-wrap: anywhere;
+}
+
+.comparator-card.is-best {
+  border-left-color: var(--primary);
+  background: #f7fbfc;
+}
+
+.comparator-card.is-invalid {
+  border-left-color: #c76d3a;
+  background: #fffaf5;
+}
+
+.comparator-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.comparator-card__header h3 {
+  margin: 0;
+  color: var(--primary-dark);
+  font-size: 1rem;
+}
+
+.comparator-card__header p,
+.comparator-card__note,
+.comparator-card__warning {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.best-option-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  color: var(--primary-dark);
+  background: #e8f6f8;
+  border: 1px solid #9bcbd3;
+  border-left: 4px solid var(--primary);
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.comparator-card__price {
+  display: grid;
+  gap: 3px;
+  padding: 12px;
+  background: var(--soft);
+  border: 1px solid #d6e3ea;
+  border-radius: 8px;
+}
+
+.comparator-card__price span,
+.comparator-card dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.comparator-card__price strong {
+  color: var(--primary-dark);
+  font-size: clamp(1.25rem, 7vw, 1.7rem);
+  line-height: 1.1;
+}
+
+.comparator-card__summary,
+.comparator-card__details dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.comparator-card__summary div,
+.comparator-card__details dl div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.comparator-card dd {
+  margin: 0;
+  font-weight: 750;
+}
+
+.comparator-card__warning {
+  color: #914b16;
+  font-weight: 750;
+}
+
+.comparator-card__details summary {
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.is-invalid-row td {
+  color: #7a4a20;
+  background: #fffaf5;
+}
 
 .comparison-recommendations {
   display: grid;
@@ -1570,6 +1694,8 @@ textarea {
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 8px;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .print-quote__header {
@@ -1578,6 +1704,20 @@ textarea {
   gap: 18px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
+}
+
+.print-quote__brand p {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.print-quote__brand h2,
+.print-quote__meta h1 {
+  margin: 0 0 6px;
 }
 
 .print-quote h2,
@@ -4284,29 +4424,45 @@ body.modal-open {
     padding: 0;
     color: #000000;
     font-size: 9.5pt;
-    line-height: 1.3;
+    line-height: 1.22;
     border: 0;
     border-radius: 0;
     box-shadow: none;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    word-break: normal;
   }
 
   .print-quote__header {
-    grid-template-columns: minmax(0, 1.35fr) minmax(48mm, 0.65fr);
-    gap: 8mm;
-    padding-bottom: 3mm;
-    border-color: #000000;
+    grid-template-columns: minmax(0, 1fr) minmax(46mm, 0.8fr);
+    gap: 7mm;
+    padding-bottom: 2.5mm;
+    border-color: #666666;
   }
 
-  .print-quote__header h2 {
-    margin-bottom: 2mm;
-    font-size: 22pt;
+  .print-quote__brand p {
+    margin-bottom: 1mm;
+    color: #333333;
+    font-size: 8pt;
+  }
+
+  .print-quote__brand h2 {
+    font-size: 15pt;
+    line-height: 1.12;
+  }
+
+  .print-quote__meta h1 {
+    margin-bottom: 1.5mm;
+    font-size: 18pt;
+    line-height: 1.05;
+    text-transform: uppercase;
   }
 
   .print-quote__commercial {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: 3mm;
-    padding-bottom: 3mm;
-    border-color: #000000;
+    margin-top: 2.5mm;
+    padding-bottom: 2.5mm;
+    border-color: #999999;
   }
 
   .print-quote__party {
@@ -4321,14 +4477,14 @@ body.modal-open {
 
   .print-quote__party h3,
   .print-quote__section h3 {
-    margin-bottom: 1.5mm;
+    margin-bottom: 1.2mm;
     color: #000000;
-    font-size: 11pt;
+    font-size: 10.5pt;
   }
 
   .print-quote__meta p,
   .print-quote__party p {
-    margin-bottom: 1mm;
+    margin-bottom: 0.7mm;
   }
 
   .print-quote__section,
@@ -4338,7 +4494,7 @@ body.modal-open {
   }
 
   .print-quote__section {
-    margin-top: 3mm;
+    margin-top: 2.5mm;
     overflow: visible;
   }
 
@@ -4349,8 +4505,8 @@ body.modal-open {
 
   .print-quote__table th,
   .print-quote__table td {
-    padding: 1.5mm 2mm;
-    border-color: #000000;
+    padding: 1.2mm 1.6mm;
+    border-color: #777777;
   }
 
   .print-quote__table th {
@@ -4363,11 +4519,42 @@ body.modal-open {
     font-size: 15pt;
   }
 
+  .print-quote__totals {
+    gap: 1mm;
+    max-width: 78mm;
+    margin-top: 2.5mm;
+    margin-left: auto;
+    font-size: 9.5pt;
+  }
+
+  .print-quote__grand-total {
+    margin-top: 1.5mm;
+    padding-top: 1.8mm;
+    border-top: 1.5pt solid #000000;
+    font-size: 14pt;
+  }
+
+  .print-quote__tax-note {
+    margin-top: 1.5mm;
+    color: #333333;
+    font-size: 8.5pt;
+  }
+
+  .print-quote__footer {
+    margin-top: 3mm;
+    padding-top: 2mm;
+    border-color: #999999;
+    color: #333333;
+    font-size: 8.5pt;
+  }
+
   .print-quote__header,
   .print-quote__commercial,
   .print-quote__total,
   .print-quote__section,
-  .print-quote__table tr {
+  .print-quote__table tr,
+  .print-quote__totals,
+  .print-quote__footer {
     break-inside: avoid;
   }
 }
@@ -4590,6 +4777,15 @@ body.modal-open {
   text-align: right;
   color: #4b5d65;
   font-size: 0.82rem;
+}
+
+.print-quote__footer {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.84rem;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
@@ -5119,5 +5315,96 @@ body.modal-open {
   body.printing-report .report-kpi-card,
   body.printing-report .report-table tr {
     break-inside: avoid;
+  }
+}
+
+.validation-summary {
+  border: 1px solid #f3b64d;
+  border-left: 4px solid #d98200;
+  background: #fff8eb;
+  color: #5f3b00;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin: 0 0 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.validation-summary[hidden] {
+  display: none;
+}
+
+.validation-field-error {
+  display: block;
+  width: 100%;
+  color: #9f1d1d;
+  font-size: 0.84rem;
+  font-weight: 700;
+  margin-top: 0.35rem;
+}
+
+.validation-warning,
+.result-stale-message,
+.amortization-warning {
+  color: #7a4a00;
+  font-weight: 700;
+}
+
+.is-invalid {
+  border-color: #c83232 !important;
+  box-shadow: 0 0 0 3px rgba(200, 50, 50, 0.14) !important;
+}
+
+.checkbox-line.amortization-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+  font-weight: 700;
+}
+
+.checkbox-line.amortization-option input {
+  width: auto;
+  min-width: 18px;
+  margin-top: 0.1rem;
+}
+
+.result-stale-message {
+  border-top: 1px solid rgba(122, 74, 0, 0.2);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+@media (max-width: 520px) {
+  .validation-summary {
+    padding: 0.8rem;
+  }
+
+  .checkbox-line.amortization-option {
+    align-items: center;
+  }
+}
+
+
+@media (max-width: 760px) {
+  .comparator-controls {
+    max-width: none;
+  }
+
+  .comparator-table-section {
+    display: none;
+  }
+
+  .comparator-card-list {
+    display: grid;
+  }
+
+  .comparison-recommendations {
+    grid-template-columns: 1fr;
+  }
+
+  .comparator-card__summary,
+  .comparator-card__details dl {
+    grid-template-columns: 1fr;
   }
 }
