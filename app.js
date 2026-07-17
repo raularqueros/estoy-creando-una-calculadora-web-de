@@ -162,7 +162,7 @@ const estadosTrabajo = [
   "Pendiente",
   "Aceptado",
   "Esperando abono",
-  "En producciÃ³n",
+  "En producción",
   "Terminado",
   "Entregado",
   "Pagado",
@@ -173,7 +173,7 @@ const clavesEstadoTrabajo = {
   "Pendiente": "pendiente",
   "Aceptado": "aceptado",
   "Esperando abono": "esperandoAbono",
-  "En producciÃ³n": "enProduccion",
+  "En producción": "enProduccion",
   "Terminado": "terminado",
   "Entregado": "entregado",
   "Pagado": "pagado",
@@ -937,7 +937,7 @@ function guardarConfiguracionActual(mostrarMensaje = false) {
   }
 
   if (mostrarMensaje) {
-    mostrarMensajeAlmacenamiento("ConfiguraciÃ³n guardada.");
+    mostrarMensajeAlmacenamiento("Configuración guardada.");
   }
 
   return true;
@@ -1071,7 +1071,7 @@ function aplicarConfiguracion(configuracion, mostrarMensaje = false, opciones = 
   guardadoPausado = false;
 
   if (mostrarMensaje) {
-    mostrarMensajeAlmacenamiento("Se cargÃ³ tu configuraciÃ³n guardada.");
+    mostrarMensajeAlmacenamiento("Se cargó tu configuración guardada.");
   }
 
   return true;
@@ -1127,19 +1127,19 @@ function importarConfiguracionDesdeArchivo(event) {
     const configuracion = window.StoragePrecio3D?.importarConfiguracionJSON?.(reader.result);
 
     if (!configuracion) {
-      mostrarMensajeAlmacenamiento("Archivo de configuraciÃ³n invÃ¡lido.", true);
+      mostrarMensajeAlmacenamiento("Archivo de configuración inválido.", true);
       importarConfiguracionInput.value = "";
       return;
     }
 
     aplicarConfiguracion(configuracion, false, { preferenciaManual: true });
     guardarConfiguracionActual(false);
-    mostrarMensajeAlmacenamiento("ConfiguraciÃ³n guardada.");
+    mostrarMensajeAlmacenamiento("Configuración guardada.");
     importarConfiguracionInput.value = "";
   };
 
   reader.onerror = () => {
-    mostrarMensajeAlmacenamiento("Archivo de configuraciÃ³n invÃ¡lido.", true);
+    mostrarMensajeAlmacenamiento("Archivo de configuración inválido.", true);
     importarConfiguracionInput.value = "";
   };
 
@@ -1191,7 +1191,7 @@ function restablecerConfiguracionGuardada() {
   monedaSeleccionadaManualmente = false;
   hayMonedaGuardada = false;
   guardadoPausado = false;
-  mostrarMensajeAlmacenamiento("ConfiguraciÃ³n restablecida.");
+  mostrarMensajeAlmacenamiento("Configuración restablecida.");
   inicializarDeteccionMoneda();
 }
 
@@ -1206,7 +1206,7 @@ function cargarSelectorMonedas(selector) {
   window.MonedasPrecio3D.forEach((moneda) => {
     const option = document.createElement("option");
     option.value = moneda.codigo;
-    option.textContent = `${moneda.codigo} â€” ${obtenerNombreMonedaVisible(moneda)}`;
+    option.textContent = `${moneda.codigo} — ${obtenerNombreMonedaVisible(moneda)}`;
     selector.appendChild(option);
   });
 
@@ -1307,7 +1307,7 @@ function cargarSelectorPerfilesImpresora(selector) {
   perfiles.forEach((perfil) => {
     const option = document.createElement("option");
     option.value = `perfil:${perfil.id}`;
-    option.textContent = perfil.esPredeterminada ? `${textoInterfaz("predeterminada")} Â· ${perfil.nombre}` : perfil.nombre;
+    option.textContent = perfil.esPredeterminada ? `${textoInterfaz("predeterminada")} · ${perfil.nombre}` : perfil.nombre;
     selector.appendChild(option);
   });
   [["manual", textoInterfaz("valoresManualesCotizacion")], ["ninguna", textoInterfaz("sinImpresoraValoresVisibles")]].forEach(([value, label]) => {
@@ -1782,8 +1782,8 @@ function obtenerBobinasDisponibles() {
 
 function textoOpcionBobina(bobina) {
   const costo = window.FilamentosPrecio3D?.calcularCostoPorGramo?.(bobina) || Number(bobina.costoPorGramo) || 0;
-  const identidad = [bobina.materialNombre, bobina.marca, bobina.colorNombre].filter(Boolean).join(" Â· ");
-  return `${identidad || bobina.nombre || "Bobina"} â€” ${Number(bobina.pesoRestanteGramos) || 0} g â€” ${costo.toLocaleString("es-CL", { maximumFractionDigits: 4 })} ${bobina.monedaCompra || "CLP"}/g`;
+  const identidad = [bobina.materialNombre, bobina.marca, bobina.colorNombre].filter(Boolean).join(" · ");
+  return `${identidad || bobina.nombre || "Bobina"} — ${Number(bobina.pesoRestanteGramos) || 0} g — ${costo.toLocaleString("es-CL", { maximumFractionDigits: 4 })} ${bobina.monedaCompra || "CLP"}/g`;
 }
 
 function cargarSelectoresFilamentos() {
@@ -1795,8 +1795,8 @@ function cargarSelectoresFilamentos() {
     selector.add(new Option("Sin bobina / costo manual", ""));
     obtenerBobinasDisponibles().forEach((bobina) => selector.add(new Option(textoOpcionBobina(bobina), bobina.id)));
     if (filamentoTrabajoCargadoId && !Array.from(selector.options).some((opcion) => opcion.value === filamentoTrabajoCargadoId)) {
-      const nombre = filamentoTrabajoCargado?.nombre || filamentoTrabajoCargado?.materialNombre || "Bobina histÃ³rica";
-      selector.add(new Option(`${nombre} â€” referencia histÃ³rica no disponible`, filamentoTrabajoCargadoId));
+      const nombre = filamentoTrabajoCargado?.nombre || filamentoTrabajoCargado?.materialNombre || "Bobina histórica";
+      selector.add(new Option(`${nombre} — referencia histórica no disponible`, filamentoTrabajoCargadoId));
     }
     selector.value = Array.from(selector.options).some((opcion) => opcion.value === valorActual)
       ? valorActual
@@ -1881,7 +1881,7 @@ function actualizarResumenFilamento(modo) {
     : "";
   const stockMinimo = Number(fuente.bobina?.stockMinimoGramos ?? referencia.stockMinimoGramos) || 0;
   const estado = fuente.bobina?.estado || referencia.estadoAlCalcular || textoInterfaz("noDisponible");
-  controles.resumen.textContent = `${referencia.materialNombre || referencia.nombre || textoInterfaz("bobinaInventario")}${referencia.colorNombre ? ` ${referencia.colorNombre}` : ""}${referencia.marca ? ` Â· ${referencia.marca}` : ""}. ${textoInterfaz("costoDesdeInventario")}: ${costoActual.toLocaleString("es-CL", { maximumFractionDigits: 4 })} ${monedaBobina}/g. ${textoInterfaz("stockDisponible")}: ${stock.toLocaleString("es-CL", { maximumFractionDigits: 2 })} g. ${textoInterfaz("stockMinimo")}: ${stockMinimo.toLocaleString("es-CL")} g. ${textoInterfaz("estado")}: ${estado}. ${textoInterfaz("consumoEstimado")}: ${consumo.toLocaleString("es-CL", { maximumFractionDigits: 2 })} g.${diferenciaCosto}${avisoStock}${avisoStockBajo}`;
+  controles.resumen.textContent = `${referencia.materialNombre || referencia.nombre || textoInterfaz("bobinaInventario")}${referencia.colorNombre ? ` ${referencia.colorNombre}` : ""}${referencia.marca ? ` · ${referencia.marca}` : ""}. ${textoInterfaz("costoDesdeInventario")}: ${costoActual.toLocaleString("es-CL", { maximumFractionDigits: 4 })} ${monedaBobina}/g. ${textoInterfaz("stockDisponible")}: ${stock.toLocaleString("es-CL", { maximumFractionDigits: 2 })} g. ${textoInterfaz("stockMinimo")}: ${stockMinimo.toLocaleString("es-CL")} g. ${textoInterfaz("estado")}: ${estado}. ${textoInterfaz("consumoEstimado")}: ${consumo.toLocaleString("es-CL", { maximumFractionDigits: 2 })} g.${diferenciaCosto}${avisoStock}${avisoStockBajo}`;
   if (controles.botonMoneda) controles.botonMoneda.hidden = true;
   if (controles.botonCostoActual) controles.botonCostoActual.hidden = !diferenciaCosto;
   if (controles.botonManual) controles.botonManual.hidden = !diferenciaCosto;
@@ -2445,7 +2445,7 @@ function crearNivelPrecio(nivel, datosBase) {
   const feeEstimado = calcularFeeEstimado(resumenNivel);
   const utilidadEstimada = resumenNivel.precioNeto - resumenNivel.costoTotal - feeEstimado;
   const estadoSeleccionado = nivel.personalizado
-    ? `<span class="price-level-selected"><span aria-hidden="true">âœ“</span> ${textoInterfaz("seleccionado")}</span>`
+    ? `<span class="price-level-selected"><span aria-hidden="true">✓</span> ${textoInterfaz("seleccionado")}</span>`
     : "";
   const impuestoIncluido = resumenNivel.impuesto > 0
     ? `<small>${textoInterfaz("impuestoIncluido")}: ${formatearMoneda(resumenNivel.impuesto)}</small>`
@@ -2454,7 +2454,7 @@ function crearNivelPrecio(nivel, datosBase) {
   return `
     <div class="price-level-card${nivel.personalizado ? " price-level-card--selected" : ""}">
       ${estadoSeleccionado}
-      <span>${nivel.nombre} Â· ${formatearPorcentaje(nivel.margen)} ${etiquetaPorcentajeNivel(tipoGanancia)}</span>
+      <span>${nivel.nombre} · ${formatearPorcentaje(nivel.margen)} ${etiquetaPorcentajeNivel(tipoGanancia)}</span>
       <strong>${formatearMoneda(resumenNivel.precioFinal)}</strong>
       <p>${nivel.nota}</p>
       <small>${textoInterfaz("utilidadEstimadaEtiqueta")}: ${formatearMoneda(utilidadEstimada)}</small>
@@ -2818,8 +2818,8 @@ function renderizarResultado(resumen, feeEstimado, destino, desglose, opciones =
     ${crearItemDesglose(textoInterfaz("maquina"), formatearMoneda(resumen.costoAmortizacion))}
     ${crearItemDesglose(textoInterfaz("manoObra"), formatearMoneda(resumen.costoManoObra))}
     ${crearItemDesglose(textoInterfaz("logistica"), formatearMoneda(resumen.costoLogistico))}
-    ${crearItemDesglose(textoInterfaz("comisionCanalDetalle"), `${formatearFeeMixto(resumen.feeFijoCanal, resumen.feePorcentajeCanal)} Â· ${etiquetaBaseComision(resumen.baseComisionCanal)} = ${formatearMoneda(resumen.feeCanalTotal)}`)}
-    ${crearItemDesglose(textoInterfaz("comisionPagoDetalle"), `${formatearFeeMixto(resumen.feeFijoPago, resumen.feePorcentajePago)} Â· ${etiquetaBaseComision(resumen.baseComisionPago)} = ${formatearMoneda(resumen.feePagoTotal)}`)}
+    ${crearItemDesglose(textoInterfaz("comisionCanalDetalle"), `${formatearFeeMixto(resumen.feeFijoCanal, resumen.feePorcentajeCanal)} · ${etiquetaBaseComision(resumen.baseComisionCanal)} = ${formatearMoneda(resumen.feeCanalTotal)}`)}
+    ${crearItemDesglose(textoInterfaz("comisionPagoDetalle"), `${formatearFeeMixto(resumen.feeFijoPago, resumen.feePorcentajePago)} · ${etiquetaBaseComision(resumen.baseComisionPago)} = ${formatearMoneda(resumen.feePagoTotal)}`)}
     ${crearItemDesglose(textoInterfaz("feesNominales"), formatearPorcentaje(resumen.feePorcentualTotal))}
     ${crearItemDesglose(textoInterfaz("feesEfectivos"), formatearPorcentaje(resumen.coeficienteFees))}
     ${crearItemDesglose(textoInterfaz("feesTotales"), formatearMoneda(feeEstimado))}
@@ -2829,7 +2829,7 @@ function renderizarResultado(resumen, feeEstimado, destino, desglose, opciones =
 
   destino.innerHTML = `
     <p class="result-job-name">${escaparHtml(nombreTrabajo)}</p>
-    <p class="result-job-meta">${textoInterfaz("cantidadProductos")}: ${cantidadProductos} Â· ${textoInterfaz("alcanceDatosSlicerResultado")}: ${etiquetaAlcanceDatosSlicer(alcanceDatosSlicer)}</p>
+    <p class="result-job-meta">${textoInterfaz("cantidadProductos")}: ${cantidadProductos} · ${textoInterfaz("alcanceDatosSlicerResultado")}: ${etiquetaAlcanceDatosSlicer(alcanceDatosSlicer)}</p>
     <p class="result-total">${formatearMoneda(resumen.precioFinal)}</p>
     <div class="result-summary">
       ${resumenHtml}
@@ -2904,14 +2904,14 @@ function renderizarSupuestosBasicos(supuestos) {
   supuestosModoBasico.innerHTML = `
     ${crearItemSupuesto("Merma usada", formatearPorcentaje(supuestos.merma))}
     ${crearItemSupuesto("Watts promedio", `${supuestos.wattsPromedio} W`)}
-    ${crearItemSupuesto("Tarifa elÃ©ctrica", formatearMoneda(supuestos.tarifaKwh))}
+    ${crearItemSupuesto("Tarifa eléctrica", formatearMoneda(supuestos.tarifaKwh))}
     ${crearItemSupuesto(textoInterfaz("costoRealUsadoAmortizacion"), formatearMoneda(supuestos.costoImpresora))}
     ${crearItemSupuesto("Costo de herramientas usado", formatearMoneda(supuestos.costoHerramientas))}
-    ${crearItemSupuesto("Vida Ãºtil", `${supuestos.anosVida} aÃ±os`)}
-    ${crearItemSupuesto("DÃ­as operativos al aÃ±o", supuestos.diasOperativosAno)}
-    ${crearItemSupuesto("Horas productivas al dÃ­a", supuestos.horasProductivasDia)}
+    ${crearItemSupuesto("Vida útil", `${supuestos.anosVida} años`)}
+    ${crearItemSupuesto("Días operativos al año", supuestos.diasOperativosAno)}
+    ${crearItemSupuesto("Horas productivas al día", supuestos.horasProductivasDia)}
     ${crearItemSupuesto("Mantenimiento", formatearPorcentaje(supuestos.mantenimiento))}
-    ${crearItemSupuesto("Horas preparaciÃ³n base", supuestos.horasPreparacion)}
+    ${crearItemSupuesto("Horas preparación base", supuestos.horasPreparacion)}
     ${crearItemSupuesto("Horas postprocesado base", supuestos.horasPostprocesado)}
     ${crearItemSupuesto("Horas QA base", supuestos.horasQA)}
     ${crearItemSupuesto("Seguro", formatearMoneda(supuestos.seguro))}
@@ -2971,7 +2971,7 @@ function poblarSelectorClientes(selector, textoVacio) {
   const clientes = window.ClientesPrecio3D?.obtenerClientes?.() || [];
   selector.innerHTML = `<option value="">${escaparHtml(textoVacio)}</option>${clientes
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }))
-    .map((cliente) => `<option value="${escaparHtml(cliente.id)}">${escaparHtml(cliente.nombre)}${cliente.empresa ? ` Â· ${escaparHtml(cliente.empresa)}` : ""}</option>`)
+    .map((cliente) => `<option value="${escaparHtml(cliente.id)}">${escaparHtml(cliente.nombre)}${cliente.empresa ? ` · ${escaparHtml(cliente.empresa)}` : ""}</option>`)
     .join("")}`;
   selector.value = clientes.some((cliente) => cliente.id === valorActual) ? valorActual : "";
 }
@@ -3088,11 +3088,11 @@ function renderizarResumenTrabajos(trabajos) {
     }, {});
 
     const textos = Object.entries(totales).map(([moneda, total]) => formatearMoneda(total, moneda, true));
-    return textos.length ? textos.join(" Â· ") : formatearMoneda(0, obtenerCodigoMonedaActivo(), true);
+    return textos.length ? textos.join(" · ") : formatearMoneda(0, obtenerCodigoMonedaActivo(), true);
   };
   const conteoEstados = estadosTrabajo
     .map((estado) => `${textoEstadoTrabajo(estado)}: ${trabajos.filter((trabajo) => trabajo.estado === estado).length}`)
-    .join(" Â· ");
+    .join(" · ");
 
   trabajosResumen.innerHTML = `
     ${crearItemResumen(textoInterfaz("totalCotizadoEtiqueta"), resumirImportes("precioFinal"))}
@@ -3308,7 +3308,7 @@ function cargarTrabajoEnCalculadora(trabajo) {
     asignarValorCampo("mantenimientoBasico", (Number(datos.mantenimiento) || 0) * 100);
   }
 
-  const nombreImpresoraTrabajo = snapshotTrabajo?.nombre || perfilTrabajo?.nombre || "configuraciÃ³n manual";
+  const nombreImpresoraTrabajo = snapshotTrabajo?.nombre || perfilTrabajo?.nombre || "configuración manual";
   if (impresoraPerfilNotaBasico) {
     impresoraPerfilNotaBasico.textContent = textoInterfaz("parametrosTecnicosImpresora", {
       impresora: nombreImpresoraTrabajo
@@ -3533,12 +3533,12 @@ function exportarCalculoActualCSV() {
     ["Material", ultimoDatosCalculo.material],
     ["Peso pieza", ultimoDatosCalculo.pesoPieza],
     ["Soportes/purga", ultimoDatosCalculo.pesoSoportesPurga],
-    ["Tiempo impresiÃ³n", ultimoDatosCalculo.horasImpresion],
+    ["Tiempo impresión", ultimoDatosCalculo.horasImpresion],
     ["Cantidad", ultimoDatosCalculo.cantidadProductos],
     ["Canal", ultimoDatosCalculo.canalVenta],
-    ["MÃ©todo de pago", ultimoDatosCalculo.metodoPago],
+    ["Método de pago", ultimoDatosCalculo.metodoPago],
     ["Bobina de filamento", ultimoDatosCalculo.filamentoSnapshot?.nombre || ultimoDatosCalculo.filamentoSnapshot?.materialNombre || "Uso manual"],
-    ["Costo histÃ³rico por gramo", ultimoDatosCalculo.filamentoSnapshot?.costoPorGramoUsado ?? ultimoDatosCalculo.costoUnidad],
+    ["Costo histórico por gramo", ultimoDatosCalculo.filamentoSnapshot?.costoPorGramoUsado ?? ultimoDatosCalculo.costoUnidad],
     ["Consumo estimado de filamento", ultimoDatosCalculo.filamentoSnapshot?.consumoEstimadoGramos || ""],
     ["Moneda", monedaCalculo]
   ];
@@ -3557,8 +3557,8 @@ function exportarTrabajosCSV() {
 
   const filas = [
     [
-      "NÃºmero de cotizaciÃ³n",
-      "Fecha creaciÃ³n",
+      "Número de cotización",
+      "Fecha creación",
       "Fecha venta",
       "Fecha pago",
       "Trabajo",
