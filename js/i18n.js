@@ -1914,3 +1914,38 @@ window.cambiarIdioma = cambiarIdioma;
     }
   });
 })();
+(function agregarTextosAccesibilidad() {
+  const textos = {
+    es: {
+      saltarContenido: "Saltar al contenido principal",
+      contenidoPrincipal: "Contenido principal",
+      cerrarDialogo: "Cerrar diálogo",
+      calculoCompletado: "Cálculo completado. El resultado fue actualizado.",
+      comparadorOrdenado: "Comparador ordenado.",
+      tablaComparadorCaption: "Comparación de canales, comisiones, precios y utilidad"
+    },
+    en: {
+      saltarContenido: "Skip to main content",
+      contenidoPrincipal: "Main content",
+      cerrarDialogo: "Close dialog",
+      calculoCompletado: "Calculation completed. The result was updated.",
+      comparadorOrdenado: "Comparator sorted.",
+      tablaComparadorCaption: "Channel comparison with fees, prices and profit"
+    },
+    pt: {
+      saltarContenido: "Pular para o conteúdo principal",
+      contenidoPrincipal: "Conteúdo principal",
+      cerrarDialogo: "Fechar diálogo",
+      calculoCompletado: "Cálculo concluído. O resultado foi atualizado.",
+      comparadorOrdenado: "Comparador ordenado.",
+      tablaComparadorCaption: "Comparação de canais, comissões, preços e lucro"
+    }
+  };
+
+  Object.entries(textos).forEach(([idioma, valores]) => {
+    window.IdiomasPrecio3D[idioma] = {
+      ...(window.IdiomasPrecio3D[idioma] || {}),
+      ...valores
+    };
+  });
+})();

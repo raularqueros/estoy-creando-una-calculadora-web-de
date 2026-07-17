@@ -5,6 +5,9 @@ const clearButton = document.querySelector("#clearButton");
 const exportExcelButton = document.querySelector("#btnExportarExcel");
 const resultBox = document.querySelector("#result");
 const resultBasico = document.querySelector("#resultBasico");
+const a11yLiveRegion = document.querySelector("#a11yLiveRegion");
+const resultadoBasicoTitulo = document.querySelector("#resultadoBasicoTitulo");
+const resultadoAvanzadoTitulo = document.querySelector("#resultadoAvanzadoTitulo");
 const basicBreakdown = document.querySelector("#basicBreakdown");
 const basicWarnings = document.querySelector("#basicWarnings");
 const preciosNivelContenido = document.querySelector("#preciosNivelContenido");
@@ -137,6 +140,24 @@ const nivelesPrecioSugeridos = [
   }
 ];
 
+
+function anunciarAccesible(mensaje) {
+  if (!a11yLiveRegion || !mensaje) return;
+  a11yLiveRegion.textContent = "";
+  window.setTimeout(() => {
+    a11yLiveRegion.textContent = mensaje;
+  }, 40);
+}
+
+function enfocarResultadoCalculado(modo) {
+  const titulo = modo === "basico" ? resultadoBasicoTitulo : resultadoAvanzadoTitulo;
+  if (!titulo) return;
+  window.setTimeout(() => titulo.focus({ preventScroll: false }), 80);
+}
+
+window.AccesibilidadPrecio3D = {
+  anunciar: anunciarAccesible
+};
 const estadosTrabajo = [
   "Pendiente",
   "Aceptado",
@@ -1530,6 +1551,8 @@ function cambiarModoCostoMaterial(tipo, usarKilo) {
 
   config.botonGramo.classList.toggle("active", !usarKilo);
   config.botonKilo.classList.toggle("active", usarKilo);
+  config.botonGramo.setAttribute("aria-pressed", String(!usarKilo));
+  config.botonKilo.setAttribute("aria-pressed", String(usarKilo));
   escribirCostoMaterialDesdeGramo(tipo, costoPorGramo);
   programarGuardadoConfiguracion();
 }
@@ -2574,16 +2597,21 @@ function crearDetalleComparador(etiqueta, valor) {
   `;
 }
 
+function idSeguroComparador(resultado) {
+  return `comparador-${String(resultado.canalId || resultado.canalNombre || "canal").toLowerCase().replace(/[^a-z0-9_-]+/g, "-")}`;
+}
+
 function crearTarjetaComparador(resultado) {
   const invalida = !valueEsNumero(resultado.precioFinal);
   const notaPagoIntegrado = textoPagoIntegradoComparador(resultado);
   const clases = ["comparator-card", resultado.esMejorOpcion ? "is-best" : "", invalida ? "is-invalid" : ""].filter(Boolean).join(" ");
+  const idTitulo = idSeguroComparador(resultado);
 
   return `
-    <article class="${clases}">
+    <article class="${clases}" aria-labelledby="${idTitulo}">
       <header class="comparator-card__header">
         <div>
-          <h3>${escaparHtml(resultado.canalNombre)}</h3>
+          <h3 id="${idTitulo}">${escaparHtml(resultado.canalNombre)}</h3>
           <p>${escaparHtml(resultado.metodoPagoAplicado)}</p>
         </div>
         ${resultado.esMejorOpcion ? `<span class="best-option-badge">${textoInterfaz("mejorOpcion")}</span>` : ""}
@@ -2683,20 +2711,21 @@ function renderizarComparadorCanales(datosBase, resultadoBase) {
       <summary>${textoInterfaz("verTablaComparacion")}</summary>
       <div class="table-wrap">
         <table class="comparator-table">
+          <caption class="sr-only">${textoInterfaz("tablaComparadorCaption")}</caption>
           <thead>
             <tr>
-              <th>${textoInterfaz("canal")}</th>
-              <th>${textoInterfaz("metodoPagoAplicado")}</th>
-              <th>${textoInterfaz("feeCanal")}</th>
-              <th>${textoInterfaz("baseCanal")}</th>
-              <th>${textoInterfaz("feePago")}</th>
-              <th>${textoInterfaz("basePago")}</th>
-              <th>${textoInterfaz("feeTotal")}</th>
-              <th>${textoInterfaz("precioRequerido")}</th>
-              <th>${textoInterfaz("utilidadEstimada")}</th>
-              <th>${textoInterfaz("margenReal")}</th>
-              <th>${textoInterfaz("diferencia")}</th>
-              <th>${textoInterfaz("nota")}</th>
+              <th scope="col">${textoInterfaz("canal")}</th>
+              <th scope="col">${textoInterfaz("metodoPagoAplicado")}</th>
+              <th scope="col">${textoInterfaz("feeCanal")}</th>
+              <th scope="col">${textoInterfaz("baseCanal")}</th>
+              <th scope="col">${textoInterfaz("feePago")}</th>
+              <th scope="col">${textoInterfaz("basePago")}</th>
+              <th scope="col">${textoInterfaz("feeTotal")}</th>
+              <th scope="col">${textoInterfaz("precioRequerido")}</th>
+              <th scope="col">${textoInterfaz("utilidadEstimada")}</th>
+              <th scope="col">${textoInterfaz("margenReal")}</th>
+              <th scope="col">${textoInterfaz("diferencia")}</th>
+              <th scope="col">${textoInterfaz("nota")}</th>
             </tr>
           </thead>
           <tbody>${resultados.map(crearFilaComparador).join("")}</tbody>
@@ -4288,6 +4317,8 @@ function calcularModoBasico() {
 
   if (resumen.precioNeto !== null) {
     notificarCalculoValido();
+    anunciarAccesible(textoInterfaz("calculoCompletado"));
+    enfocarResultadoCalculado("basico");
   }
 }
 function calcularModoAvanzado() {
@@ -4340,6 +4371,8 @@ function calcularModoAvanzado() {
 
   if (resumen.precioNeto !== null) {
     notificarCalculoValido();
+    anunciarAccesible(textoInterfaz("calculoCompletado"));
+    enfocarResultadoCalculado("avanzado");
   }
 }
 function limpiarFormulario(opciones = {}) {
@@ -4556,6 +4589,7 @@ metodoPagoComparador.addEventListener("change", () => {
 });
 ordenComparadorCanales?.addEventListener("change", () => {
   renderizarComparadorCanales(ultimoDatosCalculo, ultimoResultadoCalculo);
+  anunciarAccesible(textoInterfaz("comparadorOrdenado"));
 });
 guardarConfiguracionButton.addEventListener("click", () => guardarConfiguracionActual(true));
 restablecerConfiguracionButton.addEventListener("click", restablecerConfiguracionGuardada);

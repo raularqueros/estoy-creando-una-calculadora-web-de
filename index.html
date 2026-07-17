@@ -43,6 +43,8 @@
   </script>
 </head>
 <body>
+  <a class="skip-link" href="#dashboardContent" data-i18n="saltarContenido">Saltar al contenido principal</a>
+  <div id="a11yLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   <header class="site-header">
     <div>
       <p class="eyebrow" data-i18n="siteEyebrow">ImpresiÃ³n 3D</p>
@@ -60,7 +62,7 @@
 
   <div class="dashboard-shell">
     <aside class="dashboard-sidebar" aria-label="NavegaciÃ³n principal" data-i18n-aria-label="navegacionPrincipal">
-      <button type="button" id="sidebarToggle" class="sidebar-toggle" aria-expanded="true" aria-label="Contraer navegaciÃ³n" data-i18n-aria-label="contraerNavegacion">
+      <button type="button" id="sidebarToggle" class="sidebar-toggle" aria-expanded="true" aria-controls="dashboardNav" aria-label="Contraer navegaciÃ³n" data-i18n-aria-label="contraerNavegacion">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
         <span class="dashboard-nav__label" data-i18n="contraer">Contraer</span>
       </button>
@@ -116,7 +118,7 @@
       </nav>
     </aside>
 
-  <main class="calculator" id="dashboardContent">
+  <main class="calculator" id="dashboardContent" tabindex="-1" aria-label="Contenido principal" data-i18n-aria-label="contenidoPrincipal">
     <section class="panel mode-switch-panel">
       <div>
         <p class="eyebrow" data-i18n="modoCalculo">Modo de cÃ¡lculo</p>
@@ -174,8 +176,8 @@
               <div class="field-block">
                 <span class="field-label">Tipo de precio de filamento</span>
                 <div class="mini-switch" aria-label="Modo de costo de material bÃ¡sico">
-                  <button type="button" id="modoCostoGramoBasico" class="mini-switch-button active">Por gramo</button>
-                  <button type="button" id="modoCostoKiloBasico" class="mini-switch-button">Por kilo</button>
+                  <button type="button" id="modoCostoGramoBasico" class="mini-switch-button active" aria-pressed="true">Por gramo</button>
+                  <button type="button" id="modoCostoKiloBasico" class="mini-switch-button" aria-pressed="false">Por kilo</button>
                 </div>
               </div>
               <div class="field-block">
@@ -382,8 +384,8 @@
         </div>
       </section>
 
-      <section class="panel result-panel basic-result-panel">
-        <h2 class="section-heading">
+      <section class="panel result-panel basic-result-panel" role="region" aria-labelledby="resultadoBasicoTitulo">
+        <h2 id="resultadoBasicoTitulo" tabindex="-1" class="section-heading">
           <span><span data-i18n="resultado">Resultado</span> bÃ¡sico</span>
           <button type="button" class="info-btn" data-help="resultado" aria-label="InformaciÃ³n sobre resultado">i</button>
         </h2>
@@ -512,8 +514,8 @@
         <div class="field-block">
           <span class="field-label" id="costoUnidadLabelAvanzado">Costo por gramo</span>
           <div class="mini-switch" aria-label="Modo de costo de material avanzado">
-            <button type="button" id="modoCostoGramoAvanzado" class="mini-switch-button active">Costo por gramo</button>
-            <button type="button" id="modoCostoKiloAvanzado" class="mini-switch-button">Precio por kilo</button>
+            <button type="button" id="modoCostoGramoAvanzado" class="mini-switch-button active" aria-pressed="true">Costo por gramo</button>
+            <button type="button" id="modoCostoKiloAvanzado" class="mini-switch-button" aria-pressed="false">Precio por kilo</button>
           </div>
           <input type="number" id="costoUnidadAvanzado" min="0" placeholder="$">
           <p class="help-text" id="costoUnidadHelpAvanzado">Costo por gramo calculado: $0.</p>
@@ -684,8 +686,8 @@
     </section>
 
     <!-- Resultado futuro del calculo -->
-    <section class="panel result-panel">
-      <h2>10. <span data-i18n="resultado">Resultado</span></h2>
+    <section class="panel result-panel" role="region" aria-labelledby="resultadoAvanzadoTitulo">
+      <h2 id="resultadoAvanzadoTitulo" tabindex="-1">10. <span data-i18n="resultado">Resultado</span></h2>
       <div id="result" class="result-box">
         AÃºn no hay un cÃ¡lculo disponible. Completa una cotizaciÃ³n para ver el resultado.
       </div>
@@ -1212,8 +1214,8 @@
       </details>
     </section>
 
-    <section id="comparadorCanalesPanel" class="panel result-panel comparator-panel">
-      <h2 class="section-heading">
+    <section id="comparadorCanalesPanel" class="panel result-panel comparator-panel" role="region" aria-labelledby="comparadorCanalesTitulo">
+      <h2 id="comparadorCanalesTitulo" class="section-heading">
         <span data-i18n="comparadorCanales">Comparador de canales</span>
         <button type="button" class="info-btn" data-help="comparador" aria-label="InformaciÃ³n sobre comparador de canales">i</button>
       </h2>
@@ -1672,9 +1674,9 @@
 
   <div id="helpModal" class="help-modal" hidden>
     <div class="help-modal__backdrop" data-help-close></div>
-    <section class="help-modal__content" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
-      <button type="button" id="helpModalClose" class="help-modal__close" data-i18n="cerrarAyuda">Cerrar</button>
-      <h2 id="helpModalTitle" class="help-modal__title"></h2>
+    <section class="help-modal__content" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle" aria-describedby="helpModalText" tabindex="-1">
+      <button type="button" id="helpModalClose" class="help-modal__close" data-i18n="cerrarAyuda" data-i18n-aria-label="cerrarDialogo" aria-label="Cerrar diálogo">Cerrar</button>
+      <h2 id="helpModalTitle" class="help-modal__title" tabindex="-1"></h2>
       <p id="helpModalText"></p>
     </section>
   </div>
@@ -1682,7 +1684,7 @@
   <div id="currencyChangeModal" class="job-modal" hidden>
     <div class="job-modal__backdrop" data-currency-cancel></div>
     <section class="job-modal__content currency-change-modal__content" role="dialog" aria-modal="true" aria-labelledby="currencyChangeTitle" aria-describedby="currencyChangeMessage">
-      <h2 id="currencyChangeTitle" data-i18n="cambiarMonedaTitulo">Cambiar moneda</h2>
+      <h2 id="currencyChangeTitle" tabindex="-1" data-i18n="cambiarMonedaTitulo">Cambiar moneda</h2>
       <p id="currencyChangeMessage" data-i18n="cambiarMonedaMensaje">Cambiar la moneda no convierte automÃ¡ticamente los valores ingresados. Debes revisar el costo del material, electricidad, impresora, herramientas, mano de obra, embalaje, envÃ­o y comisiones fijas.</p>
       <div class="actions currency-change-actions">
         <button type="button" id="currencyKeepValuesButton" class="primary" data-i18n="cambiarConservarValores">Cambiar y conservar valores</button>
