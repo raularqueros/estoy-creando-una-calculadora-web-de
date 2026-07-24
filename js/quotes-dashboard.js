@@ -5,6 +5,13 @@
   let opciones = {};
   let cotizacionActual = null;
   let inicializado = false;
+  let temporizadorBusquedaHistorial = 0;
+  const filtrosHistorial = {
+    busqueda: "",
+    estado: "todos",
+    periodo: "todas",
+    orden: "recientes"
+  };
 
   const $ = (selector, raiz = document) => raiz.querySelector(selector);
   const numero = (valor) => Number.isFinite(Number(valor)) ? Number(valor) : 0;
@@ -457,10 +464,10 @@
   function convertirEnTrabajo(cotizacion = cotizacionActual) {
     if (!cotizacion) return null;
     if (cotizacion.trabajoId) {
-      mensaje(`Esta cotización ya fue convertida en el trabajo ${cotizacion.trabajoId}.`, true);
+      mensaje(t("cotizacionYaConvertida", { trabajo: cotizacion.trabajoId }), true);
       return null;
     }
-    if (!confirm(`¿Convertir ${cotizacion.numeroCotizacion} en un trabajo?`)) return null;
+    if (!confirm(t("confirmarConvertirCotizacion", { numero: cotizacion.numeroCotizacion }))) return null;
     const cliente = clienteCotizacion(cotizacion);
     const trabajo = window.StoragePrecio3D?.guardarTrabajo?.({
       nombreTrabajo: cotizacion.items[0]?.descripcion || cotizacion.numeroCotizacion,
@@ -482,7 +489,7 @@
       resultado: { precioFinal: cotizacion.totalFinal }
     });
     if (!trabajo) {
-      mensaje("No se pudo crear el trabajo.", true);
+      mensaje(t("trabajoDesdeCotizacionNoCreado"), true);
       return null;
     }
     let actualizada = window.CotizacionesPrecio3D.cambiarEstado(cotizacion, "Convertida en trabajo", `Trabajo ${trabajo.id}`);
@@ -491,27 +498,148 @@
     window.PanelTrabajosPrecio3D?.renderizar?.();
     renderizarEditor();
     renderizarListado();
-    mensaje("Cotización convertida en trabajo. No se crearán duplicados automáticamente.");
+    mensaje(t("cotizacionConvertidaTrabajo"));
     return trabajo;
   }
 
   function badgeEstado(cotizacion) {
     const vencida = window.CotizacionesPrecio3D.estaVencida(cotizacion);
-    return `<span class="quote-status-badge ${vencida ? "is-expired" : ""}">${vencida ? escapar(t("vencidaVisual")) : escapar(estadoVisible(cotizacion.estado))}</span>`;
+    return `
+      <span class="quote-status-badge">${escapar(estadoVisible(cotizacion.estado))}</span>
+      ${vencida ? `<span class="quote-status-badge is-expired">${escapar(t("vencidaVisual"))}</span>` : ""}`;
+  }
+
+  function accionesCotizacion(cotizacion) {
+    return `
+      <div class="quote-record-actions">
+        <button type="button" data-quote-list-action="abrir">${escapar(t("abrirEditar"))}</button>
+        <details class="quote-secondary-actions">
+          <summary>${escapar(t("masAcciones"))}</summary>
+          <div>
+            <button type="button" class="secondary" data-quote-list-action="duplicar">${escapar(t("duplicar"))}</button>
+            <button type="button" class="secondary" data-quote-list-action="imprimir">${escapar(t("imprimir"))}</button>
+            ${cotizacion.trabajoId
+              ? `<button type="button" class="secondary" data-quote-list-action="ver-trabajo">${escapar(t("verTrabajoRelacionado"))}</button>`
+              : `<button type="button" class="secondary" data-quote-list-action="convertir">${escapar(t("convertirTrabajo"))}</button>`}
+            <button type="button" class="secondary danger-button" data-quote-list-action="eliminar">${escapar(t("eliminar"))}</button>
+          </div>
+        </details>
+      </div>`;
   }
 
   function filaCotizacion(cotizacion) {
     const cliente = clienteCotizacion(cotizacion);
-    return `<tr data-quote-id="${escapar(cotizacion.id)}"><td><strong>${escapar(cotizacion.numeroCotizacion)}</strong></td><td>${escapar(cliente.nombre)}</td><td>${escapar(fecha(cotizacion.fechaCreacion))}</td><td>${moneda(cotizacion.totalFinal, cotizacion.moneda)}</td><td>${badgeEstado(cotizacion)}</td><td>${cotizacion.validezDias} ${escapar(t("dias"))}</td><td><details class="job-row-actions"><summary>${escapar(t("acciones"))}</summary><div><button type="button" data-quote-list-action="abrir">${escapar(t("abrirEditar"))}</button><button type="button" data-quote-list-action="duplicar">${escapar(t("duplicar"))}</button><button type="button" data-quote-list-action="imprimir">${escapar(t("imprimir"))}</button>${cotizacion.trabajoId ? `<button type="button" data-quote-list-action="ver-trabajo">${escapar(t("verTrabajoRelacionado"))}</button>` : `<button type="button" data-quote-list-action="convertir">${escapar(t("convertirTrabajo"))}</button>`}<button type="button" class="danger-button" data-quote-list-action="eliminar">${escapar(t("eliminar"))}</button></div></details></td></tr>`;
+    return `
+      <tr data-quote-id="${escapar(cotizacion.id)}">
+        <td><strong>${escapar(cotizacion.numeroCotizacion)}</strong></td>
+        <td>${escapar(cliente.nombre)}</td>
+        <td>${escapar(fecha(cotizacion.fechaCreacion))}</td>
+        <td><strong>${moneda(cotizacion.totalFinal, cotizacion.moneda)}</strong><small>${escapar(cotizacion.moneda)}</small></td>
+        <td><div class="quote-statuses">${badgeEstado(cotizacion)}</div></td>
+        <td>${cotizacion.validezDias} ${escapar(t("dias"))}</td>
+        <td>${accionesCotizacion(cotizacion)}</td>
+      </tr>`;
+  }
+
+  function tarjetaCotizacionHistorial(cotizacion) {
+    const cliente = clienteCotizacion(cotizacion);
+    return `
+      <article class="quote-history-card" data-quote-id="${escapar(cotizacion.id)}">
+        <header>
+          <div>
+            <span>${escapar(t("numero"))}</span>
+            <strong>${escapar(cotizacion.numeroCotizacion)}</strong>
+          </div>
+          <div class="quote-statuses">${badgeEstado(cotizacion)}</div>
+        </header>
+        <dl>
+          <div><dt>${escapar(t("cliente"))}</dt><dd>${escapar(cliente.nombre)}</dd></div>
+          <div><dt>${escapar(t("fecha"))}</dt><dd>${escapar(fecha(cotizacion.fechaCreacion))}</dd></div>
+          <div><dt>${escapar(t("total"))}</dt><dd>${moneda(cotizacion.totalFinal, cotizacion.moneda)} <small>${escapar(cotizacion.moneda)}</small></dd></div>
+          <div><dt>${escapar(t("validez"))}</dt><dd>${cotizacion.validezDias} ${escapar(t("dias"))}</dd></div>
+        </dl>
+        ${accionesCotizacion(cotizacion)}
+      </article>`;
+  }
+
+  function cotizacionesFiltradas(lista) {
+    const busqueda = filtrosHistorial.busqueda.trim().toLocaleLowerCase(idioma());
+    const ahora = new Date();
+    const limite30 = new Date(ahora);
+    const limite90 = new Date(ahora);
+    limite30.setDate(limite30.getDate() - 30);
+    limite90.setDate(limite90.getDate() - 90);
+
+    const filtradas = lista.filter((cotizacion) => {
+      const cliente = clienteCotizacion(cotizacion).nombre;
+      const coincideBusqueda = !busqueda
+        || `${cotizacion.numeroCotizacion} ${cliente}`.toLocaleLowerCase(idioma()).includes(busqueda);
+      const coincideEstado = filtrosHistorial.estado === "todos"
+        || (filtrosHistorial.estado === "vencidas-visuales"
+          ? window.CotizacionesPrecio3D.estaVencida(cotizacion)
+          : cotizacion.estado === filtrosHistorial.estado);
+      const fechaCotizacion = new Date(cotizacion.fechaCreacion);
+      const coincidePeriodo = filtrosHistorial.periodo === "todas"
+        || (filtrosHistorial.periodo === "30-dias" && fechaCotizacion >= limite30)
+        || (filtrosHistorial.periodo === "90-dias" && fechaCotizacion >= limite90)
+        || (filtrosHistorial.periodo === "ano-actual" && fechaCotizacion.getFullYear() === ahora.getFullYear());
+      return coincideBusqueda && coincideEstado && coincidePeriodo;
+    });
+
+    return filtradas.sort((a, b) => {
+      if (filtrosHistorial.orden === "antiguas") return new Date(a.fechaCreacion) - new Date(b.fechaCreacion);
+      if (filtrosHistorial.orden === "mayor-total") return numero(b.totalFinal) - numero(a.totalFinal);
+      if (filtrosHistorial.orden === "menor-total") return numero(a.totalFinal) - numero(b.totalFinal);
+      return new Date(b.fechaCreacion) - new Date(a.fechaCreacion);
+    });
   }
 
   function renderizarListado() {
     const contenedor = $("#cotizacionesDashboard");
     if (!contenedor) return;
     const lista = window.CotizacionesPrecio3D.cargarCotizaciones();
+    const listaFiltrada = cotizacionesFiltradas(lista);
+    const estados = window.CotizacionesPrecio3D.ESTADOS || [];
+    const metricas = [
+      [t("totalCotizaciones"), lista.length],
+      [t("borradores"), lista.filter((cotizacion) => cotizacion.estado === "Borrador").length],
+      [t("vencidasVisualmente"), lista.filter((cotizacion) => window.CotizacionesPrecio3D.estaVencida(cotizacion)).length],
+      [t("convertidasTrabajo"), lista.filter((cotizacion) => cotizacion.estado === "Convertida en trabajo").length]
+    ];
+    const botonNuevaCabecera = $("#misCotizacionesPanel [data-quotes-primary-new]");
+    if (botonNuevaCabecera) botonNuevaCabecera.hidden = !lista.length;
+
     contenedor.innerHTML = `
-      <div class="quotes-list-toolbar actions"><button type="button" data-quote-list-action="nueva">${escapar(t("navCotizacionClienteTitulo"))}</button><button type="button" class="secondary" data-quote-list-action="exportar-json">${escapar(t("exportarJson"))}</button><button type="button" class="secondary" data-quote-list-action="exportar-csv">${escapar(t("exportarCsv"))}</button><button type="button" class="secondary" data-quote-list-action="importar-json">${escapar(t("importarJson"))}</button><input type="file" id="quoteImportInput" accept="application/json,.json" hidden></div>
-      ${lista.length ? `<div class="quotes-table-wrap"><table class="quotes-table"><thead><tr><th>${escapar(t("numero"))}</th><th>${escapar(t("cliente"))}</th><th>${escapar(t("fecha"))}</th><th>${escapar(t("total"))}</th><th>${escapar(t("estado"))}</th><th>${escapar(t("validez"))}</th><th>${escapar(t("acciones"))}</th></tr></thead><tbody>${lista.map(filaCotizacion).join("")}</tbody></table></div>` : `<p class="empty-state">${escapar(t("historialCotizacionesVacio"))}</p>`}`;
+      ${lista.length ? `
+        <div class="quotes-kpi-grid" aria-live="polite">
+          ${metricas.map(([etiqueta, valor]) => `<article><span>${escapar(etiqueta)}</span><strong>${valor}</strong></article>`).join("")}
+        </div>
+        <section class="quotes-filters-card" aria-labelledby="quotesFiltersTitle">
+          <div class="quotes-filters-heading">
+            <h3 id="quotesFiltersTitle">${escapar(t("filtros"))}</h3>
+            <button type="button" class="secondary" data-quote-list-action="limpiar-filtros">${escapar(t("limpiarFiltros"))}</button>
+          </div>
+          <div class="quotes-filters">
+            <label class="quotes-search-field">${escapar(t("buscar"))}<input type="search" id="quotesSearch" value="${escapar(filtrosHistorial.busqueda)}" placeholder="${escapar(t("buscarCotizacionesPlaceholder"))}"></label>
+            <label>${escapar(t("estado"))}<select id="quotesState"><option value="todos">${escapar(t("todos"))}</option>${estados.map((estado) => `<option value="${escapar(estado)}" ${filtrosHistorial.estado === estado ? "selected" : ""}>${escapar(estadoVisible(estado))}</option>`).join("")}<option value="vencidas-visuales" ${filtrosHistorial.estado === "vencidas-visuales" ? "selected" : ""}>${escapar(t("vencidasVisualmente"))}</option></select></label>
+            <label>${escapar(t("periodo"))}<select id="quotesPeriod"><option value="todas">${escapar(t("todas"))}</option><option value="30-dias" ${filtrosHistorial.periodo === "30-dias" ? "selected" : ""}>${escapar(t("ultimos30Dias"))}</option><option value="90-dias" ${filtrosHistorial.periodo === "90-dias" ? "selected" : ""}>${escapar(t("ultimos90Dias"))}</option><option value="ano-actual" ${filtrosHistorial.periodo === "ano-actual" ? "selected" : ""}>${escapar(t("anoActual"))}</option></select></label>
+            <label>${escapar(t("ordenar"))}<select id="quotesSort"><option value="recientes">${escapar(t("masRecientes"))}</option><option value="antiguas" ${filtrosHistorial.orden === "antiguas" ? "selected" : ""}>${escapar(t("masAntiguas"))}</option><option value="mayor-total" ${filtrosHistorial.orden === "mayor-total" ? "selected" : ""}>${escapar(t("mayorTotal"))}</option><option value="menor-total" ${filtrosHistorial.orden === "menor-total" ? "selected" : ""}>${escapar(t("menorTotal"))}</option></select></label>
+          </div>
+        </section>
+        ${listaFiltrada.length ? `
+          <div class="quotes-table-wrap"><table class="quotes-table"><thead><tr><th>${escapar(t("numero"))}</th><th>${escapar(t("cliente"))}</th><th>${escapar(t("fecha"))}</th><th>${escapar(t("total"))}</th><th>${escapar(t("estado"))}</th><th>${escapar(t("validez"))}</th><th>${escapar(t("acciones"))}</th></tr></thead><tbody>${listaFiltrada.map(filaCotizacion).join("")}</tbody></table></div>
+          <div class="quotes-history-cards">${listaFiltrada.map(tarjetaCotizacionHistorial).join("")}</div>
+        ` : `<div class="quotes-empty-state"><strong>${escapar(t("sinCotizacionesFiltros"))}</strong><p>${escapar(t("sinCotizacionesFiltrosAyuda"))}</p><button type="button" class="secondary" data-quote-list-action="limpiar-filtros">${escapar(t("limpiarFiltros"))}</button></div>`}
+      ` : `<div class="quotes-empty-state"><strong>${escapar(t("historialCotizacionesVacio"))}</strong><p>${escapar(t("historialCotizacionesVacioAyuda"))}</p><button type="button" data-quote-list-action="nueva">${escapar(t("crearPrimeraCotizacion"))}</button></div>`}
+      <details class="quotes-tools-panel">
+        <summary>${escapar(t("herramientasRespaldo"))}</summary>
+        <div class="quotes-tools-actions">
+          <button type="button" class="secondary" data-quote-list-action="exportar-json">${escapar(t("exportarJson"))}</button>
+          <button type="button" class="secondary" data-quote-list-action="exportar-csv">${escapar(t("exportarCsv"))}</button>
+          <button type="button" class="secondary" data-quote-list-action="importar-json">${escapar(t("importarJson"))}</button>
+        </div>
+        <input type="file" id="quoteImportInput" accept="application/json,.json" hidden>
+      </details>`;
   }
 
   function cotizacionesCSV() {
@@ -618,23 +746,55 @@
     const accion = boton.dataset.quoteListAction;
     const id = boton.closest("[data-quote-id]")?.dataset.quoteId;
     if (accion === "nueva") { nuevaCotizacion(); window.NavegacionPrecio3D?.mostrarSeccion?.("cotizacion-cliente", { enfocar: true }); }
+    if (accion === "limpiar-filtros") {
+      Object.assign(filtrosHistorial, { busqueda: "", estado: "todos", periodo: "todas", orden: "recientes" });
+      renderizarListado();
+    }
     if (accion === "abrir") abrirCotizacion(id);
     if (accion === "duplicar") { const nueva = window.CotizacionesPrecio3D.duplicarCotizacion(id); if (nueva) abrirCotizacion(nueva.id); }
     if (accion === "imprimir") { abrirCotizacion(id); imprimir(); }
     if (accion === "convertir") convertirEnTrabajo(window.CotizacionesPrecio3D.obtenerCotizacion(id));
     if (accion === "ver-trabajo") window.NavegacionPrecio3D?.mostrarSeccion?.("trabajos", { enfocar: true });
-    if (accion === "eliminar" && confirm("¿Eliminar esta cotización?")) { window.CotizacionesPrecio3D.eliminarCotizacion(id); renderizarListado(); }
+    if (accion === "eliminar" && confirm(t("confirmarEliminarCotizacion"))) { window.CotizacionesPrecio3D.eliminarCotizacion(id); renderizarListado(); }
     if (accion === "exportar-json") descargar("cotizaciones-impresion-3d.json", "\uFEFF" + window.CotizacionesPrecio3D.exportarJSON());
     if (accion === "exportar-csv") descargar("cotizaciones-impresion-3d.csv", cotizacionesCSV(), "text/csv;charset=utf-8");
     if (accion === "importar-json") $("#quoteImportInput")?.click();
   }
 
+  function manejarFiltrosListado(event) {
+    const campos = {
+      quotesSearch: "busqueda",
+      quotesState: "estado",
+      quotesPeriod: "periodo",
+      quotesSort: "orden"
+    };
+    const propiedad = campos[event.target.id];
+    if (!propiedad) return;
+    filtrosHistorial[propiedad] = event.target.value;
+
+    if (event.target.id !== "quotesSearch" || event.type === "change") {
+      clearTimeout(temporizadorBusquedaHistorial);
+      renderizarListado();
+      return;
+    }
+
+    clearTimeout(temporizadorBusquedaHistorial);
+    temporizadorBusquedaHistorial = window.setTimeout(() => {
+      renderizarListado();
+      const buscador = $("#quotesSearch");
+      buscador?.focus();
+      buscador?.setSelectionRange(buscador.value.length, buscador.value.length);
+    }, 180);
+  }
+
   async function manejarImportacion(event) {
     if (event.target.id !== "quoteImportInput" || !event.target.files[0]) return;
     const contenido = await event.target.files[0].text();
-    const combinar = confirm("Aceptar: combinar con las cotizaciones actuales.\nCancelar: reemplazar la lista actual.");
+    const combinar = confirm(t("confirmarImportarCotizaciones"));
     const importadas = window.CotizacionesPrecio3D.importarJSON(contenido.replace(/^\uFEFF/, ""), combinar);
-    alert(importadas ? `${importadas.length} cotizaciones disponibles.` : "El archivo no tiene un formato válido.");
+    alert(importadas
+      ? t("cotizacionesImportadas", { cantidad: importadas.length })
+      : t("archivoCotizacionesInvalido"));
     renderizarListado();
     event.target.value = "";
   }
@@ -667,6 +827,8 @@
     $("#cotizacionClientePanel")?.addEventListener("input", manejarEditorInput);
     $("#cotizacionClientePanel")?.addEventListener("change", manejarEditorInput);
     $("#misCotizacionesPanel")?.addEventListener("click", manejarListadoClick);
+    $("#misCotizacionesPanel")?.addEventListener("input", manejarFiltrosListado);
+    $("#misCotizacionesPanel")?.addEventListener("change", manejarFiltrosListado);
     $("#misCotizacionesPanel")?.addEventListener("change", manejarImportacion);
     document.addEventListener("precio3d:agregar-calculo-cotizacion", agregarCalculoActual);
     document.addEventListener("precio3d:datos-cotizacion-guardados", (event) => {
