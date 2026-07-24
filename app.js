@@ -56,6 +56,8 @@ const borrarUltimoCalculoButton = document.querySelector("#borrarUltimoCalculoBu
 const supuestosModoBasico = document.querySelector("#supuestosModoBasico");
 const toggleSupuestosEditables = document.querySelector("#toggleSupuestosEditables");
 const panelSupuestosEditables = document.querySelector("#panelSupuestosEditables");
+const costosAdicionalesBasico = document.querySelector("#costosAdicionalesBasico");
+const ventaConfiguracionBasico = document.querySelector("#ventaConfiguracionBasico");
 const btnModoBasico = document.querySelector("#btnModoBasico");
 const btnModoAvanzado = document.querySelector("#btnModoAvanzado");
 const verCalculoAvanzado = document.querySelector("#verCalculoAvanzado");
@@ -206,7 +208,7 @@ const camposMonetarios = [
   "filamentoPrecioKilo"
 ];
 
-let modoActual = "avanzado";
+let modoActual = "basico";
 let ultimoResultadoBasico = null;
 let ultimosSupuestosBasicos = {};
 let ultimoFeeEstimadoBasico = 0;
@@ -994,7 +996,7 @@ function aplicarConfiguracion(configuracion, mostrarMensaje = false, opciones = 
   asignarValorCampo("horasImpresionMinutosBasico", basico.horasImpresionMinutos);
   asignarValorCampo("impresoraBasico", basico.impresora);
   asignarValorCampo("canalVentaBasico", basico.canalVenta);
-  cambiarModoCostoMaterial("basico", basico.tipoPrecioFilamento === "kilo");
+  cambiarModoCostoMaterial("basico", basico.tipoPrecioFilamento !== "gramo");
   asignarValorCampo("costoUnidadBasico", basico.precioFilamento);
   asignarValorCampo("impuestoBasico", basico.impuesto);
   asignarValorCampo("tipoGananciaBasico", normalizarTipoGanancia(basico.tipoGanancia));
@@ -1067,6 +1069,7 @@ function aplicarConfiguracion(configuracion, mostrarMensaje = false, opciones = 
   actualizarResumenFilamento("basico");
   cambiarModo(configuracion.modoActual === "avanzado" ? "avanzado" : "basico");
   window.cambiarIdioma(languageSelectBasico.value || "es");
+  sincronizarDesplegablesBasicos();
 
   guardadoPausado = false;
 
@@ -1734,21 +1737,101 @@ function cambiarModo(modo) {
 
   seccionModoBasico.hidden = !esBasico;
   seccionModoAvanzado.hidden = esBasico;
-  btnModoBasico.classList.toggle("active", esBasico);
-  btnModoAvanzado.classList.toggle("active", !esBasico);
   btnModoBasico.setAttribute("aria-pressed", String(esBasico));
   btnModoAvanzado.setAttribute("aria-pressed", String(!esBasico));
-  document.querySelector(".basic-result-panel")?.toggleAttribute("hidden", !esBasico);
-  document.querySelector(".assumptions-panel")?.toggleAttribute("hidden", !esBasico);
-  document.querySelector("#result")?.closest(".panel")?.toggleAttribute("hidden", esBasico);
   const descripcionModo = document.querySelector(".mode-description");
   if (descripcionModo) {
     descripcionModo.textContent = esBasico
       ? textoInterfaz("modoBasicoDescripcion")
       : textoInterfaz("modoAvanzadoDescripcion");
   }
+  sincronizarVisibilidadPanelesResultado();
   actualizarVistaPreviaMoneda();
   programarGuardadoConfiguracion();
+}
+
+function sincronizarDesplegablesBasicos({ reiniciar = false } = {}) {
+  if (reiniciar) {
+    if (costosAdicionalesBasico) costosAdicionalesBasico.open = false;
+    if (ventaConfiguracionBasico) ventaConfiguracionBasico.open = false;
+    return;
+  }
+
+  const tieneNumeroPersonalizado = (id) => {
+    const valor = document.querySelector(`#${id}`)?.value;
+    return valor !== undefined && valor !== "" && Number(valor) !== 0;
+  };
+  const costosConValor = [
+    "pesoSoportesPurgaBasico",
+    "embalajeBasico",
+    "envioBasico",
+    "impuestoBasico"
+  ].some(tieneNumeroPersonalizado);
+  const materialSeleccionado = obtenerPorId(obtenerPresets()?.materiales, materialBasico?.value);
+  const mermaPredeterminada = (Number(materialSeleccionado?.mermaSugerida) || 0) * 100;
+  const mermaActual = Number(document.querySelector("#mermaBasico")?.value) || 0;
+  const ventaPersonalizada =
+    (currencySelectBasico?.value && currencySelectBasico.value !== "CLP") ||
+    (languageSelectBasico?.value && languageSelectBasico.value !== "es") ||
+    (impresoraBasico?.value && impresoraBasico.value !== "manual") ||
+    Math.abs(mermaActual - mermaPredeterminada) > 0.01 ||
+    (canalVentaBasico?.selectedIndex ?? 0) > 0 ||
+    tieneNumeroPersonalizado("feePorcentualBasico") ||
+    tieneNumeroPersonalizado("feeFijoBasico") ||
+    document.querySelector("#tipoGananciaBasico")?.value === "margen" ||
+    document.querySelector("#alcanceDatosSlicerBasico")?.value === "lote";
+
+  if (costosAdicionalesBasico) costosAdicionalesBasico.open = costosConValor;
+  if (ventaConfiguracionBasico) ventaConfiguracionBasico.open = Boolean(ventaPersonalizada);
+}
+
+function ubicarCostosInternosEnModoBasico() {
+  const destino = document.querySelector(".basic-internal-costs");
+  const filaControl = toggleSupuestosEditables?.closest(".collapse-row");
+  const panelConfiguracionAnterior = panelSupuestosEditables?.closest(".settings-panel");
+
+  if (!destino || !filaControl || !panelSupuestosEditables) {
+    return;
+  }
+
+  destino.append(filaControl, panelSupuestosEditables);
+
+  if (
+    panelConfiguracionAnterior &&
+    !panelConfiguracionAnterior.querySelector("input, select, textarea, button, details")
+  ) {
+    panelConfiguracionAnterior.remove();
+  }
+}
+
+function sincronizarVisibilidadPanelesResultado() {
+  const resultadoValido = Boolean(
+    ultimoResultadoCalculo && ultimoResultadoCalculo.precioNeto !== null
+  );
+  const esBasico = modoActual === "basico";
+  const panelBasico = document.querySelector(".basic-result-panel");
+  const panelAvanzado = document.querySelector("#result")?.closest(".panel");
+  const panelSupuestos = document.querySelector(".assumptions-panel");
+
+  panelBasico?.toggleAttribute("hidden", !esBasico);
+  panelAvanzado?.toggleAttribute("hidden", esBasico);
+  panelSupuestos?.toggleAttribute("hidden", !esBasico || !resultadoValido);
+
+  document
+    .querySelectorAll(".price-levels-panel, .comparator-panel, .result-workflow-panel")
+    .forEach((panel) => panel.toggleAttribute("hidden", !resultadoValido));
+
+  panelBasico
+    ?.querySelector(":scope > details")
+    ?.toggleAttribute("hidden", !resultadoValido);
+  panelAvanzado
+    ?.querySelectorAll(":scope > .actions, :scope > .help-text")
+    .forEach((elemento) => elemento.toggleAttribute("hidden", !resultadoValido));
+
+  if (!resultadoValido) {
+    if (resultBasico) resultBasico.textContent = textoInterfaz("resultadoVacio");
+    if (resultBox) resultBox.textContent = textoInterfaz("resultadoVacio");
+  }
 }
 
 function alternarSupuestosEditables() {
@@ -3277,8 +3360,8 @@ function cargarTrabajoEnCalculadora(trabajo) {
     asignarValorCampo("alcanceDatosSlicerBasico", alcanceDatosSlicer);
     asignarSelectPorTexto("materialBasico", datos.material);
     asignarSelectPorTexto("canalVentaBasico", datos.canalVenta);
-    cambiarModoCostoMaterial("basico", false);
-    asignarValorCampo("costoUnidadBasico", datos.costoUnidad);
+    cambiarModoCostoMaterial("basico", true);
+    escribirCostoMaterialDesdeGramo("basico", datos.costoUnidad);
     asignarValorCampo("pesoPiezaBasico", (Number(datos.pesoPieza) || 0) / factorCantidadSlicer);
     asignarValorCampo(
       "pesoSoportesPurgaBasico",
@@ -3345,6 +3428,7 @@ function cargarTrabajoEnCalculadora(trabajo) {
   actualizarResumenFilamento("avanzado");
   actualizarVistaPreviaMoneda();
   actualizarSupuestosEditablesBasico();
+  sincronizarDesplegablesBasicos();
 
   const feeEstimado = calcularFeeEstimado(ultimoResultadoCalculo);
 
@@ -4133,7 +4217,7 @@ function renderizarUltimoCalculoGuardado() {
 
   if (!ultimo || !ultimoCalculoPanel || !ultimoCalculoResumen) {
     if (ultimoCalculoPanel) {
-      ultimoCalculoPanel.hidden = false;
+      ultimoCalculoPanel.hidden = true;
       ultimoCalculoResumen.textContent = textoInterfaz("ultimoCalculoVacio");
       cargarUltimoCalculoButton.disabled = true;
       borrarUltimoCalculoButton.disabled = true;
@@ -4238,6 +4322,7 @@ function cargarUltimoCalculoGuardado() {
 
   renderizarComparadorCanales(ultimoDatosCalculo, ultimoResultadoCalculo);
   renderizarPreciosPorNivel(ultimoDatosCalculo);
+  sincronizarVisibilidadPanelesResultado();
   actualizarBotonesGuardarTrabajo(ultimo.resultado.precioNeto !== null);
   actualizarBotonesCotizacion(ultimo.resultado.precioNeto !== null);
 
@@ -4308,6 +4393,7 @@ function calcularModoBasico() {
   renderizarSupuestosBasicos(construido.supuestos);
   renderizarComparadorCanales(ultimoDatosCalculo, ultimoResultadoCalculo);
   renderizarPreciosPorNivel(ultimoDatosCalculo);
+  sincronizarVisibilidadPanelesResultado();
   window.ValidacionPrecio3D?.registrarCalculoValido?.("basico", ultimoDatosCalculo, ultimoResultadoCalculo);
   actualizarBotonesGuardarTrabajo(resumen.precioNeto !== null);
   exportExcelButton.disabled = resumen.precioNeto === null;
@@ -4362,6 +4448,7 @@ function calcularModoAvanzado() {
   });
   renderizarComparadorCanales(ultimoDatosCalculo, ultimoResultadoCalculo);
   renderizarPreciosPorNivel(ultimoDatosCalculo);
+  sincronizarVisibilidadPanelesResultado();
   window.ValidacionPrecio3D?.registrarCalculoValido?.("avanzado", ultimoDatosCalculo, ultimoResultadoCalculo);
   actualizarBotonesGuardarTrabajo(resumen.precioNeto !== null);
   exportExcelButton.disabled = resumen.precioNeto === null;
@@ -4412,7 +4499,7 @@ function limpiarFormulario(opciones = {}) {
   document.querySelector("#cantidadAvanzado").value = "1";
   nivelTrabajoBasico.value = "basico";
   manoObraSimpleBasico.value = valoresNivelTrabajo.basico;
-  cambiarModoCostoMaterial("basico", false);
+  cambiarModoCostoMaterial("basico", true);
   cambiarModoCostoMaterial("avanzado", false);
   actualizarEtiquetasAlcanceSlicer("basico");
   actualizarEtiquetasAlcanceSlicer("avanzado");
@@ -4430,6 +4517,7 @@ function limpiarFormulario(opciones = {}) {
   cotizacionClienteVista.innerHTML = "";
   renderizarComparadorCanales(null, null);
   renderizarPreciosPorNivel(null);
+  sincronizarVisibilidadPanelesResultado();
   aplicarMaterialBasico();
   aplicarImpresoraBasico();
   aplicarCanalBasico();
@@ -4440,6 +4528,8 @@ function limpiarFormulario(opciones = {}) {
   ultimoResultadoBasico = null;
   ultimoFeeEstimadoBasico = 0;
   ultimosSupuestosBasicos = obtenerSupuestosBasicos();
+  sincronizarDesplegablesBasicos({ reiniciar: true });
+  cambiarModo("basico");
   actualizarVistaPreviaMoneda();
   renderizarSupuestosBasicos(ultimosSupuestosBasicos);
   window.cambiarIdioma("es");
@@ -4480,6 +4570,9 @@ btnModoBasico.addEventListener("click", () => cambiarModo("basico"));
 btnModoAvanzado.addEventListener("click", () => cambiarModo("avanzado"));
 verCalculoAvanzado.addEventListener("click", () => cambiarModo("avanzado"));
 volverModoBasico.addEventListener("click", () => cambiarModo("basico"));
+document.querySelector("#volverACotizarDesdeResultadoButton")?.addEventListener("click", () => {
+  limpiarFormulario();
+});
 nivelTrabajoBasico.addEventListener("change", actualizarManoObraPorNivel);
 materialBasico.addEventListener("change", aplicarMaterialBasico);
 filamentoBasico?.addEventListener("change", () => aplicarFilamentoSeleccionado("basico"));
@@ -4669,6 +4762,7 @@ document.addEventListener("precio3d:cliente-eliminado", (event) => {
   renderizarTrabajos();
 });
 
+ubicarCostosInternosEnModoBasico();
 cargarMonedas();
 cargarIdiomas();
 cargarPresetsVisuales();
@@ -4682,7 +4776,7 @@ aplicarImpresoraAvanzado();
 aplicarCanalAvanzado();
 actualizarAdvertenciaCostoImpresora("basico");
 actualizarAdvertenciaCostoImpresora("avanzado");
-cambiarModo("avanzado");
+cambiarModo("basico");
 ultimosSupuestosBasicos = obtenerSupuestosBasicos();
 actualizarEtiquetasAlcanceSlicer("basico");
 actualizarEtiquetasAlcanceSlicer("avanzado");
@@ -4702,6 +4796,7 @@ window.PanelCotizacionesPrecio3D?.inicializar({
   formatearMoneda
 });
 renderizarUltimoCalculoGuardado();
+sincronizarVisibilidadPanelesResultado();
 renderizarTrabajos();
 registrarAutoguardado();
 

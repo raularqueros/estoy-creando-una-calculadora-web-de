@@ -20,21 +20,37 @@
   const nombres = {
     cotizar: ["Cotizar", "Ingresa los datos de tu impresión para calcular un precio rentable."],
     resultado: ["Resultado", "Revisa el precio sugerido, tus costos y la utilidad estimada."],
-    trabajos: ["Mis trabajos", "Guarda y organiza tus cotizaciones, ventas y pedidos."],
-    clientes: ["Mis clientes", "Guarda y reutiliza los datos de tus clientes en trabajos y cotizaciones."],
-    impresoras: ["Mis impresoras", "Guarda los costos y características de tus impresoras para reutilizarlos en tus cotizaciones."],
-    filamentos: ["Inventario de filamentos", "Registra tus bobinas, controla el material disponible y utiliza su costo real por gramo."],
+    trabajos: ["Trabajos", "Guarda y organiza tus cotizaciones, ventas y pedidos."],
+    clientes: ["Clientes", "Guarda y reutiliza los datos de tus clientes en trabajos y cotizaciones."],
+    impresoras: ["Impresoras", "Guarda los costos y características de tus impresoras para reutilizarlos en tus cotizaciones."],
+    filamentos: ["Filamentos", "Registra tus bobinas, controla el material disponible y utiliza su costo real por gramo."],
     finanzas: ["Panel financiero", "Analiza tus ventas, cobros, costos y rentabilidad utilizando los datos registrados en la aplicaciÃ³n."],
-    cotizaciones: ["Mis cotizaciones", "Crea, guarda y administra propuestas comerciales con varios productos o servicios."],
+    cotizaciones: ["Historial de cotizaciones", "Crea, guarda y administra propuestas comerciales con varios productos o servicios."],
     "datos-cotizacion": ["Datos comerciales", "Configura los datos de tu negocio, cliente y condiciones comerciales."],
-    "cotizacion-cliente": ["Cotización para cliente", "Prepara una cotización limpia para imprimir o guardar como PDF."],
+    "cotizacion-cliente": ["Nueva cotización", "Prepara una cotización limpia para imprimir o guardar como PDF."],
     configuracion: ["Configuración", "Personaliza los costos y preferencias utilizados en los cálculos."],
-    ayuda: ["Ayuda / Fuentes", "Consulta explicaciones, advertencias y fuentes de referencia."]
+    ayuda: ["Ayuda", "Consulta explicaciones, advertencias y fuentes de referencia."]
+  };
+
+  const clavesNombres = {
+    cotizar: ["navCotizarTitulo", "navCotizarDescripcion"],
+    resultado: ["navResultadoTitulo", "navResultadoDescripcion"],
+    trabajos: ["navTrabajosTitulo", "navTrabajosDescripcion"],
+    clientes: ["navClientesTitulo", "navClientesDescripcion"],
+    impresoras: ["navImpresorasTitulo", "navImpresorasDescripcion"],
+    filamentos: ["navFilamentosTitulo", "navFilamentosDescripcion"],
+    finanzas: ["navFinanzasTitulo", "navFinanzasDescripcion"],
+    cotizaciones: ["navCotizacionesTitulo", "navCotizacionesDescripcion"],
+    "datos-cotizacion": ["navDatosCotizacionTitulo", "navDatosCotizacionDescripcion"],
+    "cotizacion-cliente": ["navCotizacionClienteTitulo", "navCotizacionClienteDescripcion"],
+    configuracion: ["navConfiguracionTitulo", "navConfiguracionDescripcion"],
+    ayuda: ["navAyudaTitulo", "navAyudaDescripcion"]
   };
 
   const vistas = {};
 
   function crearVista(id) {
+    const [claveTitulo, claveDescripcion] = clavesNombres[id];
     const vista = document.createElement("section");
     vista.id = `vista-${id}`;
     vista.className = "dashboard-view";
@@ -42,9 +58,9 @@
     vista.setAttribute("aria-labelledby", `titulo-vista-${id}`);
     vista.innerHTML = `
       <header class="dashboard-view__header">
-        <p class="dashboard-breadcrumb">Inicio / ${nombres[id][0]}</p>
-        <h2 id="titulo-vista-${id}" tabindex="-1">${nombres[id][0]}</h2>
-        <p>${nombres[id][1]}</p>
+        <p class="dashboard-breadcrumb"><span data-i18n="inicio">Inicio</span> / <span data-i18n="${claveTitulo}">${nombres[id][0]}</span></p>
+        <h2 id="titulo-vista-${id}" tabindex="-1" data-i18n="${claveTitulo}">${nombres[id][0]}</h2>
+        <p data-i18n="${claveDescripcion}">${nombres[id][1]}</p>
       </header>
       <div class="dashboard-view__content"></div>
     `;
@@ -95,7 +111,7 @@
   cotizarLayout.className = "quote-workspace";
   cotizarLayout.innerHTML = `
     <div class="quote-workspace__form"></div>
-    <aside class="quote-workspace__result" aria-label="Resultado de la cotización"></aside>
+    <aside class="quote-workspace__result" tabindex="-1" aria-label="Resultado de la cotización"></aside>
   `;
   contenido("cotizar").appendChild(cotizarLayout);
 
@@ -173,6 +189,7 @@
 
   const accionesResultado = document.createElement("section");
   accionesResultado.className = "panel result-workflow-panel";
+  accionesResultado.hidden = true;
   accionesResultado.innerHTML = `
     <div>
       <h2>Acciones del cálculo</h2>
@@ -306,11 +323,15 @@
     }
   }
 
-  function cerrarMenuMovil() {
+  function cerrarMenuMovil(devolverFoco = false) {
+    const estabaAbierto = mobileMoreMenu && !mobileMoreMenu.hidden;
     if (mobileMoreMenu) {
       mobileMoreMenu.hidden = true;
     }
     mobileMoreButton?.setAttribute("aria-expanded", "false");
+    if (devolverFoco && estabaAbierto) {
+      mobileMoreButton?.focus();
+    }
   }
 
   function guardarSeccion(id) {
@@ -339,7 +360,11 @@
       .forEach((boton) => {
       const activo = boton.dataset.section === destino;
       boton.classList.toggle("active", activo);
-      boton.setAttribute("aria-current", activo ? "page" : "false");
+      if (activo) {
+        boton.setAttribute("aria-current", "page");
+      } else {
+        boton.removeAttribute("aria-current");
+      }
 
       if (activo && window.matchMedia("(max-width: 768px)").matches && boton.closest("#mobileBottomNav")) {
         window.requestAnimationFrame(() => {
@@ -351,7 +376,6 @@
     const seccionesSecundarias = new Set([
       "cotizacion-cliente",
       "datos-cotizacion",
-      "clientes",
       "impresoras",
       "filamentos",
       "finanzas",
@@ -361,7 +385,11 @@
     ]);
     const masActivo = seccionesSecundarias.has(destino);
     mobileMoreButton?.classList.toggle("active", masActivo);
-    mobileMoreButton?.setAttribute("aria-current", masActivo ? "page" : "false");
+    if (masActivo) {
+      mobileMoreButton?.setAttribute("aria-current", "page");
+    } else {
+      mobileMoreButton?.removeAttribute("aria-current");
+    }
     cerrarMenuMovil();
 
     if (opciones.guardar !== false) {
@@ -377,9 +405,18 @@
     }
   }
 
+  function mostrarResultadoEnCotizar() {
+    mostrarSeccion("cotizar");
+    window.requestAnimationFrame(() => {
+      columnaResultado.focus({ preventScroll: true });
+      columnaResultado.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   function cargarSeccion() {
     try {
-      return localStorage.getItem(STORAGE_KEY) || "cotizar";
+      const guardada = localStorage.getItem(STORAGE_KEY) || "cotizar";
+      return guardada === "resultado" ? "cotizar" : guardada;
     } catch (error) {
       console.warn("No fue posible cargar la seccion activa.", error);
       return "cotizar";
@@ -423,8 +460,8 @@
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      cerrarMenuMovil();
+    if (event.key === "Escape" && mobileMoreMenu && !mobileMoreMenu.hidden) {
+      cerrarMenuMovil(true);
     }
   });
 
@@ -459,7 +496,7 @@
   });
 
   document.querySelector("#volverResultadoDesdeCotizacionButton")?.addEventListener("click", () => {
-    mostrarSeccion("resultado", { enfocar: true });
+    mostrarResultadoEnCotizar();
   });
 
   document.querySelector("#volverCotizacionDesdeDatosButton")?.addEventListener("click", () => {
@@ -469,7 +506,7 @@
 
   // app.js emite este evento unicamente cuando el calculo es valido.
   document.addEventListener("precio3d:calculo-valido", () => {
-    mostrarSeccion("resultado", { enfocar: true });
+    mostrarResultadoEnCotizar();
   });
 
   document.addEventListener("precio3d:trabajo-cargado", () => {
