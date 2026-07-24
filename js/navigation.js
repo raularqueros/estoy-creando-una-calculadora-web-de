@@ -204,9 +204,9 @@
   `;
 
   const elementosResultado = [
-    accionesResultado,
     resultadoBasico,
     resultadoAvanzado,
+    accionesResultado,
     paneles.preciosNivel,
     paneles.comparador,
     paneles.ultimoCalculo

@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
   <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
   <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
-  <link rel="stylesheet" href="styles.css?v=20260724-result-scroll-v1">
+  <link rel="stylesheet" href="styles.css?v=20260724-result-hierarchy-v1">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -754,13 +754,17 @@
     </section>
     </div>
 
-    <section class="panel result-panel price-levels-panel" hidden>
-      <h2>Precios por nivel</h2>
-      <p class="help-text">Compara precios sugeridos usando el mismo pedido y cambiando solo el margen.</p>
-      <div id="preciosNivelContenido" class="price-levels-empty">
-        Primero realiza un cálculo para ver precios por nivel.
+    <details class="panel result-panel price-levels-panel result-disclosure" hidden>
+      <summary class="result-disclosure__summary">
+        <span>Precios por nivel</span>
+      </summary>
+      <div class="result-disclosure__content">
+        <p class="help-text">Compara precios sugeridos usando el mismo pedido y cambiando solo el margen.</p>
+        <div id="preciosNivelContenido" class="price-levels-empty">
+          Primero realiza un cálculo para ver precios por nivel.
+        </div>
       </div>
-    </section>
+    </details>
 
     <section id="datosCotizacionPanel" class="panel result-panel quote-data-panel">
       <details class="collapsible-section">
@@ -1267,31 +1271,35 @@
       </details>
     </section>
 
-    <section id="comparadorCanalesPanel" class="panel result-panel comparator-panel" role="region" aria-labelledby="comparadorCanalesTitulo" hidden>
-      <h2 id="comparadorCanalesTitulo" class="section-heading">
+    <details id="comparadorCanalesPanel" class="panel result-panel comparator-panel result-disclosure" role="region" aria-labelledby="comparadorCanalesTitulo" hidden>
+      <summary id="comparadorCanalesTitulo" class="result-disclosure__summary">
         <span data-i18n="comparadorCanales">Comparador de canales</span>
-        <button type="button" class="info-btn" data-help="comparador" aria-label="Información sobre comparador de canales">i</button>
-      </h2>
-      <div class="field-grid comparator-controls">
-        <label>
-          <span data-i18n="metodoPagoComparador">Método de pago para comparar</span>
-          <select id="metodoPagoComparador">
-            <option value="automatico" data-i18n="automaticoSegunCanal">Automático según canal</option>
-          </select>
-        </label>
-        <label>
-          <span data-i18n="ordenarPor">Ordenar por</span>
-          <select id="ordenComparadorCanales">
-            <option value="precio" data-i18n="menorPrecio">Menor precio</option>
-            <option value="nombre" data-i18n="nombreCanal">Nombre del canal</option>
-          </select>
-        </label>
+      </summary>
+      <div class="result-disclosure__content">
+        <div class="result-disclosure__tools">
+          <button type="button" class="info-btn" data-help="comparador" aria-label="Información sobre comparador de canales">i</button>
+        </div>
+        <div class="field-grid comparator-controls">
+          <label>
+            <span data-i18n="metodoPagoComparador">Método de pago para comparar</span>
+            <select id="metodoPagoComparador">
+              <option value="automatico" data-i18n="automaticoSegunCanal">Automático según canal</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="ordenarPor">Ordenar por</span>
+            <select id="ordenComparadorCanales">
+              <option value="precio" data-i18n="menorPrecio">Menor precio</option>
+              <option value="nombre" data-i18n="nombreCanal">Nombre del canal</option>
+            </select>
+          </label>
+        </div>
+        <p class="help-text" data-i18n="feesReferenciales">Los fees son referenciales. Las plataformas, métodos de pago, impuestos y condiciones pueden cambiar según país, fecha, categoría y tipo de cuenta. Evita duplicar comisiones si el canal ya integra el cobro.</p>
+        <div id="comparadorCanalesContenido" class="comparator-empty" data-i18n="primeroCalcula">
+          Realiza un cálculo para comparar precios por canal.
+        </div>
       </div>
-      <p class="help-text" data-i18n="feesReferenciales">Los fees son referenciales. Las plataformas, métodos de pago, impuestos y condiciones pueden cambiar según país, fecha, categoría y tipo de cuenta. Evita duplicar comisiones si el canal ya integra el cobro.</p>
-      <div id="comparadorCanalesContenido" class="comparator-empty" data-i18n="primeroCalcula">
-        Realiza un cálculo para comparar precios por canal.
-      </div>
-    </section>
+    </details>
 
     <section id="ultimoCalculoPanel" class="panel result-panel storage-panel" hidden>
       <h2 data-i18n="ultimoCalculoGuardado">Último cálculo guardado</h2>
@@ -1805,7 +1813,7 @@
   <script src="js/reports.js?v=20260715-reports-v1"></script>
   <script src="js/help.js"></script>
   <script src="js/validation.js?v=20260716-validation-v1"></script>
-  <script src="js/navigation.js?v=20260724-accessibility-v1"></script>
+  <script src="js/navigation.js?v=20260724-result-hierarchy-v1"></script>
   <script src="js/clients-dashboard.js?v=20260714-clients-v3"></script>
   <script src="js/printers-dashboard.js?v=20260715-printers-v2"></script>
   <script src="js/filaments-dashboard.js?v=20260715-filaments-jobs-v2"></script>
