@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
   <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
   <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
-  <link rel="stylesheet" href="styles.css?v=20260724-result-actions-v1">
+  <link rel="stylesheet" href="styles.css?v=20260724-clients-hierarchy-v1">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -1032,40 +1032,45 @@
 
       <div id="clientesResumen" class="jobs-kpi-grid clients-kpi-grid" aria-live="polite"></div>
 
-      <div id="clientesFiltros" class="jobs-filters clients-filters">
-        <label class="jobs-search-field">
-          Buscar
-          <input type="search" id="clientesBusqueda" placeholder="Nombre, empresa, correo, teléfono, identificación o etiqueta">
-        </label>
-        <label>
-          Mostrar
-          <select id="clientesFiltro">
-            <option value="todos">Todos</option>
-            <option value="con_trabajos">Con trabajos</option>
-            <option value="sin_trabajos">Sin trabajos</option>
-            <option value="recientes">Clientes recientes</option>
-          </select>
-        </label>
-        <label>
-          Ordenar
-          <select id="clientesOrden">
-            <option value="nombre">Nombre</option>
-            <option value="recientes">Más recientes</option>
-            <option value="mayor_venta">Mayor venta</option>
-            <option value="mayor_trabajos">Mayor cantidad de trabajos</option>
-          </select>
-        </label>
+      <div class="clients-filters-card">
+        <div id="clientesFiltros" class="jobs-filters clients-filters">
+          <label class="jobs-search-field">
+            Buscar
+            <input type="search" id="clientesBusqueda" placeholder="Nombre, empresa, correo, teléfono, identificación o etiqueta">
+          </label>
+          <label>
+            Mostrar
+            <select id="clientesFiltro">
+              <option value="todos">Todos</option>
+              <option value="con_trabajos">Con trabajos</option>
+              <option value="sin_trabajos">Sin trabajos</option>
+              <option value="recientes">Clientes recientes</option>
+            </select>
+          </label>
+          <label>
+            Ordenar
+            <select id="clientesOrden">
+              <option value="nombre">Nombre</option>
+              <option value="recientes">Más recientes</option>
+              <option value="mayor_venta">Mayor venta</option>
+              <option value="mayor_trabajos">Mayor cantidad de trabajos</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <div id="clientesListado" class="clients-list"></div>
       <section id="clienteDetallePanel" class="client-detail-panel" aria-live="polite" hidden></section>
 
-      <div class="actions clients-data-actions">
-        <button type="button" id="exportarClientesCsvButton" class="secondary">Exportar clientes CSV</button>
-        <button type="button" id="exportarClientesJsonButton" class="secondary">Exportar clientes JSON</button>
-        <button type="button" id="importarClientesButton" class="secondary">Importar clientes JSON</button>
-        <input type="file" id="importarClientesInput" accept="application/json,.json" hidden>
-      </div>
+      <details class="clients-tools-panel">
+        <summary data-i18n="herramientasRespaldo">Herramientas y respaldo</summary>
+        <div class="actions clients-data-actions">
+          <button type="button" id="exportarClientesCsvButton" class="secondary">Exportar clientes CSV</button>
+          <button type="button" id="exportarClientesJsonButton" class="secondary">Exportar clientes JSON</button>
+          <button type="button" id="importarClientesButton" class="secondary">Importar clientes JSON</button>
+          <input type="file" id="importarClientesInput" accept="application/json,.json" hidden>
+        </div>
+      </details>
       <p id="clientesMessage" class="help-text" role="status"></p>
     </section>
 
