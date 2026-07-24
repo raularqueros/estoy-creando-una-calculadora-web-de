@@ -46,6 +46,12 @@
     return window.ClientesPrecio3D?.obtenerClientes?.() || [];
   }
 
+  function cotizacionActualEstaGuardada() {
+    if (!cotizacionActual?.id) return false;
+    return window.CotizacionesPrecio3D?.cargarCotizaciones?.()
+      .some((cotizacion) => cotizacion.id === cotizacionActual.id) || false;
+  }
+
   function snapshotCliente(cliente) {
     return cliente ? window.ClientesPrecio3D?.crearSnapshot?.(cliente) || { ...cliente } : null;
   }
@@ -264,7 +270,7 @@
       tiempoEntrega: $("#quoteTiempoEntrega")?.value || cotizacionActual.tiempoEntrega,
       condicionesPago: $("#quoteCondicionesPago")?.value || "",
       observaciones: $("#quoteObservaciones")?.value || "",
-      datosNegocio: opciones.obtenerDatosNegocio?.() || cotizacionActual.datosNegocio
+      datosNegocio: { ...(cotizacionActual.datosNegocio || {}) }
     };
     const estado = $("#quoteEstado")?.value;
     if (estado && estado !== cotizacionActual.estado) {
@@ -370,7 +376,7 @@
     }
     const vista = $("#cotizacionClienteVista");
     if (!vista) return false;
-    const negocio = opciones.obtenerDatosNegocio?.() || cotizacionActual.datosNegocio || {};
+    const negocio = cotizacionActual.datosNegocio || {};
     const cliente = clienteCotizacion(cotizacionActual);
     const t = window.CotizacionesPrecio3D.calcularTotales(cotizacionActual);
     const fechaValidez = new Date(cotizacionActual.fechaCreacion);
@@ -619,15 +625,29 @@
     $("#misCotizacionesPanel")?.addEventListener("click", manejarListadoClick);
     $("#misCotizacionesPanel")?.addEventListener("change", manejarImportacion);
     document.addEventListener("precio3d:agregar-calculo-cotizacion", agregarCalculoActual);
-    document.addEventListener("precio3d:datos-cotizacion-guardados", () => {
+    document.addEventListener("precio3d:datos-cotizacion-guardados", (event) => {
       if (!cotizacionActual) return;
-      cotizacionActual.datosNegocio = opciones.obtenerDatosNegocio?.() || cotizacionActual.datosNegocio;
-      cotizacionActual.snapshotCliente = snapshotDesdeFormulario() || cotizacionActual.snapshotCliente;
+      if (event.detail?.limpiar) {
+        cotizacionActual.clienteId = "";
+        cotizacionActual.snapshotCliente = null;
+      } else {
+        const clienteFormulario = opciones.obtenerDatosCliente?.() || {};
+        cotizacionActual.clienteId = clienteFormulario.clienteId || cotizacionActual.clienteId;
+        cotizacionActual.snapshotCliente = snapshotDesdeFormulario() || cotizacionActual.snapshotCliente;
+      }
       const condiciones = opciones.obtenerCondiciones?.() || {};
       cotizacionActual.validezDias = condiciones.validezCotizacionDias ?? cotizacionActual.validezDias;
-      cotizacionActual.tiempoEntrega = condiciones.tiempoEntrega || cotizacionActual.tiempoEntrega;
-      cotizacionActual.condicionesPago = condiciones.condicionesPago || cotizacionActual.condicionesPago;
-      cotizacionActual.observaciones = condiciones.observacionesCotizacion || cotizacionActual.observaciones;
+      cotizacionActual.tiempoEntrega = condiciones.tiempoEntrega ?? cotizacionActual.tiempoEntrega;
+      cotizacionActual.condicionesPago = condiciones.condicionesPago ?? cotizacionActual.condicionesPago;
+      cotizacionActual.observaciones = condiciones.observacionesCotizacion ?? cotizacionActual.observaciones;
+      renderizarEditor();
+    });
+    document.addEventListener("precio3d:perfil-negocio-guardado", (event) => {
+      if (!cotizacionActual || cotizacionActualEstaGuardada()) return;
+      cotizacionActual = window.CotizacionesPrecio3D.normalizarCotizacion({
+        ...cotizacionActual,
+        datosNegocio: { ...(event.detail?.datosNegocio || {}) }
+      });
       renderizarEditor();
     });
     document.addEventListener("precio3d:usar-cliente-cotizacion", (event) => {

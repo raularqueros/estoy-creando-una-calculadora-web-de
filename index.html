@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
   <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
   <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
-  <link rel="stylesheet" href="styles.css?v=20260724-clients-hierarchy-v1">
+  <link rel="stylesheet" href="styles.css?v=20260724-business-profile-v1">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -767,45 +767,72 @@
     </details>
 
     <section id="datosCotizacionPanel" class="panel result-panel quote-data-panel">
-      <details class="collapsible-section">
-        <summary data-i18n="datosCotizacion">Datos para la cotización</summary>
-        <p class="help-text">Estos datos quedan guardados en este navegador y servirán para preparar cotizaciones formales más adelante.</p>
+      <div class="quote-data-heading">
+        <p class="eyebrow" data-i18n="datosCotizacion">Datos para la cotización</p>
+        <h2 id="perfilNegocioTitulo" data-i18n="perfilEmprendimiento">Perfil del emprendimiento</h2>
+        <p class="help-text" data-i18n="perfilEmprendimientoAyuda">Configura estos datos una vez para reutilizarlos automáticamente en nuevas cotizaciones.</p>
+      </div>
 
-        <div class="quote-data-grid">
-          <div class="quote-data-block">
-            <h3 data-i18n="datosQuienCotiza">Datos de quien cotiza</h3>
-            <div class="field-grid">
-              <label>
-                <span data-i18n="nombreNegocio">Nombre del negocio</span>
-                <input type="text" id="nombreNegocio">
-              </label>
-              <label>
-                <span data-i18n="rutNegocio">RUT / ID fiscal</span>
-                <input type="text" id="rutNegocio">
-              </label>
-              <label>
-                <span data-i18n="telefonoNegocio">Teléfono / WhatsApp</span>
-                <input type="text" id="telefonoNegocio">
-              </label>
-              <label>
-                <span data-i18n="correoNegocio">Correo</span>
-                <input type="email" id="correoNegocio">
-              </label>
-              <label>
-                <span data-i18n="direccionNegocio">Dirección</span>
-                <input type="text" id="direccionNegocio">
-              </label>
-              <label>
-                <span data-i18n="sitioWebNegocio">Sitio web</span>
-                <input type="url" id="sitioWebNegocio">
-              </label>
-              <label>
-                <span data-i18n="instagramNegocio">Instagram</span>
-                <input type="text" id="instagramNegocio">
-              </label>
-            </div>
+      <section class="business-profile-card" aria-labelledby="perfilNegocioTitulo">
+        <div class="business-profile-card__heading">
+          <p id="perfilNegocioAyuda" class="help-text" data-i18n="perfilSinGuardarAyuda">Estos datos se usarán automáticamente en las nuevas cotizaciones.</p>
+        </div>
+
+        <div id="perfilNegocioResumen" class="business-profile-summary" aria-live="polite" hidden>
+          <p class="business-profile-status" data-i18n="perfilGuardadoDispositivo">Perfil guardado en este dispositivo</p>
+          <strong id="perfilNegocioResumenNombre" class="business-profile-summary__name"></strong>
+          <div id="perfilNegocioResumenDatos" class="business-profile-summary__details"></div>
+        </div>
+
+        <form id="perfilNegocioFormulario" class="business-profile-form">
+          <div class="field-grid business-profile-fields">
+            <label>
+              <span data-i18n="nombreNegocio">Nombre del negocio</span>
+              <input type="text" id="nombreNegocio">
+            </label>
+            <label>
+              <span data-i18n="rutNegocio">RUT / ID fiscal</span>
+              <input type="text" id="rutNegocio">
+            </label>
+            <label>
+              <span data-i18n="telefonoNegocio">Teléfono / WhatsApp</span>
+              <input type="text" id="telefonoNegocio">
+            </label>
+            <label>
+              <span data-i18n="correoNegocio">Correo</span>
+              <input type="email" id="correoNegocio">
+            </label>
+            <label>
+              <span data-i18n="direccionNegocio">Dirección</span>
+              <input type="text" id="direccionNegocio">
+            </label>
+            <label>
+              <span data-i18n="sitioWebNegocio">Sitio web</span>
+              <input type="url" id="sitioWebNegocio">
+            </label>
+            <label class="field-wide">
+              <span data-i18n="instagramNegocio">Instagram</span>
+              <input type="text" id="instagramNegocio">
+            </label>
           </div>
+          <div class="actions business-profile-form__actions">
+            <button type="submit" id="guardarPerfilNegocioButton" data-i18n="guardarPerfilEmprendimiento">Guardar perfil del emprendimiento</button>
+          </div>
+        </form>
 
+        <div id="perfilNegocioAccionesGuardado" class="actions business-profile-saved-actions" hidden>
+          <button type="button" id="editarPerfilNegocioButton" class="secondary" aria-controls="perfilNegocioFormulario" aria-expanded="false" data-i18n="editarPerfil">Editar perfil</button>
+          <button type="button" id="borrarPerfilNegocioButton" class="secondary danger-button" data-i18n="borrarPerfil">Borrar perfil</button>
+        </div>
+        <p id="perfilNegocioMessage" class="help-text" role="status"></p>
+      </section>
+
+      <section class="quote-customer-settings" aria-labelledby="clienteCondicionesTitulo">
+        <div class="quote-customer-settings__heading">
+          <h3 id="clienteCondicionesTitulo" data-i18n="clienteYCondiciones">Cliente y condiciones</h3>
+          <p class="help-text" data-i18n="clienteYCondicionesAyuda">Estos datos pertenecen a cada cotización y se administran por separado del perfil.</p>
+        </div>
+        <div class="quote-data-grid quote-customer-settings__grid">
           <div class="quote-data-block">
             <h3 data-i18n="datosCliente">Datos del cliente</h3>
             <div class="field-grid">
@@ -869,12 +896,12 @@
           </div>
         </div>
 
-        <div class="actions">
+        <div class="actions quote-customer-settings__actions">
           <button type="button" id="guardarDatosCotizacionButton" data-i18n="guardarDatosCotizacion">Guardar datos de cotización</button>
           <button type="button" id="borrarDatosCotizacionButton" class="secondary danger-button" data-i18n="borrarDatosCotizacion">Borrar datos guardados</button>
         </div>
         <p id="datosCotizacionMessage" class="help-text" role="status"></p>
-      </details>
+      </section>
     </section>
 
     <section id="cotizacionClientePanel" class="panel result-panel client-quote-panel">
@@ -1819,7 +1846,7 @@
   <script src="js/printer-catalog.js?v=20260715-catalog-v1"></script>
   <script src="js/printers.js?v=20260715-printers-v2"></script>
   <script src="js/geolocation.js"></script>
-  <script src="js/i18n.js?v=20260724-jobs-hierarchy-v1"></script>
+  <script src="js/i18n.js?v=20260724-business-profile-v1"></script>
   <script src="js/presets.js"></script>
   <script src="js/filaments.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/comparator.js"></script>
@@ -1835,9 +1862,9 @@
   <script src="js/clients-dashboard.js?v=20260714-clients-v3"></script>
   <script src="js/printers-dashboard.js?v=20260715-printers-v2"></script>
   <script src="js/filaments-dashboard.js?v=20260715-filaments-jobs-v2"></script>
-  <script src="js/quotes-dashboard.js?v=20260715-quotes-v2"></script>
+  <script src="js/quotes-dashboard.js?v=20260724-business-profile-v1"></script>
   <script src="js/reports-dashboard.js?v=20260715-reports-v1"></script>
-  <script src="app.js?v=20260723-basic-flow-v1"></script>
+  <script src="app.js?v=20260724-business-profile-v1"></script>
   <script>
     document.getElementById("siteFooterYear").textContent = new Date().getFullYear();
   </script>

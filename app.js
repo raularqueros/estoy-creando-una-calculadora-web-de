@@ -39,6 +39,15 @@ const trabajosListado = document.querySelector("#trabajosListado");
 const guardarDatosCotizacionButton = document.querySelector("#guardarDatosCotizacionButton");
 const borrarDatosCotizacionButton = document.querySelector("#borrarDatosCotizacionButton");
 const datosCotizacionMessage = document.querySelector("#datosCotizacionMessage");
+const perfilNegocioFormulario = document.querySelector("#perfilNegocioFormulario");
+const perfilNegocioResumen = document.querySelector("#perfilNegocioResumen");
+const perfilNegocioResumenNombre = document.querySelector("#perfilNegocioResumenNombre");
+const perfilNegocioResumenDatos = document.querySelector("#perfilNegocioResumenDatos");
+const perfilNegocioAccionesGuardado = document.querySelector("#perfilNegocioAccionesGuardado");
+const perfilNegocioAyuda = document.querySelector("#perfilNegocioAyuda");
+const perfilNegocioMessage = document.querySelector("#perfilNegocioMessage");
+const editarPerfilNegocioButton = document.querySelector("#editarPerfilNegocioButton");
+const borrarPerfilNegocioButton = document.querySelector("#borrarPerfilNegocioButton");
 const clienteGuardadoCotizacion = document.querySelector("#clienteGuardadoCotizacion");
 const clienteCotizacionVinculo = document.querySelector("#clienteCotizacionVinculo");
 const actualizarClienteDesdeCotizacionButton = document.querySelector("#actualizarClienteDesdeCotizacionButton");
@@ -3777,16 +3786,130 @@ function borrarTodosLosTrabajos() {
   renderizarTrabajos();
 }
 
+const CAMPOS_DATOS_NEGOCIO = [
+  "nombreNegocio",
+  "rutNegocio",
+  "telefonoNegocio",
+  "correoNegocio",
+  "direccionNegocio",
+  "sitioWebNegocio",
+  "instagramNegocio"
+];
+
 function obtenerDatosNegocioFormulario() {
-  return {
-    nombreNegocio: valorCampo("nombreNegocio").trim(),
-    rutNegocio: valorCampo("rutNegocio").trim(),
-    telefonoNegocio: valorCampo("telefonoNegocio").trim(),
-    correoNegocio: valorCampo("correoNegocio").trim(),
-    direccionNegocio: valorCampo("direccionNegocio").trim(),
-    sitioWebNegocio: valorCampo("sitioWebNegocio").trim(),
-    instagramNegocio: valorCampo("instagramNegocio").trim()
-  };
+  return Object.fromEntries(
+    CAMPOS_DATOS_NEGOCIO.map((id) => [id, valorCampo(id).trim()])
+  );
+}
+
+function obtenerDatosNegocioGuardados() {
+  const datos = window.StoragePrecio3D?.cargarDatosNegocio?.();
+  return datos && typeof datos === "object" ? { ...datos } : {};
+}
+
+function perfilNegocioTieneDatos(datosNegocio = {}) {
+  return CAMPOS_DATOS_NEGOCIO.some((id) => String(datosNegocio[id] || "").trim());
+}
+
+function mostrarMensajePerfilNegocio(mensaje, esError = false) {
+  if (!perfilNegocioMessage) return;
+  perfilNegocioMessage.textContent = mensaje;
+  perfilNegocioMessage.classList.toggle("error-message", esError);
+  perfilNegocioMessage.classList.toggle("success-message", !esError && Boolean(mensaje));
+}
+
+function renderizarResumenPerfilNegocio(datosNegocio) {
+  if (!perfilNegocioResumenNombre || !perfilNegocioResumenDatos) return;
+  perfilNegocioResumenNombre.textContent =
+    datosNegocio.nombreNegocio || textoInterfaz("perfilSinNombre");
+
+  const detalles = [
+    ["rutNegocio", textoInterfaz("rutNegocio")],
+    ["telefonoNegocio", textoInterfaz("telefonoNegocio")],
+    ["correoNegocio", textoInterfaz("correoNegocio")],
+    ["direccionNegocio", textoInterfaz("direccionNegocio")],
+    ["sitioWebNegocio", textoInterfaz("sitioWebNegocio")],
+    ["instagramNegocio", textoInterfaz("instagramNegocio")]
+  ].filter(([id]) => String(datosNegocio[id] || "").trim());
+
+  perfilNegocioResumenDatos.innerHTML = detalles.length
+    ? detalles.map(([id, etiqueta]) => `
+        <p>
+          <span>${escaparHtml(etiqueta)}</span>
+          <strong>${escaparHtml(datosNegocio[id])}</strong>
+        </p>
+      `).join("")
+    : `<p class="business-profile-summary__empty">${escaparHtml(textoInterfaz("perfilSinDatosAdicionales"))}</p>`;
+}
+
+function actualizarInterfazPerfilNegocio({ editar = false, aplicarGuardado = true } = {}) {
+  const datosGuardados = obtenerDatosNegocioGuardados();
+  const existePerfil = perfilNegocioTieneDatos(datosGuardados);
+
+  if (aplicarGuardado) {
+    if (existePerfil) {
+      aplicarDatosNegocio(datosGuardados);
+    } else {
+      CAMPOS_DATOS_NEGOCIO.forEach((id) => asignarValorCampo(id, ""));
+    }
+  }
+
+  if (existePerfil) {
+    renderizarResumenPerfilNegocio(datosGuardados);
+  }
+
+  if (perfilNegocioResumen) perfilNegocioResumen.hidden = !existePerfil || editar;
+  if (perfilNegocioFormulario) perfilNegocioFormulario.hidden = existePerfil && !editar;
+  if (perfilNegocioAccionesGuardado) perfilNegocioAccionesGuardado.hidden = !existePerfil || editar;
+  if (perfilNegocioAyuda) perfilNegocioAyuda.hidden = existePerfil && !editar;
+  editarPerfilNegocioButton?.setAttribute("aria-expanded", String(existePerfil && editar));
+
+  return { datosGuardados, existePerfil };
+}
+
+function guardarPerfilNegocio(event) {
+  event?.preventDefault();
+  const datosNegocio = obtenerDatosNegocioFormulario();
+
+  if (!perfilNegocioTieneDatos(datosNegocio)) {
+    mostrarMensajePerfilNegocio(textoInterfaz("perfilRequiereDato"), true);
+    return;
+  }
+
+  const guardado = window.StoragePrecio3D?.guardarDatosNegocio?.(datosNegocio);
+  if (!guardado) {
+    mostrarMensajePerfilNegocio(textoInterfaz("perfilNoGuardado"), true);
+    return;
+  }
+
+  const datosGuardados = obtenerDatosNegocioGuardados();
+  aplicarDatosNegocio(datosGuardados);
+  actualizarInterfazPerfilNegocio({ editar: false, aplicarGuardado: false });
+  mostrarMensajePerfilNegocio(textoInterfaz("perfilGuardado"));
+  document.dispatchEvent(new CustomEvent("precio3d:perfil-negocio-guardado", {
+    detail: { datosNegocio: { ...datosGuardados } }
+  }));
+  actualizarVistaCotizacionSiExiste();
+}
+
+function editarPerfilNegocio() {
+  actualizarInterfazPerfilNegocio({ editar: true, aplicarGuardado: true });
+  mostrarMensajePerfilNegocio("");
+  window.requestAnimationFrame(() => document.querySelector("#nombreNegocio")?.focus());
+}
+
+function borrarPerfilNegocio() {
+  if (!confirm(textoInterfaz("confirmarBorrarPerfil"))) return;
+
+  const borrado = window.StoragePrecio3D?.borrarDatosNegocio?.();
+  if (!borrado) {
+    mostrarMensajePerfilNegocio(textoInterfaz("perfilNoBorrado"), true);
+    return;
+  }
+
+  CAMPOS_DATOS_NEGOCIO.forEach((id) => asignarValorCampo(id, ""));
+  actualizarInterfazPerfilNegocio({ editar: false, aplicarGuardado: false });
+  mostrarMensajePerfilNegocio(textoInterfaz("perfilBorrado"));
 }
 
 function obtenerDatosClienteCotizacionFormulario() {
@@ -3814,7 +3937,7 @@ function obtenerConfigCotizacionFormulario() {
 
 function obtenerAdvertenciasDatosCotizacion() {
   const advertencias = [];
-  const datosNegocio = obtenerDatosNegocioFormulario();
+  const datosNegocio = obtenerDatosNegocioGuardados();
   const datosCliente = obtenerDatosClienteCotizacionFormulario();
 
   if (!datosNegocio.nombreNegocio) {
@@ -3845,9 +3968,10 @@ function sugerirClienteCotizacion(cliente) {
 }
 
 function cargarDatosCotizacionIniciales() {
-  aplicarDatosNegocio(window.StoragePrecio3D?.cargarDatosNegocio?.());
+  aplicarDatosNegocio(obtenerDatosNegocioGuardados());
   aplicarConfigCotizacion(window.StoragePrecio3D?.cargarConfigCotizacion?.());
   poblarSelectoresClientes();
+  actualizarInterfazPerfilNegocio();
 }
 
 function actualizarClienteDesdeCotizacion() {
@@ -3872,10 +3996,9 @@ function actualizarClienteDesdeCotizacion() {
 }
 
 function guardarDatosCotizacion() {
-  const guardoNegocio = window.StoragePrecio3D?.guardarDatosNegocio?.(obtenerDatosNegocioFormulario());
   const guardoConfig = window.StoragePrecio3D?.guardarConfigCotizacion?.(obtenerConfigCotizacionFormulario());
 
-  if (!guardoNegocio || !guardoConfig) {
+  if (!guardoConfig) {
     mostrarMensajeDatosCotizacion(textoInterfaz("datosCotizacionNoGuardados"), true);
     return;
   }
@@ -3886,8 +4009,8 @@ function guardarDatosCotizacion() {
       ? `${textoInterfaz("datosCotizacionGuardados")} ${advertencias.join(" ")}`
       : textoInterfaz("datosCotizacionGuardados")
   );
-  actualizarVistaCotizacionSiExiste();
   document.dispatchEvent(new CustomEvent("precio3d:datos-cotizacion-guardados"));
+  actualizarVistaCotizacionSiExiste();
 }
 
 function borrarDatosCotizacionGuardados() {
@@ -3897,22 +4020,14 @@ function borrarDatosCotizacionGuardados() {
     return;
   }
 
-  const borroNegocio = window.StoragePrecio3D?.borrarDatosNegocio?.();
   const borroConfig = window.StoragePrecio3D?.borrarConfigCotizacion?.();
 
-  if (!borroNegocio || !borroConfig) {
+  if (!borroConfig) {
     mostrarMensajeDatosCotizacion(textoInterfaz("datosCotizacionNoBorrados"), true);
     return;
   }
 
   [
-    "nombreNegocio",
-    "rutNegocio",
-    "telefonoNegocio",
-    "correoNegocio",
-    "direccionNegocio",
-    "sitioWebNegocio",
-    "instagramNegocio",
     "clienteCotizacion",
     "contactoCliente",
     "correoCliente",
@@ -3922,8 +4037,16 @@ function borrarDatosCotizacionGuardados() {
     "observacionesCotizacion"
   ].forEach((id) => asignarValorCampo(id, ""));
 
-  aplicarConfigCotizacion();
+  clienteCotizacionSeleccionadoId = "";
+  snapshotClienteCotizacion = null;
+  if (clienteGuardadoCotizacion) clienteGuardadoCotizacion.value = "";
+  if (actualizarClienteDesdeCotizacionButton) actualizarClienteDesdeCotizacionButton.disabled = true;
+  aplicarConfigCotizacion(window.StoragePrecio3D?.cargarConfigCotizacion?.());
   mostrarMensajeDatosCotizacion(textoInterfaz("datosCotizacionBorrados"));
+  document.dispatchEvent(new CustomEvent("precio3d:datos-cotizacion-guardados", {
+    detail: { limpiar: true }
+  }));
+  actualizarVistaCotizacionSiExiste();
 }
 
 function crearLineaCotizacion(etiqueta, valor) {
@@ -4002,7 +4125,7 @@ function obtenerDatosCotizacionActuales() {
     return null;
   }
 
-  const datosNegocio = obtenerDatosNegocioFormulario();
+  const datosNegocio = obtenerDatosNegocioGuardados();
   const datosCliente = obtenerDatosClienteCotizacionFormulario();
   const condiciones = obtenerConfigCotizacionFormulario();
   const cantidad = Math.max(1, Number(datosCalculo.cantidadProductos) || 1);
@@ -4532,6 +4655,9 @@ function limpiarFormulario(opciones = {}) {
   cambiarModo("basico");
   actualizarVistaPreviaMoneda();
   renderizarSupuestosBasicos(ultimosSupuestosBasicos);
+  aplicarDatosNegocio(obtenerDatosNegocioGuardados());
+  actualizarInterfazPerfilNegocio({ editar: false, aplicarGuardado: false });
+  mostrarMensajePerfilNegocio("");
   window.cambiarIdioma("es");
 }
 
@@ -4716,6 +4842,13 @@ window.PanelTrabajosPrecio3D?.inicializar({
 });
 guardarDatosCotizacionButton.addEventListener("click", guardarDatosCotizacion);
 borrarDatosCotizacionButton.addEventListener("click", borrarDatosCotizacionGuardados);
+perfilNegocioFormulario?.addEventListener("submit", guardarPerfilNegocio);
+editarPerfilNegocioButton?.addEventListener("click", editarPerfilNegocio);
+borrarPerfilNegocioButton?.addEventListener("click", borrarPerfilNegocio);
+document.addEventListener("precio3d:idioma-actualizado", () => {
+  const datosGuardados = obtenerDatosNegocioGuardados();
+  if (perfilNegocioTieneDatos(datosGuardados)) renderizarResumenPerfilNegocio(datosGuardados);
+});
 clienteGuardadoCotizacion?.addEventListener("change", () => {
   const cliente = obtenerClienteGuardado(clienteGuardadoCotizacion.value);
   aplicarClienteACotizacion(cliente);
@@ -4790,7 +4923,7 @@ window.PanelCotizacionesPrecio3D?.inicializar({
     datos: ultimoDatosCalculo ? { ...ultimoDatosCalculo } : null,
     resultado: ultimoResultadoCalculo ? { ...ultimoResultadoCalculo } : null
   }),
-  obtenerDatosNegocio: obtenerDatosNegocioFormulario,
+  obtenerDatosNegocio: obtenerDatosNegocioGuardados,
   obtenerDatosCliente: obtenerDatosClienteCotizacionFormulario,
   obtenerCondiciones: obtenerConfigCotizacionFormulario,
   formatearMoneda
