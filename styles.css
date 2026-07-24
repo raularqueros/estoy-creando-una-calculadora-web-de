@@ -1505,14 +1505,25 @@ textarea {
 }
 
 .comparator-controls {
-  max-width: 520px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.comparator-controls select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .table-wrap {
   width: 100%;
+  min-width: 0;
   max-width: 100%;
   margin-top: 16px;
   overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1664,8 +1675,10 @@ textarea {
 
 .comparison-recommendations {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  min-width: 0;
+  max-width: 100%;
   margin-top: 16px;
 }
 
@@ -1922,7 +1935,10 @@ textarea {
 }
 
 .recommendation-item {
+  min-width: 0;
+  max-width: 100%;
   padding: 12px;
+  overflow-wrap: anywhere;
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -1942,6 +1958,9 @@ textarea {
 }
 
 .recommendation-item strong {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: normal;
   color: var(--text);
 }
 
@@ -2894,11 +2913,28 @@ body {
 }
 
 .quote-workspace__result {
-  position: sticky;
-  top: 18px;
-  max-height: calc(100vh - 36px);
-  overflow-y: auto;
-  scrollbar-width: thin;
+  position: static;
+  top: auto;
+  max-width: 100%;
+  max-height: none;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.quote-workspace__result > *,
+.quote-workspace__result :where(.panel, .result-panel, .comparator-panel, .comparator-controls, .comparison-recommendations, .recommendation-item) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.quote-workspace__result :where(.comparator-panel, #comparadorCanalesPanel) {
+  container-type: inline-size;
+}
+
+@container (max-width: 319px) {
+  .quote-workspace__result .comparison-recommendations {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .quote-workspace__result:empty::before {
@@ -3119,7 +3155,8 @@ textarea {
   .quote-workspace__result {
     position: static;
     max-height: none;
-    overflow: visible;
+    overflow-x: clip;
+    overflow-y: visible;
   }
 }
 
@@ -5753,7 +5790,8 @@ body.modal-open {
   .quote-workspace__result {
     position: static;
     max-height: none;
-    overflow: visible;
+    overflow-x: clip;
+    overflow-y: visible;
   }
 }
 
