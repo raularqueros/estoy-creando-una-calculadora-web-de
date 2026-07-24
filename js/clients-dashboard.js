@@ -7,6 +7,9 @@
   let retornoFoco = null;
   let clientePendiente = null;
   let inicializado = false;
+  const t = (clave, reemplazos = {}) =>
+    window.obtenerTextoI18n?.(clave, reemplazos) || clave;
+  const idioma = () => document.documentElement.lang || "es";
 
   function escapar(valor) {
     return String(valor ?? "")
@@ -23,8 +26,8 @@
   }
 
   function fecha(valor) {
-    if (!valor) return "Sin actividad";
-    return new Intl.DateTimeFormat("es-CL", { dateStyle: "medium" }).format(new Date(valor));
+    if (!valor) return t("sinActividad");
+    return new Intl.DateTimeFormat(idioma(), { dateStyle: "medium" }).format(new Date(valor));
   }
 
   function trabajos() {
@@ -107,11 +110,11 @@
       .map((cliente) => ({ cliente, total: Object.values(metricas(cliente).vendido).reduce((suma, valor) => suma + valor, 0) }))
       .sort((a, b) => b.total - a.total)[0];
     const tarjetas = [
-      ["Total de clientes", clientes.length],
-      ["Clientes con ventas", conVentas.length],
-      ["Nuevos este mes", nuevos.length],
-      ["Total vendido", formatearTotales(ventas)],
-      ["Cliente con mayor venta", mayor?.total > 0 ? mayor.cliente.nombre : "Sin ventas registradas"]
+      [t("totalClientes"), clientes.length],
+      [t("clientesConVentas"), conVentas.length],
+      [t("nuevosEsteMes"), nuevos.length],
+      [t("totalVendido"), formatearTotales(ventas)],
+      [t("clienteMayorVenta"), mayor?.total > 0 ? mayor.cliente.nombre : t("sinVentasRegistradas")]
     ];
     contenedor.innerHTML = tarjetas.map(([etiqueta, valor]) => `
       <article class="job-kpi clients-kpi-card">
@@ -149,13 +152,13 @@
   function acciones(cliente) {
     return `
       <details class="job-action-menu">
-        <summary aria-label="Acciones para ${escapar(cliente.nombre)}">Acciones</summary>
+        <summary aria-label="${escapar(t("accionesPara", { nombre: cliente.nombre }))}">${escapar(t("acciones"))}</summary>
         <div>
-          <button type="button" data-client-action="detalle" data-client-id="${escapar(cliente.id)}">Ver detalle</button>
-          <button type="button" data-client-action="editar" data-client-id="${escapar(cliente.id)}">Editar</button>
-          <button type="button" data-client-action="cotizacion" data-client-id="${escapar(cliente.id)}">Crear cotización</button>
-          <button type="button" data-client-action="trabajo" data-client-id="${escapar(cliente.id)}">Crear trabajo</button>
-          <button type="button" data-client-action="eliminar" data-client-id="${escapar(cliente.id)}" class="danger-button">Eliminar</button>
+          <button type="button" data-client-action="detalle" data-client-id="${escapar(cliente.id)}">${escapar(t("verDetalle"))}</button>
+          <button type="button" data-client-action="editar" data-client-id="${escapar(cliente.id)}">${escapar(t("editar"))}</button>
+          <button type="button" data-client-action="cotizacion" data-client-id="${escapar(cliente.id)}">${escapar(t("crearCotizacion"))}</button>
+          <button type="button" data-client-action="trabajo" data-client-id="${escapar(cliente.id)}">${escapar(t("crearTrabajo"))}</button>
+          <button type="button" data-client-action="eliminar" data-client-id="${escapar(cliente.id)}" class="danger-button">${escapar(t("eliminar"))}</button>
         </div>
       </details>`;
   }
@@ -164,28 +167,28 @@
     const contenedor = $("#clientesListado");
     if (!contenedor) return;
     if (!total) {
-      contenedor.innerHTML = '<p class="empty-state">Aún no has guardado clientes.</p>';
+      contenedor.innerHTML = `<p class="empty-state">${escapar(t("sinClientesGuardados"))}</p>`;
       return;
     }
     if (!lista.length) {
-      contenedor.innerHTML = '<p class="empty-state">No hay clientes que coincidan con la búsqueda.</p>';
+      contenedor.innerHTML = `<p class="empty-state">${escapar(t("sinClientesCoincidentes"))}</p>`;
       return;
     }
 
     contenedor.innerHTML = `
       <div class="jobs-table-scroll clients-table-scroll">
         <table class="jobs-table clients-table">
-          <thead><tr><th>Cliente</th><th>Empresa</th><th>Contacto</th><th>Trabajos</th><th>Total vendido</th><th>Última actividad</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>${escapar(t("cliente"))}</th><th>${escapar(t("empresa"))}</th><th>${escapar(t("contacto"))}</th><th>${escapar(t("navTrabajosTitulo"))}</th><th>${escapar(t("totalVendido"))}</th><th>${escapar(t("ultimaActividad"))}</th><th>${escapar(t("acciones"))}</th></tr></thead>
           <tbody>${lista.map((cliente) => {
             const datos = metricas(cliente);
             return `<tr data-client-row="${escapar(cliente.id)}">
-              <td data-label="Cliente"><button type="button" class="client-name-button" data-client-action="detalle" data-client-id="${escapar(cliente.id)}">${escapar(cliente.nombre)}</button></td>
-              <td data-label="Empresa">${escapar(cliente.empresa || "-")}</td>
-              <td data-label="Contacto"><span>${escapar(cliente.telefono || cliente.correo || "Sin contacto")}</span></td>
-              <td data-label="Trabajos">${datos.cantidad}</td>
-              <td data-label="Total vendido">${escapar(formatearTotales(datos.vendido))}</td>
-              <td data-label="Última actividad">${escapar(fecha(datos.ultimaActividad))}</td>
-              <td data-label="Acciones">${acciones(cliente)}</td>
+              <td data-label="${escapar(t("cliente"))}"><button type="button" class="client-name-button" data-client-action="detalle" data-client-id="${escapar(cliente.id)}">${escapar(cliente.nombre)}</button></td>
+              <td data-label="${escapar(t("empresa"))}">${escapar(cliente.empresa || "-")}</td>
+              <td data-label="${escapar(t("contacto"))}"><span>${escapar(cliente.telefono || cliente.correo || t("sinContacto"))}</span></td>
+              <td data-label="${escapar(t("navTrabajosTitulo"))}">${datos.cantidad}</td>
+              <td data-label="${escapar(t("totalVendido"))}">${escapar(formatearTotales(datos.vendido))}</td>
+              <td data-label="${escapar(t("ultimaActividad"))}">${escapar(fecha(datos.ultimaActividad))}</td>
+              <td data-label="${escapar(t("acciones"))}">${acciones(cliente)}</td>
             </tr>`;
           }).join("")}</tbody>
         </table>
@@ -207,21 +210,21 @@
     panel.hidden = false;
     panel.innerHTML = `
       <header class="client-detail-header">
-        <div><p class="eyebrow">Ficha del cliente</p><h3>${escapar(cliente.nombre)}</h3><p>${escapar(cliente.empresa || "Cliente particular")}</p></div>
-        <button type="button" class="secondary" data-client-action="cerrar-detalle">Cerrar detalle</button>
+        <div><p class="eyebrow">${escapar(t("fichaCliente"))}</p><h3>${escapar(cliente.nombre)}</h3><p>${escapar(cliente.empresa || t("clienteParticular"))}</p></div>
+        <button type="button" class="secondary" data-client-action="cerrar-detalle">${escapar(t("cerrarDetalle"))}</button>
       </header>
       <div class="client-detail-grid">
-        <section><h4>Datos de contacto</h4>${linea("Identificación", cliente.rutIdFiscal)}${linea("Teléfono", cliente.telefono)}${linea("Correo", cliente.correo)}${linea("Dirección", [cliente.direccion, cliente.ciudad, cliente.pais].filter(Boolean).join(", "))}${linea("Etiquetas", cliente.etiquetas.join(", "))}${linea("Notas", cliente.notas)}</section>
-        <section><h4>Resumen</h4>${linea("Cantidad de trabajos", datos.cantidad)}${linea("Total cotizado", formatearTotales(datos.cotizado))}${linea("Total vendido", formatearTotales(datos.vendido))}${linea("Total pagado", formatearTotales(datos.pagado))}${linea("Utilidad estimada", formatearTotales(datos.utilidadEstimada))}${linea("Utilidad real", formatearTotales(datos.utilidadReal))}${linea("Última actividad", fecha(datos.ultimaActividad))}</section>
+        <section><h4>${escapar(t("datosContacto"))}</h4>${linea(t("identificacion"), cliente.rutIdFiscal)}${linea(t("telefono"), cliente.telefono)}${linea(t("correoCliente"), cliente.correo)}${linea(t("direccion"), [cliente.direccion, cliente.ciudad, cliente.pais].filter(Boolean).join(", "))}${linea(t("etiquetas"), cliente.etiquetas.join(", "))}${linea(t("notas"), cliente.notas)}</section>
+        <section><h4>${escapar(t("resumen"))}</h4>${linea(t("cantidadTrabajos"), datos.cantidad)}${linea(t("totalCotizadoEtiqueta"), formatearTotales(datos.cotizado))}${linea(t("totalVendido"), formatearTotales(datos.vendido))}${linea(t("totalPagadoEtiqueta"), formatearTotales(datos.pagado))}${linea(t("utilidadEstimadaEtiqueta"), formatearTotales(datos.utilidadEstimada))}${linea(t("utilidadReal"), formatearTotales(datos.utilidadReal))}${linea(t("ultimaActividad"), fecha(datos.ultimaActividad))}</section>
       </div>
-      <section class="client-history"><h4>Historial relacionado</h4>${datos.trabajos.length ? datos.trabajos.map((trabajo) => `<article><strong>${escapar(trabajo.nombreTrabajo)}</strong><span>${escapar(trabajo.estado)} · ${escapar(formatoMoneda(ventaTrabajo(trabajo) || trabajo.precioFinal, trabajo.moneda))}${trabajo.numeroCotizacion ? ` · ${escapar(trabajo.numeroCotizacion)}` : ""}</span></article>`).join("") : '<p class="empty-state">Este cliente todavía no tiene trabajos vinculados.</p>'}</section>
+      <section class="client-history"><h4>${escapar(t("historialRelacionado"))}</h4>${datos.trabajos.length ? datos.trabajos.map((trabajo) => `<article><strong>${escapar(trabajo.nombreTrabajo)}</strong><span>${escapar(t({ Pendiente: "pendiente", Aceptado: "aceptado", Rechazado: "rechazado", Terminado: "terminado", Pagado: "pagado", "Esperando abono": "esperandoAbono", "En producción": "enProduccion", Entregado: "entregado", Cancelado: "cancelado" }[trabajo.estado] || "estado"))} · ${escapar(formatoMoneda(ventaTrabajo(trabajo) || trabajo.precioFinal, trabajo.moneda))}${trabajo.numeroCotizacion ? ` · ${escapar(trabajo.numeroCotizacion)}` : ""}</span></article>`).join("") : `<p class="empty-state">${escapar(t("clienteSinTrabajos"))}</p>`}</section>
       <div class="actions">
-        <button type="button" data-client-action="editar" data-client-id="${escapar(id)}">Editar cliente</button>
-        <button type="button" class="secondary" data-client-action="cotizacion" data-client-id="${escapar(id)}">Crear cotización</button>
-        <button type="button" class="secondary" data-client-action="trabajo" data-client-id="${escapar(id)}">Crear trabajo</button>
-        <button type="button" class="secondary" data-client-action="ver-trabajos" data-client-id="${escapar(id)}">Ver trabajos</button>
-        <button type="button" class="secondary" data-client-action="exportar" data-client-id="${escapar(id)}">Exportar datos</button>
-        <button type="button" class="secondary danger-button" data-client-action="eliminar" data-client-id="${escapar(id)}">Eliminar</button>
+        <button type="button" data-client-action="editar" data-client-id="${escapar(id)}">${escapar(t("editarCliente"))}</button>
+        <button type="button" class="secondary" data-client-action="cotizacion" data-client-id="${escapar(id)}">${escapar(t("crearCotizacion"))}</button>
+        <button type="button" class="secondary" data-client-action="trabajo" data-client-id="${escapar(id)}">${escapar(t("crearTrabajo"))}</button>
+        <button type="button" class="secondary" data-client-action="ver-trabajos" data-client-id="${escapar(id)}">${escapar(t("verTrabajos"))}</button>
+        <button type="button" class="secondary" data-client-action="exportar" data-client-id="${escapar(id)}">${escapar(t("exportarDatos"))}</button>
+        <button type="button" class="secondary danger-button" data-client-action="eliminar" data-client-id="${escapar(id)}">${escapar(t("eliminar"))}</button>
       </div>`;
   }
 
@@ -268,7 +271,7 @@
     retornoFoco = disparador;
     clientePendiente = null;
     asignarFormulario(cliente || {});
-    $("#clienteModalTitle").textContent = cliente ? "Editar cliente" : "Nuevo cliente";
+    $("#clienteModalTitle").textContent = t(cliente ? "editarCliente" : "nuevoClienteSinSimbolo");
     $("#clienteDuplicadoAviso").hidden = true;
     $("#clienteFormMessage").textContent = "";
     $("#clienteModal").hidden = false;
@@ -287,12 +290,12 @@
     const datos = datosFormulario();
     const correo = String(datos.correo || "").trim();
     if (!String(datos.nombre || "").trim()) {
-      $("#clienteFormMessage").textContent = "Escribe el nombre del cliente.";
+      $("#clienteFormMessage").textContent = t("nombreClienteRequerido");
       $("#clienteNombre")?.focus();
       return;
     }
     if (correo && !$("#clienteCorreo")?.checkValidity()) {
-      $("#clienteFormMessage").textContent = "Revisa el formato del correo.";
+      $("#clienteFormMessage").textContent = t("correoInvalido");
       $("#clienteCorreo")?.focus();
       return;
     }
@@ -309,14 +312,14 @@
       return;
     }
     if (!resultado?.ok) {
-      $("#clienteFormMessage").textContent = resultado?.error || "No se pudo guardar el cliente.";
+      $("#clienteFormMessage").textContent = resultado?.error || t("clienteNoGuardado");
       return;
     }
     cerrarModal();
     clienteActivoId = resultado.cliente.id;
     renderizar();
     renderizarDetalle(clienteActivoId);
-    mostrarMensaje("Cliente guardado.");
+    mostrarMensaje(t("clienteGuardadoMensaje"));
   }
 
   function mostrarMensaje(mensaje, error = false) {
@@ -437,6 +440,7 @@
     $("#importarClientesInput")?.addEventListener("change", importarArchivo);
     window.addEventListener("precio3d:clientes-actualizados", renderizar);
     window.addEventListener("precio3d:trabajos-actualizados", renderizar);
+    document.addEventListener("precio3d:idioma-actualizado", renderizar);
     document.addEventListener("precio3d:abrir-nuevo-cliente", (event) => abrirModal(event.detail?.cliente || null, event.detail?.disparador));
     renderizar();
   }

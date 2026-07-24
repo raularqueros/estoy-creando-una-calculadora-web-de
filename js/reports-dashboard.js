@@ -7,6 +7,8 @@
 
   const $ = (selector) => document.querySelector(selector);
   const numero = (valor) => (Number.isFinite(Number(valor)) ? Number(valor) : 0);
+  const t = (clave, reemplazos = {}) =>
+    window.obtenerTextoI18n?.(clave, reemplazos) || clave;
   const escapar = (valor) =>
     String(valor ?? "")
       .replaceAll("&", "&amp;")
@@ -16,7 +18,7 @@
       .replaceAll("'", "&#039;");
 
   function formatearMoneda(valor, moneda = "CLP") {
-    if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) return "No disponible";
+    if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) return t("noDisponible");
     if (typeof window.formatearMonedaPrecio3D === "function") {
       return window.formatearMonedaPrecio3D(Number(valor), moneda);
     }
@@ -24,7 +26,7 @@
   }
 
   function formatearPorcentaje(valor) {
-    if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) return "No disponible";
+    if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) return t("noDisponible");
     return `${(Number(valor) * 100).toFixed(1)}%`;
   }
 
@@ -76,13 +78,13 @@
       moneda.innerHTML = monedas.map((item) => `<option value="${escapar(item)}">${escapar(item)}</option>`).join("");
       moneda.value = monedas.includes(actual) ? actual : reporte.moneda;
     }
-    poblarSelect($("#reporteEstado"), filtros.estados || [], {}, "Todos");
-    poblarSelect($("#reporteCliente"), filtros.clientes || [], filtros.clientesEtiquetas || {}, "Todos");
-    poblarSelect($("#reporteImpresora"), filtros.impresoras || [], filtros.impresorasEtiquetas || {}, "Todas");
-    poblarSelect($("#reporteMaterial"), filtros.materiales || [], {}, "Todos");
-    poblarSelect($("#reporteCanal"), filtros.canales || [], {}, "Todos");
-    poblarSelect($("#reporteMetodoPago"), filtros.metodosPago || [], {}, "Todos");
-    poblarSelect($("#reporteModo"), filtros.modos || [], {}, "Todos");
+    poblarSelect($("#reporteEstado"), filtros.estados || [], {}, t("todos"));
+    poblarSelect($("#reporteCliente"), filtros.clientes || [], filtros.clientesEtiquetas || {}, t("todos"));
+    poblarSelect($("#reporteImpresora"), filtros.impresoras || [], filtros.impresorasEtiquetas || {}, t("todas"));
+    poblarSelect($("#reporteMaterial"), filtros.materiales || [], {}, t("todos"));
+    poblarSelect($("#reporteCanal"), filtros.canales || [], {}, t("todos"));
+    poblarSelect($("#reporteMetodoPago"), filtros.metodosPago || [], {}, t("todos"));
+    poblarSelect($("#reporteModo"), filtros.modos || [], {}, t("todos"));
   }
 
   function renderTarjetas(reporte) {
@@ -115,7 +117,7 @@
     if (!contenedor) return;
     const datos = reporte.evolucion || [];
     if (!datos.length) {
-      contenedor.innerHTML = `<p class="empty-state">No hay datos suficientes para graficar el periodo.</p>`;
+      contenedor.innerHTML = `<p class="empty-state">${escapar(t("sinDatosGrafico"))}</p>`;
       return;
     }
     const ancho = 720;
@@ -153,7 +155,7 @@
   }
 
   function tablaSimple(encabezados, filas, clase = "") {
-    if (!filas.length) return `<p class="empty-state">Sin datos para mostrar.</p>`;
+    if (!filas.length) return `<p class="empty-state">${escapar(t("sinDatosMostrar"))}</p>`;
     return `
       <div class="report-table-scroll ${clase}">
         <table class="report-table">
@@ -276,19 +278,19 @@
     const estado = $("#reporteEstadoPanel");
     if (!estado) return;
     if (!reporte.periodo.valido) {
-      estado.textContent = "La fecha final no puede ser anterior a la fecha inicial.";
+      estado.textContent = t("fechaFinalInvalida");
       estado.className = "report-status report-status--warning";
       return;
     }
     if (!reporte.detalleTrabajos.length && !reporte.resumen.pagosCobrados) {
-      estado.textContent = "No se encontraron resultados para el período y filtros seleccionados.";
+      estado.textContent = t("sinResultadosReporte");
       estado.className = "report-status report-status--empty";
       return;
     }
     const mezcla = reporte.monedasDisponibles.length > 1
       ? ` Hay ${reporte.monedasDisponibles.length} monedas registradas; se analiza solo ${reporte.moneda}.`
       : "";
-    estado.textContent = `Período aplicado: ${reporte.periodo.etiqueta}.${mezcla}`;
+    estado.textContent = t("periodoAplicado", { periodo: reporte.periodo.etiqueta, detalle: mezcla });
     estado.className = "report-status";
   }
 
@@ -345,6 +347,7 @@
     });
     $("#reporteImprimir")?.addEventListener("click", imprimirReporte);
 
+    document.addEventListener("precio3d:idioma-actualizado", renderizar);
     window.addEventListener("precio3d:trabajos-actualizados", renderizar);
     window.addEventListener("precio3d:clientes-actualizados", renderizar);
     window.addEventListener("precio3d:impresoras-actualizadas", renderizar);

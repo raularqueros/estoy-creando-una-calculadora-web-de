@@ -11,6 +11,8 @@
   const mobileBottomNav = document.querySelector("#mobileBottomNav");
   const mobileMoreButton = document.querySelector("#mobileMoreButton");
   const mobileMoreMenu = document.querySelector("#mobileMoreMenu");
+  const t = (clave, reemplazos = {}) =>
+    window.obtenerTextoI18n?.(clave, reemplazos) || clave;
 
   if (!main || !nav) {
     console.error("No se pudo iniciar la navegacion principal.");
@@ -111,7 +113,7 @@
   cotizarLayout.className = "quote-workspace";
   cotizarLayout.innerHTML = `
     <div class="quote-workspace__form"></div>
-    <aside class="quote-workspace__result" tabindex="-1" aria-label="Resultado de la cotización"></aside>
+    <aside class="quote-workspace__result" tabindex="-1" aria-label="Resultado de la cotización" data-i18n-aria-label="resultadoCotizacionAria"></aside>
   `;
   contenido("cotizar").appendChild(cotizarLayout);
 
@@ -121,7 +123,7 @@
     .filter(Boolean)
     .forEach((elemento) => columnaFormulario.appendChild(elemento));
 
-  function crearAcordeonAvanzado(panel, titulo) {
+  function crearAcordeonAvanzado(panel, titulo, claveTitulo) {
     if (!panel || panel.classList.contains("advanced-accordion")) {
       return;
     }
@@ -148,7 +150,7 @@
     boton.className = "advanced-accordion__toggle";
     boton.setAttribute("aria-expanded", "false");
     boton.setAttribute("aria-controls", idContenido);
-    boton.innerHTML = `<span>${titulo}</span><span class="advanced-accordion__indicator" aria-hidden="true">+</span>`;
+    boton.innerHTML = `<span data-i18n="${claveTitulo}">${titulo}</span><span class="advanced-accordion__indicator" aria-hidden="true">+</span>`;
     boton.addEventListener("click", () => {
       const abierto = boton.getAttribute("aria-expanded") === "true";
       boton.setAttribute("aria-expanded", String(!abierto));
@@ -161,16 +163,16 @@
   }
 
   const acordeonesAvanzados = [
-    [document.querySelector("#wattsPromedioAvanzado")?.closest(".panel"), "Energía"],
-    [document.querySelector("#impresoraAvanzado")?.closest(".panel"), "Impresora y amortización"],
-    [document.querySelector("#horasPreparacionAvanzado")?.closest(".panel"), "Mano de obra"],
-    [document.querySelector("#embalajeAvanzado")?.closest(".panel"), "Logística"],
-    [document.querySelector("#canalVentaAvanzado")?.closest(".panel"), "Comisiones e impuestos"],
-    [document.querySelector("#margenAvanzado")?.closest(".panel"), "Margen y precio final"]
+    [document.querySelector("#wattsPromedioAvanzado")?.closest(".panel"), "Energía", "energia"],
+    [document.querySelector("#impresoraAvanzado")?.closest(".panel"), "Impresora y amortización", "impresoraAmortizacion"],
+    [document.querySelector("#horasPreparacionAvanzado")?.closest(".panel"), "Mano de obra", "manoObra"],
+    [document.querySelector("#embalajeAvanzado")?.closest(".panel"), "Logística", "logistica"],
+    [document.querySelector("#canalVentaAvanzado")?.closest(".panel"), "Comisiones e impuestos", "comisionesImpuestos"],
+    [document.querySelector("#margenAvanzado")?.closest(".panel"), "Margen y precio final", "margenPrecioFinal"]
   ];
 
-  acordeonesAvanzados.forEach(([panel, titulo]) => {
-    crearAcordeonAvanzado(panel, titulo);
+  acordeonesAvanzados.forEach(([panel, titulo, claveTitulo]) => {
+    crearAcordeonAvanzado(panel, titulo, claveTitulo);
     if (panel) {
       paneles.modoAvanzado?.appendChild(panel);
     }
@@ -180,10 +182,10 @@
   accionesAvanzadas.className = "panel advanced-calculate-panel";
   accionesAvanzadas.innerHTML = `
     <div>
-      <h2>Calcular cotización avanzada</h2>
-      <p class="help-text">Usa todos los datos del formulario avanzado para generar el resultado.</p>
+      <h2 data-i18n="calcularCotizacionAvanzada">Calcular cotización avanzada</h2>
+      <p class="help-text" data-i18n="calcularCotizacionAvanzadaAyuda">Usa todos los datos del formulario avanzado para generar el resultado.</p>
     </div>
-    <button type="button" id="calcularAvanzadoDesdeCotizar">Calcular</button>
+    <button type="button" id="calcularAvanzadoDesdeCotizar" data-i18n="calcular">Calcular</button>
   `;
   paneles.modoAvanzado?.appendChild(accionesAvanzadas);
 
@@ -192,14 +194,14 @@
   accionesResultado.hidden = true;
   accionesResultado.innerHTML = `
     <div>
-      <h2>Acciones del cálculo</h2>
-      <p class="help-text">Guarda el cálculo actual o vuelve al formulario para hacer cambios.</p>
+      <h2 data-i18n="accionesCalculo">Acciones del cálculo</h2>
+      <p class="help-text" data-i18n="accionesCalculoAyuda">Guarda el cálculo actual o vuelve al formulario para hacer cambios.</p>
     </div>
     <div class="actions">
-      <button type="button" id="guardarDesdeResultadoButton" disabled>Guardar como trabajo</button>
-      <button type="button" id="agregarCalculoCotizacionButton" class="secondary" disabled>Agregar cálculo a cotización</button>
-      <button type="button" id="generarCotizacionDesdeResultadoButton" class="secondary" disabled>Generar cotización</button>
-      <button type="button" id="volverACotizarDesdeResultadoButton" class="secondary">Nuevo cálculo</button>
+      <button type="button" id="guardarDesdeResultadoButton" data-i18n="guardarComoTrabajo" disabled>Guardar como trabajo</button>
+      <button type="button" id="agregarCalculoCotizacionButton" class="secondary" data-i18n="agregarCalculoCotizacion" disabled>Agregar cálculo a cotización</button>
+      <button type="button" id="generarCotizacionDesdeResultadoButton" class="secondary" data-i18n="generarCotizacion" disabled>Generar cotización</button>
+      <button type="button" id="volverACotizarDesdeResultadoButton" class="secondary" data-i18n="nuevoCalculo">Nuevo cálculo</button>
     </div>
   `;
 
@@ -232,34 +234,34 @@
   pasoDatosCotizacion.className = "panel quote-step-panel";
   pasoDatosCotizacion.innerHTML = `
     <div>
-      <p class="eyebrow">Paso 1</p>
-      <h2>Completa los datos de la cotización</h2>
-      <p class="help-text">Primero registra los datos del negocio, cliente y condiciones comerciales.</p>
+      <p class="eyebrow" data-i18n="paso1">Paso 1</p>
+      <h2 data-i18n="completaDatosCotizacion">Completa los datos de la cotización</h2>
+      <p class="help-text" data-i18n="completaDatosCotizacionAyuda">Primero registra los datos del negocio, cliente y condiciones comerciales.</p>
     </div>
-    <button type="button" id="irADatosCotizacionButton">Completar datos</button>
+    <button type="button" id="irADatosCotizacionButton" data-i18n="completarDatos">Completar datos</button>
   `;
   contenido("cotizacion-cliente").prepend(pasoDatosCotizacion);
 
   const accionesCotizacion = document.createElement("div");
   accionesCotizacion.className = "actions section-navigation-actions";
   accionesCotizacion.innerHTML = `
-    <button type="button" id="editarDatosDesdeCotizacionButton" class="secondary">Editar datos de cotización</button>
-    <button type="button" id="volverResultadoDesdeCotizacionButton" class="secondary">Volver al resultado</button>
+    <button type="button" id="editarDatosDesdeCotizacionButton" class="secondary" data-i18n="editarDatosCotizacion">Editar datos de cotización</button>
+    <button type="button" id="volverResultadoDesdeCotizacionButton" class="secondary" data-i18n="volverResultado">Volver al resultado</button>
   `;
   contenido("cotizacion-cliente").appendChild(accionesCotizacion);
 
   const accionesDatosCotizacion = document.createElement("div");
   accionesDatosCotizacion.className = "actions section-navigation-actions";
   accionesDatosCotizacion.innerHTML = `
-    <button type="button" id="volverCotizacionDesdeDatosButton" class="secondary">Volver a la cotización</button>
+    <button type="button" id="volverCotizacionDesdeDatosButton" class="secondary" data-i18n="volverCotizacion">Volver a la cotización</button>
   `;
   contenido("datos-cotizacion").appendChild(accionesDatosCotizacion);
 
   const panelCostos = document.createElement("section");
   panelCostos.className = "panel settings-panel";
   panelCostos.innerHTML = `
-    <h2>Costos internos usados</h2>
-    <p class="help-text">Puedes mantener estos valores o ajustarlos con tus costos reales. Se usan en el modo básico.</p>
+    <h2 data-i18n="costosInternosUsados">Costos internos usados</h2>
+    <p class="help-text" data-i18n="costosInternosUsadosAyuda">Puedes mantener estos valores o ajustarlos con tus costos reales. Se usan en el modo básico.</p>
   `;
   [opcionesBasicas, botonCostos, costosBasicos].filter(Boolean).forEach((elemento) => panelCostos.appendChild(elemento));
 
@@ -271,23 +273,23 @@
 
   contenido("ayuda").innerHTML = `
     <section class="panel help-sources-panel">
-      <h2>Como usar la ayuda</h2>
-      <p>Los botones de información <strong>i</strong> explican los campos más técnicos sin cambiar tus datos.</p>
-      <p>Los costos, comisiones e impuestos son referenciales. Verifica las tarifas y obligaciones aplicables en tu país antes de enviar una cotización.</p>
+      <h2 data-i18n="comoUsarAyuda">Como usar la ayuda</h2>
+      <p data-i18n="comoUsarAyudaTexto">Los botones de información i explican los campos más técnicos sin cambiar tus datos.</p>
+      <p data-i18n="ayudaCostosReferenciales">Los costos, comisiones e impuestos son referenciales. Verifica las tarifas y obligaciones aplicables en tu país antes de enviar una cotización.</p>
       <div class="actions">
-        <a class="button-link secondary" href="docs/FUENTES.md" target="_blank" rel="noopener">Ver fuentes del proyecto</a>
-        <a class="button-link secondary" href="README.md" target="_blank" rel="noopener">Ver documentación</a>
+        <a class="button-link secondary" href="docs/FUENTES.md" target="_blank" rel="noopener" data-i18n="verFuentesProyecto">Ver fuentes del proyecto</a>
+        <a class="button-link secondary" href="README.md" target="_blank" rel="noopener" data-i18n="verDocumentacion">Ver documentación</a>
       </div>
     </section>
     <section class="panel help-sources-panel">
-      <h2>Páginas informativas</h2>
-      <p>Información pública sobre el alcance de la calculadora, privacidad, preguntas frecuentes y términos de uso.</p>
+      <h2 data-i18n="paginasInformativas">Páginas informativas</h2>
+      <p data-i18n="paginasInformativasTexto">Información pública sobre el alcance de la calculadora, privacidad, preguntas frecuentes y términos de uso.</p>
       <div class="actions">
-        <a class="button-link secondary" href="pages/acerca-de.html">Acerca de</a>
-        <a class="button-link secondary" href="pages/como-funciona.html">Cómo funciona</a>
-        <a class="button-link secondary" href="pages/preguntas-frecuentes.html">Preguntas frecuentes</a>
-        <a class="button-link secondary" href="pages/privacidad.html">Privacidad</a>
-        <a class="button-link secondary" href="pages/terminos.html">Términos</a>
+        <a class="button-link secondary" href="pages/acerca-de.html" data-i18n="acercaDe">Acerca de</a>
+        <a class="button-link secondary" href="pages/como-funciona.html" data-i18n="comoFunciona">Cómo funciona</a>
+        <a class="button-link secondary" href="pages/preguntas-frecuentes.html" data-i18n="preguntasFrecuentes">Preguntas frecuentes</a>
+        <a class="button-link secondary" href="pages/privacidad.html" data-i18n="privacidad">Privacidad</a>
+        <a class="button-link secondary" href="pages/terminos.html" data-i18n="terminos">Términos</a>
       </div>
     </section>
   `;
@@ -297,11 +299,11 @@
     sidebarToggle?.setAttribute("aria-expanded", String(expandida));
     sidebarToggle?.setAttribute(
       "aria-label",
-      expandida ? "Contraer navegación" : "Expandir navegación"
+      t(expandida ? "contraerNavegacion" : "expandirNavegacion")
     );
     const etiqueta = sidebarToggle?.querySelector(".dashboard-nav__label");
     if (etiqueta) {
-      etiqueta.textContent = expandida ? "Contraer" : "Expandir";
+      etiqueta.textContent = t(expandida ? "contraer" : "expandir");
     }
   }
 
@@ -527,6 +529,10 @@
 
   document.addEventListener("precio3d:datos-cotizacion-guardados", () => {
     mostrarSeccion("cotizacion-cliente", { enfocar: true });
+  });
+
+  document.addEventListener("precio3d:idioma-actualizado", () => {
+    aplicarEstadoSidebar(sidebarToggle?.getAttribute("aria-expanded") === "true");
   });
 
   window.NavegacionPrecio3D = {

@@ -332,6 +332,49 @@ const supuestosBasicos = {
   otrosCostos: 0
 };
 
+const clavesNombrePreset = {
+  materiales: {
+    "resina-estandar": "presetResinaEstandar",
+    "otro-personalizado": "presetOtroPersonalizado"
+  },
+  impresoras: {
+    "creality-generica": "presetCrealityGenerica",
+    "prusa-generica": "presetPrusaGenerica",
+    "resina-generica": "presetResinaGenerica",
+    "otra-personalizada": "presetOtraPersonalizada"
+  },
+  canalesVenta: {
+    "venta-directa": "presetVentaDirecta",
+    "tienda-propia": "presetTiendaPropia",
+    "marketplace-generico": "presetMarketplaceGenerico",
+    "otro-personalizado": "presetOtroPersonalizado"
+  },
+  metodosPago: {
+    efectivo: "presetEfectivo",
+    transferencia: "presetTransferencia",
+    "pago-integrado-marketplace": "presetPagoIntegrado",
+    "otro-personalizado": "presetOtroPersonalizado"
+  },
+  impuestos: {
+    "sin-impuesto": "presetSinImpuesto",
+    "otro-personalizado": "presetOtroPersonalizado"
+  },
+  envios: {
+    "retiro-en-tienda": "presetRetiroTienda",
+    "envio-manual": "presetEnvioManual",
+    "peso-real": "presetPesoReal",
+    "peso-volumetrico": "presetPesoVolumetrico",
+    "otro-personalizado": "presetOtroPersonalizado"
+  }
+};
+
+function obtenerNombrePreset(tipo, item, idioma = document.documentElement.lang || "es") {
+  const clave = clavesNombrePreset[tipo]?.[item?.id];
+  return clave
+    ? window.obtenerTextoI18n?.(clave, {}, idioma) || item.nombre
+    : item?.nombre || "";
+}
+
 window.PresetsPrecio3D = {
   materiales,
   impresoras,
@@ -339,5 +382,6 @@ window.PresetsPrecio3D = {
   metodosPago,
   impuestos,
   envios,
-  supuestosBasicos
+  supuestosBasicos,
+  obtenerNombrePreset
 };

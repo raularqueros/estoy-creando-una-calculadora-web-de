@@ -30,6 +30,14 @@
 
   const $ = (selector) => document.querySelector(selector);
   const numero = (valor) => (Number.isFinite(Number(valor)) ? Number(valor) : 0);
+  const t = (clave, reemplazos = {}) =>
+    window.obtenerTextoI18n?.(clave, reemplazos) || clave;
+  const claveEstado = (estado) => ({
+    Pendiente: "pendiente", Aceptado: "aceptado", "Esperando abono": "esperandoAbono",
+    "En producción": "enProduccion", Terminado: "terminado", Entregado: "entregado",
+    Pagado: "pagado", Rechazado: "rechazado", Cancelado: "cancelado"
+  }[estado]);
+  const estadoVisible = (estado) => t(claveEstado(estado) || "estado");
   const escapar = (valor) =>
     String(valor ?? "")
       .replaceAll("&", "&amp;")
@@ -56,7 +64,7 @@
 
   function formatearFecha(valor) {
     if (!valor) {
-      return "Sin fecha";
+      return t("sinFecha");
     }
 
     const texto = String(valor);
@@ -64,7 +72,7 @@
     const fecha = partesFechaLocal
       ? new Date(Number(partesFechaLocal[1]), Number(partesFechaLocal[2]) - 1, Number(partesFechaLocal[3]))
       : new Date(valor);
-    return Number.isNaN(fecha.getTime()) ? "Sin fecha" : fecha.toLocaleDateString("es-CL");
+    return Number.isNaN(fecha.getTime()) ? t("sinFecha") : fecha.toLocaleDateString(document.documentElement.lang || "es");
   }
 
   function totalPagado(trabajo) {
@@ -234,13 +242,13 @@
     }
 
     contenedor.innerHTML = [
-      tarjetaIndicador("Cotizado en el período", formatearTotales(indicadores.cotizado), "cotizado", comparacion),
-      tarjetaIndicador("Vendido o aceptado", formatearTotales(indicadores.aceptado), "aceptado"),
-      tarjetaIndicador("Pagado", formatearTotales(indicadores.pagado), "pagado"),
-      tarjetaIndicador("Utilidad estimada", formatearTotales(indicadores.utilidadEstimada), "utilidad"),
-      tarjetaIndicador("Utilidad real", formatearTotales(indicadores.utilidadReal), "utilidad"),
-      tarjetaIndicador("Trabajos pendientes", String(indicadores.pendientes), "pendiente"),
-      tarjetaIndicador("Tasa de aceptación", formatearPorcentaje(indicadores.tasaAceptacion), "tasa")
+      tarjetaIndicador(t("cotizadoPeriodo"), formatearTotales(indicadores.cotizado), "cotizado", comparacion),
+      tarjetaIndicador(t("vendidoAceptado"), formatearTotales(indicadores.aceptado), "aceptado"),
+      tarjetaIndicador(t("pagado"), formatearTotales(indicadores.pagado), "pagado"),
+      tarjetaIndicador(t("utilidadEstimadaEtiqueta"), formatearTotales(indicadores.utilidadEstimada), "utilidad"),
+      tarjetaIndicador(t("utilidadReal"), formatearTotales(indicadores.utilidadReal), "utilidad"),
+      tarjetaIndicador(t("trabajosPendientes"), String(indicadores.pendientes), "pendiente"),
+      tarjetaIndicador(t("tasaAceptacion"), formatearPorcentaje(indicadores.tasaAceptacion), "tasa")
     ].join("");
   }
 
@@ -249,14 +257,14 @@
   }
 
   function badgeEstado(estado) {
-    return `<span class="job-status-badge ${claseEstado(estado)}">${escapar(estado)}</span>`;
+    return `<span class="job-status-badge ${claseEstado(estado)}">${escapar(estadoVisible(estado))}</span>`;
   }
 
   function opcionesEstado(actual) {
     const flujo = window.StoragePrecio3D?.cargarFlujoTrabajos?.() || "simple";
     const estados = flujo === "completo" ? [...ESTADOS_COMPLETOS] : [...ESTADOS_SIMPLES];
     if (!estados.includes(actual)) estados.push(actual);
-    return estados.map((estado) => `<option value="${escapar(estado)}" ${estado === actual ? "selected" : ""}>${escapar(estado)}</option>`).join("");
+    return estados.map((estado) => `<option value="${escapar(estado)}" ${estado === actual ? "selected" : ""}>${escapar(estadoVisible(estado))}</option>`).join("");
   }
 
   function movimientosInventarioTrabajo(trabajoId) {
@@ -318,28 +326,28 @@
     const utilidad = utilidadReal(trabajo) ?? numero(trabajo.utilidadObjetivo);
     return `
       <tr data-job-id="${escapar(trabajo.id)}">
-        <td data-label="Trabajo"><strong>${escapar(trabajo.nombreTrabajo)}</strong>${trabajo.numeroCotizacion ? `<small>${escapar(trabajo.numeroCotizacion)}</small>` : ""}</td>
-        <td data-label="Cliente">${escapar(trabajo.cliente || "Sin cliente")}</td>
-        <td data-label="Fecha">${escapar(formatearFecha(trabajo.fechaCreacion))}</td>
-        <td data-label="Precio"><strong>${escapar(formatearMoneda(precioCobro(trabajo), moneda))}</strong></td>
-        <td data-label="Utilidad">${escapar(formatearMoneda(utilidad, moneda))}</td>
-        <td data-label="Estado">
+        <td data-label="${escapar(t("trabajo"))}"><strong>${escapar(trabajo.nombreTrabajo)}</strong>${trabajo.numeroCotizacion ? `<small>${escapar(trabajo.numeroCotizacion)}</small>` : ""}</td>
+        <td data-label="${escapar(t("cliente"))}">${escapar(trabajo.cliente || t("trabajoSinCliente"))}</td>
+        <td data-label="${escapar(t("fecha"))}">${escapar(formatearFecha(trabajo.fechaCreacion))}</td>
+        <td data-label="${escapar(t("precio"))}"><strong>${escapar(formatearMoneda(precioCobro(trabajo), moneda))}</strong></td>
+        <td data-label="${escapar(t("utilidad"))}">${escapar(formatearMoneda(utilidad, moneda))}</td>
+        <td data-label="${escapar(t("estado"))}">
           ${badgeEstado(trabajo.estado)}
-          <select class="job-inline-status" data-commercial-action="estado" data-job-id="${escapar(trabajo.id)}" aria-label="Cambiar estado de ${escapar(trabajo.nombreTrabajo)}">${opcionesEstado(trabajo.estado)}</select>
+          <select class="job-inline-status" data-commercial-action="estado" data-job-id="${escapar(trabajo.id)}" aria-label="${escapar(t("cambiarEstadoDe", { nombre: trabajo.nombreTrabajo }))}">${opcionesEstado(trabajo.estado)}</select>
         </td>
-        <td data-label="Acciones">
+        <td data-label="${escapar(t("acciones"))}">
           <details class="job-row-actions">
-            <summary>Acciones</summary>
+            <summary>${escapar(t("acciones"))}</summary>
             <div>
-              <button type="button" data-commercial-action="detalle" data-job-id="${escapar(trabajo.id)}">Ver detalle</button>
-              <button type="button" data-commercial-action="cargar" data-job-id="${escapar(trabajo.id)}">Cargar y editar</button>
-              <button type="button" data-commercial-action="cotizacion" data-job-id="${escapar(trabajo.id)}">Generar cotización</button>
-              <button type="button" data-commercial-action="agregar-cotizacion" data-job-id="${escapar(trabajo.id)}">Agregar a cotización</button>
-              <button type="button" data-commercial-action="venta" data-job-id="${escapar(trabajo.id)}">Registrar venta</button>
-              <button type="button" data-commercial-action="pago" data-job-id="${escapar(trabajo.id)}">Registrar pago</button>
-              ${tieneMaterialAsociado(trabajo) ? `<button type="button" data-commercial-action="consumo-material" data-job-id="${escapar(trabajo.id)}">Registrar consumo de material</button>` : ""}
-              <button type="button" data-commercial-action="duplicar" data-job-id="${escapar(trabajo.id)}">Duplicar</button>
-              <button type="button" class="danger-button" data-commercial-action="eliminar" data-job-id="${escapar(trabajo.id)}">Eliminar</button>
+              <button type="button" data-commercial-action="detalle" data-job-id="${escapar(trabajo.id)}">${escapar(t("verDetalle"))}</button>
+              <button type="button" data-commercial-action="cargar" data-job-id="${escapar(trabajo.id)}">${escapar(t("cargarYEditar"))}</button>
+              <button type="button" data-commercial-action="cotizacion" data-job-id="${escapar(trabajo.id)}">${escapar(t("generarCotizacion"))}</button>
+              <button type="button" data-commercial-action="agregar-cotizacion" data-job-id="${escapar(trabajo.id)}">${escapar(t("agregarCotizacion"))}</button>
+              <button type="button" data-commercial-action="venta" data-job-id="${escapar(trabajo.id)}">${escapar(t("registrarVenta"))}</button>
+              <button type="button" data-commercial-action="pago" data-job-id="${escapar(trabajo.id)}">${escapar(t("registrarPago"))}</button>
+              ${tieneMaterialAsociado(trabajo) ? `<button type="button" data-commercial-action="consumo-material" data-job-id="${escapar(trabajo.id)}">${escapar(t("registrarConsumoMaterial"))}</button>` : ""}
+              <button type="button" data-commercial-action="duplicar" data-job-id="${escapar(trabajo.id)}">${escapar(t("duplicar"))}</button>
+              <button type="button" class="danger-button" data-commercial-action="eliminar" data-job-id="${escapar(trabajo.id)}">${escapar(t("eliminar"))}</button>
             </div>
           </details>
         </td>
@@ -352,18 +360,18 @@
     if (!contenedor) return;
 
     if (!totalOriginal) {
-      contenedor.innerHTML = '<p class="empty-state">Aún no has guardado trabajos. Realiza una cotización y guárdala para comenzar.</p>';
+      contenedor.innerHTML = `<p class="empty-state">${escapar(t("sinTrabajosComenzar"))}</p>`;
       return;
     }
     if (!trabajos.length) {
-      contenedor.innerHTML = '<p class="empty-state">No hay trabajos que coincidan con estos filtros.</p>';
+      contenedor.innerHTML = `<p class="empty-state">${escapar(t("sinTrabajosFiltros"))}</p>`;
       return;
     }
 
     contenedor.innerHTML = `
       <div class="jobs-table-wrap">
         <table class="jobs-table">
-          <thead><tr><th>Trabajo</th><th>Cliente</th><th>Fecha</th><th>Precio</th><th>Utilidad</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>${escapar(t("trabajo"))}</th><th>${escapar(t("cliente"))}</th><th>${escapar(t("fecha"))}</th><th>${escapar(t("precio"))}</th><th>${escapar(t("utilidad"))}</th><th>${escapar(t("estado"))}</th><th>${escapar(t("acciones"))}</th></tr></thead>
           <tbody>${trabajos.map(filaTrabajo).join("")}</tbody>
         </table>
       </div>
@@ -919,7 +927,7 @@
     if (selector) {
       const actual = selector.value;
       const estados = flujo === "completo" ? ESTADOS_COMPLETOS : ESTADOS_SIMPLES;
-      selector.innerHTML = estados.map((estado) => `<option value="${estado}">${estado}</option>`).join("");
+      selector.innerHTML = estados.map((estado) => `<option value="${estado}">${escapar(estadoVisible(estado))}</option>`).join("");
       selector.value = estados.includes(actual) ? actual : "Pendiente";
     }
     renderizar();
@@ -943,6 +951,9 @@
     $("#trabajosFlowControl")?.addEventListener("click", (event) => {
       const boton = event.target.closest("[data-jobs-flow]");
       if (boton) aplicarFlujo(boton.dataset.jobsFlow);
+    });
+    document.addEventListener("precio3d:idioma-actualizado", () => {
+      aplicarFlujo(window.StoragePrecio3D?.cargarFlujoTrabajos?.() || "simple");
     });
     document.addEventListener("keydown", (event) => {
       const modal = $("#jobCommercialModal");

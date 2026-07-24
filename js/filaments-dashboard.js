@@ -7,6 +7,8 @@
   let retornoFoco = null;
   let modalActivo = null;
   let inicializado = false;
+  const t = (clave, reemplazos = {}) =>
+    window.obtenerTextoI18n?.(clave, reemplazos) || clave;
 
   function escapar(valor) {
     return String(valor ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;")
@@ -19,11 +21,11 @@
   }
 
   function fecha(valor) {
-    if (!valor) return "Sin registrar";
+    if (!valor) return t("sinRegistrar");
     const fechaValor = new Date(valor);
     return Number.isNaN(fechaValor.getTime())
       ? escapar(valor)
-      : new Intl.DateTimeFormat("es-CL", { dateStyle: "medium" }).format(fechaValor);
+      : new Intl.DateTimeFormat(document.documentElement.lang || "es", { dateStyle: "medium" }).format(fechaValor);
   }
 
   function formatoMoneda(valor, moneda = "CLP") {
@@ -57,9 +59,12 @@
   function poblarMateriales(seleccion = "PLA") {
     const select = $("#filamentoMaterial");
     if (!select) return;
-    select.innerHTML = materialesDisponibles().map((nombre) =>
-      `<option value="${escapar(idMaterial(nombre))}" ${nombre === seleccion ? "selected" : ""}>${escapar(nombre)}</option>`
-    ).join("");
+    select.innerHTML = materialesDisponibles().map((nombre) => {
+      const id = idMaterial(nombre);
+      const preset = (window.PresetsPrecio3D?.materiales || []).find((item) => item.id === id);
+      const visible = preset ? window.PresetsPrecio3D.obtenerNombrePreset?.("materiales", preset) || nombre : nombre;
+      return `<option value="${escapar(id)}" data-nombre-base="${escapar(nombre)}" ${nombre === seleccion || id === seleccion ? "selected" : ""}>${escapar(visible)}</option>`;
+    }).join("");
   }
 
   function poblarMonedas(seleccion = "CLP") {
@@ -87,14 +92,14 @@
     const valores = Object.entries(resumen.valoresPorMoneda);
     const valorTexto = valores.length
       ? valores.map(([moneda, valor]) => formatoMoneda(valor, moneda)).join(" · ")
-      : "Sin stock";
+      : t("sinStock");
     const items = [
-      ["Bobinas activas", resumen.totalActivas],
-      ["Selladas", resumen.selladas],
-      ["En uso", resumen.enUso],
-      ["Stock bajo", resumen.stockBajo],
-      ["Peso disponible", formatoGramos(resumen.pesoTotalGramos)],
-      ["Valor estimado", valorTexto]
+      [t("bobinasActivas"), resumen.totalActivas],
+      [t("selladas"), resumen.selladas],
+      [t("enUso"), resumen.enUso],
+      [t("stockBajo"), resumen.stockBajo],
+      [t("pesoDisponible"), formatoGramos(resumen.pesoTotalGramos)],
+      [t("valorEstimado"), valorTexto]
     ];
     contenedor.innerHTML = items.map(([etiqueta, valor]) => `
       <article class="jobs-kpi-card"><span>${escapar(etiqueta)}</span><strong>${escapar(valor)}</strong></article>
@@ -108,9 +113,9 @@
     const materiales = [...new Map(bobinas.map((item) => [item.materialId, item.materialNombre])).entries()]
       .sort((a, b) => a[1].localeCompare(b[1], "es"));
     const marcas = [...new Set(bobinas.map((item) => item.marca).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
-    $("#filamentosMaterialFiltro").innerHTML = '<option value="">Todos</option>' + materiales
+    $("#filamentosMaterialFiltro").innerHTML = `<option value="">${escapar(t("todos"))}</option>` + materiales
       .map(([id, nombre]) => `<option value="${escapar(id)}">${escapar(nombre)}</option>`).join("");
-    $("#filamentosMarcaFiltro").innerHTML = '<option value="">Todas</option>' + marcas
+    $("#filamentosMarcaFiltro").innerHTML = `<option value="">${escapar(t("todas"))}</option>` + marcas
       .map((marca) => `<option value="${escapar(marca)}">${escapar(marca)}</option>`).join("");
     $("#filamentosMaterialFiltro").value = materiales.some(([id]) => id === materialActual) ? materialActual : "";
     $("#filamentosMarcaFiltro").value = marcas.includes(marcaActual) ? marcaActual : "";
@@ -119,7 +124,7 @@
   function barraStock(bobina) {
     const porcentaje = api().calcularPorcentajeRestante(bobina);
     return `
-      <div class="filament-progress" role="progressbar" aria-label="Porcentaje de filamento restante"
+      <div class="filament-progress" role="progressbar" aria-label="${escapar(t("porcentajeFilamentoRestante"))}"
         aria-valuemin="0" aria-valuemax="100" aria-valuenow="${porcentaje.toFixed(1)}">
         <span style="width:${porcentaje}%"></span>
       </div>
@@ -129,17 +134,17 @@
 
   function etiquetaStock(bobina) {
     return api().tieneStockBajo(bobina)
-      ? `<span class="filament-low-stock">Stock bajo</span>`
+      ? `<span class="filament-low-stock">${escapar(t("stockBajo"))}</span>`
       : "";
   }
 
   function accionesFila() {
     return `
       <div class="filament-row-actions">
-        <button type="button" class="secondary" data-filament-action="detalle">Ver detalle</button>
-        <button type="button" data-filament-action="stock">Ajustar stock</button>
-        <button type="button" class="secondary" data-filament-action="editar">Editar</button>
-        <button type="button" class="secondary" data-filament-action="duplicar">Duplicar</button>
+        <button type="button" class="secondary" data-filament-action="detalle">${escapar(t("verDetalle"))}</button>
+        <button type="button" data-filament-action="stock">${escapar(t("ajustarStock"))}</button>
+        <button type="button" class="secondary" data-filament-action="editar">${escapar(t("editar"))}</button>
+        <button type="button" class="secondary" data-filament-action="duplicar">${escapar(t("duplicar"))}</button>
       </div>
     `;
   }
@@ -162,9 +167,9 @@
       const tieneRegistros = Boolean(api()?.obtenerBobinas().length);
       contenedor.innerHTML = `
         <div class="printer-empty-state">
-          <strong>${tieneRegistros ? "No se encontraron bobinas que coincidan con los filtros." : "Aún no has registrado bobinas de filamento."}</strong>
-          <p>${tieneRegistros ? "Prueba con otra búsqueda o filtro." : "Agrega una bobina para conocer su stock disponible y su costo real por gramo."}</p>
-          ${tieneRegistros ? "" : '<button type="button" data-filament-action="nueva">+ Agregar bobina</button>'}
+          <strong>${escapar(t(tieneRegistros ? "sinBobinasFiltros" : "sinBobinas"))}</strong>
+          <p>${escapar(t(tieneRegistros ? "pruebaOtroFiltro" : "agregaBobinaAyuda"))}</p>
+          ${tieneRegistros ? "" : `<button type="button" data-filament-action="nueva">${escapar(t("nuevaBobina"))}</button>`}
         </div>
       `;
       return;
@@ -172,8 +177,8 @@
     contenedor.innerHTML = `
       <div class="filaments-table-scroll">
         <table class="filaments-table">
-          <thead><tr><th>Material</th><th>Marca y color</th><th>Stock restante</th><th>Progreso</th>
-            <th>Costo por gramo</th><th>Valor restante</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>${escapar(t("material"))}</th><th>${escapar(t("marcaColor"))}</th><th>${escapar(t("stockRestante"))}</th><th>${escapar(t("progreso"))}</th>
+            <th>${escapar(t("costoPorGramo"))}</th><th>${escapar(t("valorRestante"))}</th><th>${escapar(t("estado"))}</th><th>${escapar(t("acciones"))}</th></tr></thead>
           <tbody>${lista.map((bobina) => `
             <tr data-filament-id="${escapar(bobina.id)}">
               <td data-label="Material"><strong>${escapar(bobina.materialNombre)}</strong>${bobina.varianteMaterial ? `<small>${escapar(bobina.varianteMaterial)}</small>` : ""}</td>
@@ -182,8 +187,8 @@
               <td data-label="Progreso">${barraStock(bobina)}</td>
               <td data-label="Costo por gramo">${formatoMoneda(api().calcularCostoPorGramo(bobina), bobina.monedaCompra)}</td>
               <td data-label="Valor restante">${formatoMoneda(api().calcularValorRestante(bobina), bobina.monedaCompra)}</td>
-              <td data-label="Estado"><span class="printer-status">${escapar(bobina.estado)}</span></td>
-              <td data-label="Acciones">${accionesFila()}</td>
+              <td data-label="${escapar(t("estado"))}"><span class="printer-status">${escapar(t({ Sellada: "sellada", "En uso": "enUso", Agotada: "agotada", Archivada: "archivada" }[bobina.estado] || "estado"))}</span></td>
+              <td data-label="${escapar(t("acciones"))}">${accionesFila()}</td>
             </tr>
           `).join("")}</tbody>
         </table>
@@ -238,7 +243,8 @@
       nombre: $("#filamentoNombre").value.trim(),
       marca: $("#filamentoMarca").value.trim(),
       materialId: materialSelect.value,
-      materialNombre: materialSelect.options[materialSelect.selectedIndex]?.textContent || "",
+      materialNombre: materialSelect.options[materialSelect.selectedIndex]?.dataset.nombreBase
+        || materialSelect.options[materialSelect.selectedIndex]?.textContent || "",
       varianteMaterial: $("#filamentoVariante").value.trim(),
       colorNombre: $("#filamentoColorNombre").value.trim(),
       colorHex: $("#filamentoColorHex").dataset.touched === "true" ? $("#filamentoColorHex").value : "",
@@ -530,6 +536,10 @@
     $("#importarFilamentosButton").addEventListener("click", () => $("#importarFilamentosInput").click());
     $("#importarFilamentosInput").addEventListener("change", importarArchivo);
     document.addEventListener("keydown", manejarTeclado);
+    document.addEventListener("precio3d:idioma-actualizado", () => {
+      poblarMateriales($("#filamentoMaterial")?.value || "PLA");
+      actualizarVista();
+    });
     window.addEventListener("precio3d:filamentos-actualizados", actualizarVista);
     actualizarVista();
   }

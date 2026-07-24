@@ -167,6 +167,93 @@ const contenidos = {
   }
 };
 
+const contenidosTraducidos = {
+  en: {
+    datosImpresion: ["Print data", "Use the weight, support or purge material, and print time estimated by your slicer. If support weight is unknown, use zero or a conservative estimate."],
+    precioFilamento: ["Filament price", "Enter either the price per gram or the full kilogram price. The calculator converts a kilogram price into a cost per gram automatically."],
+    materialExtra: ["Extra material: supports or purge", "Include material that does not remain in the final part, such as supports, purge towers, color changes, or discarded material."],
+    ventaGanancia: ["Sale and profit", "Define additional labor, packaging, shipping, and your target margin. Margin is your target profit over cost, not a tax or fee."],
+    nivelTrabajo: ["Work level", "Use Basic for simple parts, Normal for support removal and light cleanup, and Detailed for sanding, painting, assembly, or special finishing."],
+    comisiones: ["Fees", "Fees depend on the sales channel and payment method. Avoid adding a separate payment fee when the marketplace already includes payment processing."],
+    impuestos: ["Taxes", "This value is only a reference and depends on local rules and the type of sale. It does not replace accounting or tax advice."],
+    resultado: ["Result", "The suggested price includes actual cost, target profit, fees, and tax. Review the breakdown to understand each component."],
+    supuestos: ["Internal costs used", "These values estimate electricity, maintenance, printer useful life, and expected losses. Replace them with your actual costs when available."],
+    comparador: ["Channel comparator", "The comparator keeps the same order and recalculates only channel and payment fees so you can compare selling options."],
+    configuracion: ["Settings", "Save frequent values such as currency, margin, filament price, and payment method. Data is stored only in this browser."],
+    modoAvanzado: ["Advanced mode", "Advanced mode exposes amortization, maintenance, electricity, hourly labor, fees, customs, and other costs for a more precise quote."],
+    mermaCampo: ["Estimated losses or failures", "Add a percentage for failed prints, tests, rejected parts, and small material losses. A common starting range is 5% to 10%."],
+    tiempoImpresionCampo: ["Print time", "Use the total print time estimated by your slicer before printing."],
+    manoObraSimpleCampo: ["Labor and finishing", "Enter what you charge for preparation, support removal, cleaning, inspection, assembly, and finishing. This is human labor, not machine cost."],
+    margenCampo: ["Margin", "Margin is the target profit over your costs. It is separate from taxes and platform or payment fees."],
+    comisionPorcentajeCampo: ["Percentage fee", "Enter the percentage charged by the platform or payment method. For example, enter 6 for a 6% fee."],
+    comisionFijaCampo: ["Fixed fee", "Enter any fixed charge per sale or order in addition to percentage fees. Use zero when it does not apply."],
+    wattsPromedioCampo: ["Average watts", "Enter the printer's average electrical consumption while working. Use a reasonable reference value if it is unknown."],
+    tarifaKwhCampo: ["kWh rate", "Enter the price paid for each kWh of electricity, normally shown on your electricity bill."],
+    costoImpresoraCampo: ["Printer cost", "Enter the printer purchase price so its cost can be recovered gradually through amortization."],
+    vidaUtilCampo: ["Useful life", "Enter the number of years over which you expect to recover the printer investment."],
+    diasOperativosCampo: ["Operating days per year", "Enter the number of days per year the printer is realistically available for production."],
+    horasProductivasCampo: ["Productive hours per day", "Enter the average daily hours used for billable production to estimate the machine hourly cost."],
+    mantenimientoCampo: ["Maintenance", "Set aside a percentage for nozzles, spare parts, build plates, lubrication, calibration, and repairs."],
+    seguroCampo: ["Insurance or customs", "Include optional shipping protection, customs duties, or international handling costs. Use zero when they do not apply."],
+    aduanasCampo: ["Customs", "Use this when you absorb customs, duties, or international handling costs; otherwise leave it at zero."],
+    otrosCostosCampo: ["Marketing and other costs", "Include advertising, samples, discounts, special packaging, minor errors, or administrative costs."],
+    metodoPagoComparadorCampo: ["Payment method to compare", "Choose the payment method used in the comparison. Do not add an external payment fee when the marketplace already processes payment."]
+  },
+  pt: {
+    datosImpresion: ["Dados da impressão", "Use o peso, o material de suporte ou purga e o tempo estimados pelo slicer. Se não souber o peso dos suportes, use zero ou uma estimativa conservadora."],
+    precioFilamento: ["Preço do filamento", "Informe o preço por grama ou o preço do quilo completo. A calculadora converte automaticamente o preço do quilo em custo por grama."],
+    materialExtra: ["Material extra: suportes ou purga", "Inclua material que não fica na peça final, como suportes, torres de purga, trocas de cor ou material descartado."],
+    ventaGanancia: ["Venda e lucro", "Defina mão de obra adicional, embalagem, envio e margem desejada. A margem é o lucro-alvo sobre o custo, não imposto ou comissão."],
+    nivelTrabajo: ["Nível de trabalho", "Use Básico para peças simples, Normal para remover suportes e limpar, e Detalhado para lixar, pintar, montar ou dar acabamentos especiais."],
+    comisiones: ["Comissões", "As comissões dependem do canal e do método de pagamento. Evite somar outra taxa quando o marketplace já processa o pagamento."],
+    impuestos: ["Impostos", "Este valor é apenas referencial e depende das regras locais e do tipo de venda. Não substitui orientação contábil ou tributária."],
+    resultado: ["Resultado", "O preço sugerido inclui custo real, lucro desejado, comissões e imposto. Revise o detalhamento para entender cada componente."],
+    supuestos: ["Custos internos usados", "Estes valores estimam eletricidade, manutenção, vida útil da impressora e perdas. Substitua-os pelos custos reais quando disponíveis."],
+    comparador: ["Comparador de canais", "O comparador mantém o mesmo pedido e recalcula apenas as taxas do canal e do pagamento para comparar opções de venda."],
+    configuracion: ["Configurações", "Salve valores frequentes como moeda, margem, preço do filamento e método de pagamento. Os dados ficam apenas neste navegador."],
+    modoAvanzado: ["Modo avançado", "O modo avançado permite editar amortização, manutenção, eletricidade, mão de obra por hora, taxas, alfândega e outros custos."],
+    mermaCampo: ["Perdas ou falhas estimadas", "Adicione uma porcentagem para impressões com falha, testes, peças rejeitadas e pequenas perdas. Um início comum é de 5% a 10%."],
+    tiempoImpresionCampo: ["Tempo de impressão", "Use o tempo total de impressão estimado pelo slicer antes de imprimir."],
+    manoObraSimpleCampo: ["Trabalho e acabamento", "Informe o valor da preparação, remoção de suportes, limpeza, revisão, montagem e acabamento. É trabalho humano, não custo da máquina."],
+    margenCampo: ["Margem", "A margem é o lucro desejado sobre os custos. Ela é separada dos impostos e das taxas de plataforma ou pagamento."],
+    comisionPorcentajeCampo: ["Comissão percentual", "Informe a porcentagem cobrada pela plataforma ou método de pagamento. Por exemplo, use 6 para uma taxa de 6%."],
+    comisionFijaCampo: ["Comissão fixa", "Informe qualquer cobrança fixa por venda ou pedido além da comissão percentual. Use zero quando não se aplicar."],
+    wattsPromedioCampo: ["Watts médios", "Informe o consumo elétrico médio da impressora durante o trabalho. Use um valor de referência razoável se não souber."],
+    tarifaKwhCampo: ["Tarifa de kWh", "Informe o preço pago por cada kWh de eletricidade, normalmente disponível na conta de luz."],
+    costoImpresoraCampo: ["Custo da impressora", "Informe o preço de compra para recuperar gradualmente o investimento por meio da amortização."],
+    vidaUtilCampo: ["Vida útil", "Informe em quantos anos você espera recuperar o investimento da impressora."],
+    diasOperativosCampo: ["Dias operacionais por ano", "Informe quantos dias por ano a impressora realmente fica disponível para produção."],
+    horasProductivasCampo: ["Horas produtivas por dia", "Informe a média diária de horas de produção cobrável para estimar o custo por hora da máquina."],
+    mantenimientoCampo: ["Manutenção", "Reserve uma porcentagem para bicos, peças, chapas, lubrificação, calibração e reparos."],
+    seguroCampo: ["Seguro ou alfândega", "Inclua proteção de envio, impostos aduaneiros ou gestão internacional quando se aplicarem. Caso contrário, use zero."],
+    aduanasCampo: ["Alfândega", "Use este campo se você absorver custos aduaneiros, tarifas ou gestão internacional; caso contrário, deixe zero."],
+    otrosCostosCampo: ["Marketing e outros custos", "Inclua publicidade, amostras, descontos, embalagens especiais, pequenos erros ou custos administrativos."],
+    metodoPagoComparadorCampo: ["Método de pagamento para comparar", "Escolha o método usado na comparação. Não some uma taxa externa quando o marketplace já processa o pagamento."]
+  }
+};
+
+const aliasContenidoAyuda = {
+  precioFilamentoCampo: "precioFilamento",
+  materialExtraCampo: "materialExtra",
+  nivelTrabajoCampo: "nivelTrabajo",
+  impuestoCampo: "impuestos"
+};
+
+Object.keys(contenidos).forEach((clave) => {
+  ["es", "en", "pt"].forEach((idioma) => {
+    const claveTraducida = aliasContenidoAyuda[clave] || clave;
+    const traduccion = contenidosTraducidos[idioma]?.[claveTraducida];
+    const contenido = idioma === "es" || !traduccion
+      ? contenidos[clave]
+      : { titulo: traduccion[0], texto: traduccion[1] };
+    const catalogo = window.IdiomasPrecio3D?.[idioma]?.textos;
+    if (catalogo) {
+      catalogo[`ayuda_${clave}_titulo`] = contenido.titulo;
+      catalogo[`ayuda_${clave}_texto`] = contenido.texto;
+    }
+  });
+});
+
 let ultimoFocoAyuda = null;
 
 function obtenerElementosAyuda() {
@@ -179,7 +266,10 @@ function obtenerElementosAyuda() {
 }
 
 function mostrarAyuda(clave) {
-  const contenido = contenidos[clave];
+  const contenido = {
+    titulo: window.obtenerTextoI18n?.(`ayuda_${clave}_titulo`) || contenidos[clave]?.titulo,
+    texto: window.obtenerTextoI18n?.(`ayuda_${clave}_texto`) || contenidos[clave]?.texto
+  };
   const elementos = obtenerElementosAyuda();
 
   if (!contenido || !elementos.modal || !elementos.titulo || !elementos.texto) {

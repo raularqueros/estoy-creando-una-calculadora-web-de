@@ -41,6 +41,7 @@ const borrarDatosCotizacionButton = document.querySelector("#borrarDatosCotizaci
 const datosCotizacionMessage = document.querySelector("#datosCotizacionMessage");
 const perfilNegocioFormulario = document.querySelector("#perfilNegocioFormulario");
 const perfilNegocioResumen = document.querySelector("#perfilNegocioResumen");
+const perfilNegocioResumenLogo = document.querySelector("#perfilNegocioResumenLogo");
 const perfilNegocioResumenNombre = document.querySelector("#perfilNegocioResumenNombre");
 const perfilNegocioResumenDatos = document.querySelector("#perfilNegocioResumenDatos");
 const perfilNegocioAccionesGuardado = document.querySelector("#perfilNegocioAccionesGuardado");
@@ -48,6 +49,11 @@ const perfilNegocioAyuda = document.querySelector("#perfilNegocioAyuda");
 const perfilNegocioMessage = document.querySelector("#perfilNegocioMessage");
 const editarPerfilNegocioButton = document.querySelector("#editarPerfilNegocioButton");
 const borrarPerfilNegocioButton = document.querySelector("#borrarPerfilNegocioButton");
+const logoNegocioInput = document.querySelector("#logoNegocioInput");
+const logoNegocioPreview = document.querySelector("#logoNegocioPreview");
+const logoNegocioPlaceholder = document.querySelector("#logoNegocioPlaceholder");
+const eliminarLogoNegocioButton = document.querySelector("#eliminarLogoNegocioButton");
+const logoNegocioMessage = document.querySelector("#logoNegocioMessage");
 const clienteGuardadoCotizacion = document.querySelector("#clienteGuardadoCotizacion");
 const clienteCotizacionVinculo = document.querySelector("#clienteCotizacionVinculo");
 const actualizarClienteDesdeCotizacionButton = document.querySelector("#actualizarClienteDesdeCotizacionButton");
@@ -1243,19 +1249,23 @@ function cargarSelectorIdiomas(selector) {
   selector.value = "es";
 }
 
-function cargarSelectorPreset(selector, lista) {
+function cargarSelectorPreset(selector, lista, tipo) {
   if (!selector || !Array.isArray(lista)) {
     return;
   }
 
+  const valorAnterior = selector.value;
   selector.innerHTML = "";
 
   lista.forEach((item) => {
     const option = document.createElement("option");
     option.value = item.id;
-    option.textContent = item.nombre;
+    option.textContent = window.PresetsPrecio3D?.obtenerNombrePreset?.(tipo, item) || item.nombre;
     selector.appendChild(option);
   });
+  if ([...selector.options].some((option) => option.value === valorAnterior)) {
+    selector.value = valorAnterior;
+  }
 }
 
 function obtenerPerfilImpresora(selector) {
@@ -1356,11 +1366,11 @@ function cargarPresetsVisuales() {
     return;
   }
 
-  cargarSelectorPreset(materialBasico, presets.materiales);
-  cargarSelectorPreset(materialAvanzado, presets.materiales);
+  cargarSelectorPreset(materialBasico, presets.materiales, "materiales");
+  cargarSelectorPreset(materialAvanzado, presets.materiales, "materiales");
   cargarSelectoresPerfilesImpresora();
-  cargarSelectorPreset(canalVentaBasico, presets.canalesVenta);
-  cargarSelectorPreset(canalVentaAvanzado, presets.canalesVenta);
+  cargarSelectorPreset(canalVentaBasico, presets.canalesVenta, "canalesVenta");
+  cargarSelectorPreset(canalVentaAvanzado, presets.canalesVenta, "canalesVenta");
 }
 
 function cargarMetodosPagoComparador() {
@@ -1383,6 +1393,7 @@ function cargarMetodosPagoComparador() {
     return;
   }
 
+  const valorAnterior = metodoPagoComparador.value || "automatico";
   metodoPagoComparador.innerHTML = "";
 
   const opcionAutomatica = document.createElement("option");
@@ -1396,11 +1407,12 @@ function cargarMetodosPagoComparador() {
     .forEach((metodo) => {
       const option = document.createElement("option");
       option.value = metodo.id;
-      option.textContent = metodo.nombre;
+      option.textContent = presets.obtenerNombrePreset?.("metodosPago", metodo) || metodo.nombre;
       metodoPagoComparador.appendChild(option);
     });
 
-  metodoPagoComparador.value = "automatico";
+  metodoPagoComparador.value = [...metodoPagoComparador.options]
+    .some((option) => option.value === valorAnterior) ? valorAnterior : "automatico";
 }
 
 // Busca la moneda activa para formatear montos.
@@ -3796,10 +3808,117 @@ const CAMPOS_DATOS_NEGOCIO = [
   "instagramNegocio"
 ];
 
+const TIPOS_LOGO_NEGOCIO = new Set(["image/png", "image/jpeg", "image/webp"]);
+const LIMITE_LOGO_NEGOCIO_BYTES = 300 * 1024;
+const DIMENSION_MAXIMA_LOGO_NEGOCIO = 512;
+let logoNegocioPendiente = "";
+
+function logoNegocioEsValido(logo = "") {
+  return typeof logo === "string"
+    && /^data:image\/webp;base64,/i.test(logo)
+    && logo.length <= Math.ceil(LIMITE_LOGO_NEGOCIO_BYTES * 4 / 3) + 64;
+}
+
+function mostrarMensajeLogoNegocio(mensaje, esError = false) {
+  if (!logoNegocioMessage) return;
+  logoNegocioMessage.textContent = mensaje;
+  logoNegocioMessage.classList.toggle("error-message", esError);
+  logoNegocioMessage.classList.toggle("success-message", !esError && Boolean(mensaje));
+}
+
+function renderizarLogoNegocioPendiente() {
+  const existeLogo = logoNegocioEsValido(logoNegocioPendiente);
+  if (logoNegocioPreview) {
+    logoNegocioPreview.hidden = !existeLogo;
+    if (existeLogo) {
+      logoNegocioPreview.src = logoNegocioPendiente;
+    } else {
+      logoNegocioPreview.removeAttribute("src");
+    }
+  }
+  if (logoNegocioPlaceholder) logoNegocioPlaceholder.hidden = existeLogo;
+  if (eliminarLogoNegocioButton) eliminarLogoNegocioButton.disabled = !existeLogo;
+}
+
+function convertirBlobADataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const lector = new FileReader();
+    lector.addEventListener("load", () => resolve(String(lector.result || "")), { once: true });
+    lector.addEventListener("error", () => reject(lector.error), { once: true });
+    lector.readAsDataURL(blob);
+  });
+}
+
+async function procesarLogoNegocio(event) {
+  const archivo = event?.target?.files?.[0];
+  if (!archivo) return;
+  const logoAnterior = logoNegocioPendiente;
+  let objectUrl = "";
+
+  mostrarMensajeLogoNegocio(textoInterfaz("logoNegocioProcesando"));
+
+  try {
+    if (!TIPOS_LOGO_NEGOCIO.has(archivo.type)) {
+      throw new Error("tipo-invalido");
+    }
+
+    objectUrl = URL.createObjectURL(archivo);
+    const imagen = new Image();
+    await new Promise((resolve, reject) => {
+      imagen.addEventListener("load", resolve, { once: true });
+      imagen.addEventListener("error", reject, { once: true });
+      imagen.src = objectUrl;
+    });
+
+    const escala = Math.min(
+      1,
+      DIMENSION_MAXIMA_LOGO_NEGOCIO / imagen.naturalWidth,
+      DIMENSION_MAXIMA_LOGO_NEGOCIO / imagen.naturalHeight
+    );
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(imagen.naturalWidth * escala));
+    canvas.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
+    const contexto = canvas.getContext("2d", { alpha: true });
+    if (!contexto) throw new Error("procesamiento");
+    contexto.drawImage(imagen, 0, 0, canvas.width, canvas.height);
+
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", 0.86));
+    if (!blob) throw new Error("procesamiento");
+    if (blob.size > LIMITE_LOGO_NEGOCIO_BYTES) throw new Error("demasiado-pesado");
+
+    const dataUrl = await convertirBlobADataUrl(blob);
+    if (!logoNegocioEsValido(dataUrl)) throw new Error("demasiado-pesado");
+    logoNegocioPendiente = dataUrl;
+    renderizarLogoNegocioPendiente();
+    mostrarMensajeLogoNegocio(textoInterfaz("logoNegocioListo"));
+  } catch (error) {
+    logoNegocioPendiente = logoAnterior;
+    renderizarLogoNegocioPendiente();
+    const clave = error?.message === "tipo-invalido"
+      ? "logoNegocioTipoInvalido"
+      : error?.message === "demasiado-pesado"
+        ? "logoNegocioDemasiadoPesado"
+        : "logoNegocioError";
+    mostrarMensajeLogoNegocio(textoInterfaz(clave), true);
+  } finally {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    if (logoNegocioInput) logoNegocioInput.value = "";
+  }
+}
+
+function eliminarLogoNegocioPendiente() {
+  logoNegocioPendiente = "";
+  renderizarLogoNegocioPendiente();
+  mostrarMensajeLogoNegocio(textoInterfaz("logoNegocioEliminacionPendiente"));
+}
+
 function obtenerDatosNegocioFormulario() {
-  return Object.fromEntries(
+  return {
+    ...Object.fromEntries(
     CAMPOS_DATOS_NEGOCIO.map((id) => [id, valorCampo(id).trim()])
-  );
+    ),
+    logoNegocio: logoNegocioEsValido(logoNegocioPendiente) ? logoNegocioPendiente : ""
+  };
 }
 
 function obtenerDatosNegocioGuardados() {
@@ -3808,7 +3927,8 @@ function obtenerDatosNegocioGuardados() {
 }
 
 function perfilNegocioTieneDatos(datosNegocio = {}) {
-  return CAMPOS_DATOS_NEGOCIO.some((id) => String(datosNegocio[id] || "").trim());
+  return CAMPOS_DATOS_NEGOCIO.some((id) => String(datosNegocio[id] || "").trim())
+    || logoNegocioEsValido(datosNegocio.logoNegocio);
 }
 
 function mostrarMensajePerfilNegocio(mensaje, esError = false) {
@@ -3820,6 +3940,15 @@ function mostrarMensajePerfilNegocio(mensaje, esError = false) {
 
 function renderizarResumenPerfilNegocio(datosNegocio) {
   if (!perfilNegocioResumenNombre || !perfilNegocioResumenDatos) return;
+  const existeLogo = logoNegocioEsValido(datosNegocio.logoNegocio);
+  if (perfilNegocioResumenLogo) {
+    perfilNegocioResumenLogo.hidden = !existeLogo;
+    if (existeLogo) {
+      perfilNegocioResumenLogo.src = datosNegocio.logoNegocio;
+    } else {
+      perfilNegocioResumenLogo.removeAttribute("src");
+    }
+  }
   perfilNegocioResumenNombre.textContent =
     datosNegocio.nombreNegocio || textoInterfaz("perfilSinNombre");
 
@@ -3850,7 +3979,7 @@ function actualizarInterfazPerfilNegocio({ editar = false, aplicarGuardado = tru
     if (existePerfil) {
       aplicarDatosNegocio(datosGuardados);
     } else {
-      CAMPOS_DATOS_NEGOCIO.forEach((id) => asignarValorCampo(id, ""));
+      aplicarDatosNegocio({});
     }
   }
 
@@ -3908,8 +4037,14 @@ function borrarPerfilNegocio() {
   }
 
   CAMPOS_DATOS_NEGOCIO.forEach((id) => asignarValorCampo(id, ""));
+  logoNegocioPendiente = "";
+  renderizarLogoNegocioPendiente();
+  mostrarMensajeLogoNegocio("");
   actualizarInterfazPerfilNegocio({ editar: false, aplicarGuardado: false });
   mostrarMensajePerfilNegocio(textoInterfaz("perfilBorrado"));
+  document.dispatchEvent(new CustomEvent("precio3d:perfil-negocio-guardado", {
+    detail: { datosNegocio: {} }
+  }));
 }
 
 function obtenerDatosClienteCotizacionFormulario() {
@@ -3952,7 +4087,12 @@ function obtenerAdvertenciasDatosCotizacion() {
 }
 
 function aplicarDatosNegocio(datosNegocio = {}) {
-  Object.entries(datosNegocio).forEach(([id, valor]) => asignarValorCampo(id, valor));
+  CAMPOS_DATOS_NEGOCIO.forEach((id) => asignarValorCampo(id, datosNegocio[id] || ""));
+  logoNegocioPendiente = logoNegocioEsValido(datosNegocio.logoNegocio)
+    ? datosNegocio.logoNegocio
+    : "";
+  renderizarLogoNegocioPendiente();
+  mostrarMensajeLogoNegocio("");
 }
 
 function aplicarConfigCotizacion(configCotizacion = {}) {
@@ -4197,6 +4337,9 @@ function renderizarCotizacionCliente() {
 
   const { datosNegocio, datosCliente, condiciones } = datos;
   const nombreNegocio = datosNegocio.nombreNegocio || textoInterfaz("negocioNoConfigurado");
+  const logoNegocio = logoNegocioEsValido(datosNegocio.logoNegocio)
+    ? `<img class="print-quote__logo" src="${datosNegocio.logoNegocio}" alt="">`
+    : "";
   const cliente = datosCliente.clienteCotizacion || datos.clienteCalculo || textoInterfaz("clienteNoEspecificado");
   const validez = `${condiciones.validezCotizacionDias} ${textoInterfaz("dias")}`;
 
@@ -4204,8 +4347,11 @@ function renderizarCotizacionCliente() {
   cotizacionClienteVista.innerHTML = `
     <article class="print-quote">
       <header class="print-quote__header">
-        <div class="print-quote__title">
-          <h2>${textoInterfaz("cotizacion")}</h2>
+        <div class="print-quote__brand">
+          ${logoNegocio}
+          <div class="print-quote__title">
+            <h2>${textoInterfaz("cotizacion")}</h2>
+          </div>
         </div>
         <div class="print-quote__meta">
           ${crearLineaCotizacion(textoInterfaz("numeroCotizacion"), datos.numeroCotizacion)}
@@ -4843,9 +4989,32 @@ window.PanelTrabajosPrecio3D?.inicializar({
 guardarDatosCotizacionButton.addEventListener("click", guardarDatosCotizacion);
 borrarDatosCotizacionButton.addEventListener("click", borrarDatosCotizacionGuardados);
 perfilNegocioFormulario?.addEventListener("submit", guardarPerfilNegocio);
+logoNegocioInput?.addEventListener("change", procesarLogoNegocio);
+eliminarLogoNegocioButton?.addEventListener("click", eliminarLogoNegocioPendiente);
 editarPerfilNegocioButton?.addEventListener("click", editarPerfilNegocio);
 borrarPerfilNegocioButton?.addEventListener("click", borrarPerfilNegocio);
 document.addEventListener("precio3d:idioma-actualizado", () => {
+  const valoresPredeterminados = (clave) =>
+    Object.values(window.IdiomasPrecio3D || {})
+      .map((idioma) => idioma?.textos?.[clave])
+      .filter(Boolean);
+  const actualizarPredeterminadoConocido = (id, clave) => {
+    const campo = document.querySelector(`#${id}`);
+    if (campo && valoresPredeterminados(clave).includes(campo.value.trim())) {
+      campo.value = textoInterfaz(clave);
+    }
+  };
+
+  actualizarPredeterminadoConocido("tiempoEntrega", "tiempoEntregaCoordinar");
+  actualizarPredeterminadoConocido("condicionesPago", "condicionesPagoDefecto");
+  cargarPresetsVisuales();
+  cargarMetodosPagoComparador();
+  actualizarEtiquetasAlcanceSlicer("basico");
+  actualizarEtiquetasAlcanceSlicer("avanzado");
+  actualizarAyudaCostoMaterial("basico");
+  actualizarAyudaCostoMaterial("avanzado");
+  actualizarResumenFilamento("basico");
+  actualizarResumenFilamento("avanzado");
   const datosGuardados = obtenerDatosNegocioGuardados();
   if (perfilNegocioTieneDatos(datosGuardados)) renderizarResumenPerfilNegocio(datosGuardados);
 });

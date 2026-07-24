@@ -7,6 +7,8 @@
   let impresoraDetalleId = "";
   let retornoFoco = null;
   let inicializado = false;
+  const t = (clave, reemplazos = {}) =>
+    window.obtenerTextoI18n?.(clave, reemplazos) || clave;
 
   function escapar(valor) {
     return String(valor ?? "")
@@ -18,10 +20,10 @@
   }
 
   function fecha(valor) {
-    if (!valor) return "Sin registrar";
+    if (!valor) return t("sinRegistrar");
     const fechaValor = new Date(valor);
     if (Number.isNaN(fechaValor.getTime())) return escapar(valor);
-    return new Intl.DateTimeFormat("es-CL", { dateStyle: "medium" }).format(fechaValor);
+    return new Intl.DateTimeFormat(document.documentElement.lang || "es", { dateStyle: "medium" }).format(fechaValor);
   }
 
   function formatoMoneda(valor, moneda = "CLP") {
@@ -61,14 +63,14 @@
     const monedas = new Set(costos.map(({ item }) => item.monedaCompra));
     const promedio = costos.length && monedas.size === 1
       ? formatoMoneda(costos.reduce((total, item) => total + item.costo, 0) / costos.length, costos[0].item.monedaCompra)
-      : costos.length ? "Varias monedas" : "Sin datos";
+      : costos.length ? t("variasMonedas") : t("sinDatos");
     const predeterminada = lista.find((item) => item.esPredeterminada);
     const items = [
-      ["Total", lista.length],
-      ["Activas", lista.filter((item) => item.estado === "Activa").length],
-      ["En mantenimiento", lista.filter((item) => item.estado === "En mantenimiento").length],
-      ["Costo horario promedio", promedio],
-      ["Predeterminada", predeterminada?.nombre || "Sin definir"]
+      [t("total"), lista.length],
+      [t("activas"), lista.filter((item) => item.estado === "Activa").length],
+      [t("enMantenimiento"), lista.filter((item) => item.estado === "En mantenimiento").length],
+      [t("costoHorarioPromedio"), promedio],
+      [t("predeterminada"), predeterminada?.nombre || t("sinDefinir")]
     ];
     $("#impresorasResumen").innerHTML = items.map(([etiqueta, valor]) => `
       <article class="jobs-kpi-card">
@@ -81,9 +83,9 @@
   function acciones(impresora) {
     return `
       <div class="printer-row-actions">
-        <button type="button" class="secondary" data-printer-action="detalle">Ver detalle</button>
-        <button type="button" class="secondary" data-printer-action="editar">Editar</button>
-        <button type="button" class="secondary" data-printer-action="duplicar">Duplicar</button>
+        <button type="button" class="secondary" data-printer-action="detalle">${escapar(t("verDetalle"))}</button>
+        <button type="button" class="secondary" data-printer-action="editar">${escapar(t("editar"))}</button>
+        <button type="button" class="secondary" data-printer-action="duplicar">${escapar(t("duplicar"))}</button>
       </div>
     `;
   }
@@ -100,9 +102,9 @@
       const tieneRegistros = Boolean(api()?.obtenerImpresoras().length);
       contenedor.innerHTML = `
         <div class="printer-empty-state">
-          <strong>${tieneRegistros ? "No hay impresoras que coincidan con los filtros." : "Aún no has guardado impresoras."}</strong>
-          <p>${tieneRegistros ? "Prueba con otra búsqueda o filtro." : "Agrega una impresora para guardar su costo, consumo, mantenimiento y vida útil."}</p>
-          ${tieneRegistros ? "" : '<button type="button" data-printer-action="nueva">+ Agregar impresora</button>'}
+          <strong>${escapar(t(tieneRegistros ? "sinImpresorasFiltros" : "sinImpresoras"))}</strong>
+          <p>${escapar(t(tieneRegistros ? "pruebaOtroFiltro" : "agregaImpresoraAyuda"))}</p>
+          ${tieneRegistros ? "" : `<button type="button" data-printer-action="nueva">${escapar(t("nuevaImpresora"))}</button>`}
         </div>
       `;
       return;
@@ -112,8 +114,8 @@
       <div class="printers-table-scroll">
         <table class="printers-table">
           <thead><tr>
-            <th>Impresora</th><th>Marca y modelo</th><th>Tecnología</th><th>Potencia</th>
-            <th>Costo por hora</th><th>Estado</th><th>Predeterminada</th><th>Acciones</th>
+            <th>${escapar(t("impresora"))}</th><th>${escapar(t("marcaModelo"))}</th><th>${escapar(t("tecnologia"))}</th><th>${escapar(t("potencia"))}</th>
+            <th>${escapar(t("costoHora"))}</th><th>${escapar(t("estado"))}</th><th>${escapar(t("predeterminada"))}</th><th>${escapar(t("acciones"))}</th>
           </tr></thead>
           <tbody>${lista.map((item) => `
             <tr data-printer-id="${escapar(item.id)}">
@@ -122,8 +124,8 @@
               <td data-label="Tecnología">${escapar(item.tecnologia)}</td>
               <td data-label="Potencia">${escapar(item.potenciaPromedioWatts)} W</td>
               <td data-label="Costo por hora"><strong>${escapar(costoHora(item))}</strong></td>
-              <td data-label="Estado"><span class="printer-status">${escapar(item.estado)}</span></td>
-              <td data-label="Predeterminada">${item.esPredeterminada ? '<span class="printer-default-badge">Predeterminada</span>' : "No"}</td>
+              <td data-label="${escapar(t("estado"))}"><span class="printer-status">${escapar(t({ Activa: "activa", "En mantenimiento": "enMantenimiento", "Fuera de servicio": "fueraServicio", Retirada: "retirada" }[item.estado] || "estado"))}</span></td>
+              <td data-label="${escapar(t("predeterminada"))}">${item.esPredeterminada ? `<span class="printer-default-badge">${escapar(t("predeterminada"))}</span>` : t("no")}</td>
               <td data-label="Acciones">${acciones(item)}</td>
             </tr>
           `).join("")}</tbody>
@@ -540,6 +542,7 @@
     $("#importarImpresorasButton").addEventListener("click", () => $("#importarImpresorasInput").click());
     $("#importarImpresorasInput").addEventListener("change", importarArchivo);
     document.addEventListener("keydown", manejarTeclado);
+    document.addEventListener("precio3d:idioma-actualizado", actualizarVista);
     window.addEventListener("precio3d:impresoras-actualizadas", actualizarVista);
     actualizarVista();
   }

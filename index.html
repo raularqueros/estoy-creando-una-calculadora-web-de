@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
   <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
   <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
-  <link rel="stylesheet" href="styles.css?v=20260724-business-profile-v1">
+  <link rel="stylesheet" href="styles.css?v=20260724-business-logo-v1">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -60,7 +60,7 @@
         </p>
       </div>
       <div class="site-header__visual" aria-hidden="true">
-        <img src="assets/images/hero-calculadora-3d.svg" alt="" aria-hidden="true" width="240" height="180">
+        <img src="assets/images/hero-calculadora-3d.svg" alt="" aria-hidden="true" width="280" height="200">
       </div>
     </div>
   </header>
@@ -167,7 +167,7 @@
             </div>
             <div class="field-grid basic-flow-fields basic-order-fields">
               <label>
-                <span><span data-i18n="nombreTrabajo">Nombre del trabajo / pedido</span> <span class="optional-label">(opcional)</span></span>
+                <span><span data-i18n="nombreTrabajo">Nombre del trabajo / pedido</span> <span class="optional-label">(<span data-i18n="opcional">opcional</span>)</span></span>
                 <input
                   type="text"
                   id="nombreTrabajoBasico"
@@ -191,7 +191,7 @@
             </div>
             <div class="field-grid basic-flow-fields">
               <div class="field-block field-wide filament-picker">
-                <label for="filamentoBasico">Bobina de inventario <span class="optional-label">(opcional)</span></label>
+                <label for="filamentoBasico"><span data-i18n="bobinaInventario">Bobina de inventario</span> <span class="optional-label">(<span data-i18n="opcional">opcional</span>)</span></label>
                 <select id="filamentoBasico">
                   <option value="">Sin bobina / costo manual</option>
                 </select>
@@ -547,7 +547,7 @@
       <h2 data-i18n="material">3. Material</h2>
       <div class="field-grid">
         <div class="field-block field-wide filament-picker">
-          <label for="filamentoAvanzado">Bobina de inventario <span class="optional-label">(opcional)</span></label>
+          <label for="filamentoAvanzado"><span data-i18n="bobinaInventario">Bobina de inventario</span> <span class="optional-label">(<span data-i18n="opcional">opcional</span>)</span></label>
           <select id="filamentoAvanzado">
             <option value="">Sin bobina / costo manual</option>
           </select>
@@ -780,11 +780,29 @@
 
         <div id="perfilNegocioResumen" class="business-profile-summary" aria-live="polite" hidden>
           <p class="business-profile-status" data-i18n="perfilGuardadoDispositivo">Perfil guardado en este dispositivo</p>
+          <img id="perfilNegocioResumenLogo" class="business-profile-summary__logo" alt="" hidden>
           <strong id="perfilNegocioResumenNombre" class="business-profile-summary__name"></strong>
           <div id="perfilNegocioResumenDatos" class="business-profile-summary__details"></div>
         </div>
 
         <form id="perfilNegocioFormulario" class="business-profile-form">
+          <div class="business-logo-field">
+            <div class="business-logo-preview">
+              <img id="logoNegocioPreview" alt="" hidden>
+              <span id="logoNegocioPlaceholder" data-i18n="logoNegocioSinLogo">Sin logo</span>
+            </div>
+            <div class="business-logo-field__content">
+              <span class="business-logo-field__label" data-i18n="logoNegocio">Logo del emprendimiento</span>
+              <p class="help-text" data-i18n="logoNegocioAyuda">PNG, JPG o WebP. Se optimizará localmente antes de guardar.</p>
+              <input class="sr-only" type="file" id="logoNegocioInput" accept="image/png,image/jpeg,image/webp" aria-describedby="logoNegocioFormatos logoNegocioMessage">
+              <div class="actions business-logo-field__actions">
+                <label for="logoNegocioInput" class="button secondary" data-i18n="cambiarLogoNegocio">Cambiar logo</label>
+                <button type="button" id="eliminarLogoNegocioButton" class="secondary danger-button" data-i18n="eliminarLogoNegocio">Eliminar logo</button>
+              </div>
+              <p id="logoNegocioFormatos" class="sr-only" data-i18n="logoNegocioFormatos">Formatos permitidos: PNG, JPG y WebP.</p>
+              <p id="logoNegocioMessage" class="help-text" role="status"></p>
+            </div>
+          </div>
           <div class="field-grid business-profile-fields">
             <label>
               <span data-i18n="nombreNegocio">Nombre del negocio</span>
@@ -944,7 +962,7 @@
                 <input type="text" id="trabajoCliente" placeholder="Ej: Cliente particular" data-i18n-placeholder="placeholderClienteParticular">
               </label>
               <label>
-                Estado
+                <span data-i18n="estado">Estado</span>
                 <select id="trabajoEstado">
                   <option value="Pendiente" data-i18n="pendiente">Pendiente</option>
                   <option value="Aceptado" data-i18n="aceptado">Aceptado</option>
@@ -955,7 +973,7 @@
               </label>
               <label class="field-wide">
                 <span data-i18n="descripcion">Descripción</span>
-                <textarea id="trabajoDescripcion" rows="3" placeholder="Notas del pedido, requisitos o condiciones"></textarea>
+                <textarea id="trabajoDescripcion" rows="3" placeholder="Notas del pedido, requisitos o condiciones" data-i18n-placeholder="descripcionPedidoPlaceholder"></textarea>
               </label>
             </div>
             <div class="actions jobs-save-actions">
@@ -969,7 +987,7 @@
             <div class="jobs-tools-content">
               <div class="jobs-tools-actions">
                 <button type="button" id="exportarTrabajosButton" class="secondary" data-i18n="exportarTrabajos">Exportar trabajos</button>
-                <button type="button" id="exportarTrabajosJsonButton" class="secondary">Exportar respaldo JSON</button>
+                <button type="button" id="exportarTrabajosJsonButton" class="secondary" data-i18n="exportarRespaldoJson">Exportar respaldo JSON</button>
                 <button type="button" id="importarTrabajosButton" class="secondary" data-i18n="importarTrabajos">Importar respaldo JSON</button>
               </div>
               <div class="jobs-danger-action">
@@ -983,60 +1001,60 @@
 
         <div class="jobs-dashboard-heading">
           <div>
-            <p class="eyebrow">Panel comercial</p>
-            <h3>Resumen de cotizaciones y ventas</h3>
+            <p class="eyebrow" data-i18n="panelComercial">Panel comercial</p>
+            <h3 data-i18n="resumenCotizacionesVentas">Resumen de cotizaciones y ventas</h3>
           </div>
-          <div id="trabajosFlowControl" class="jobs-flow-control" role="group" aria-label="Flujo de estados">
-            <button type="button" class="secondary" data-jobs-flow="simple" aria-pressed="true">Flujo simple</button>
-            <button type="button" class="secondary" data-jobs-flow="completo" aria-pressed="false">Flujo completo</button>
+          <div id="trabajosFlowControl" class="jobs-flow-control" role="group" aria-label="Flujo de estados" data-i18n-aria-label="flujoEstados">
+            <button type="button" class="secondary" data-jobs-flow="simple" aria-pressed="true" data-i18n="flujoSimple">Flujo simple</button>
+            <button type="button" class="secondary" data-jobs-flow="completo" aria-pressed="false" data-i18n="flujoCompleto">Flujo completo</button>
           </div>
         </div>
 
         <div id="trabajosResumen" class="jobs-summary jobs-kpi-grid"></div>
 
         <details class="jobs-filters-panel" open>
-          <summary>Filtros</summary>
+          <summary data-i18n="filtros">Filtros</summary>
           <div id="trabajosFiltros" class="jobs-filters">
             <label class="jobs-search-field">
-              Buscar
-              <input type="search" id="trabajosBusqueda" placeholder="Trabajo, cliente, descripción o cotización">
+              <span data-i18n="buscar">Buscar</span>
+              <input type="search" id="trabajosBusqueda" placeholder="Trabajo, cliente, descripción o cotización" data-i18n-placeholder="buscarTrabajosPlaceholder">
             </label>
             <label>
-              Estado
+              <span data-i18n="estado">Estado</span>
               <select id="trabajosFiltroEstado">
-                <option value="todos">Todos</option>
+                <option value="todos" data-i18n="todos">Todos</option>
                 <option>Pendiente</option><option>Aceptado</option><option>Esperando abono</option>
                 <option>En producción</option><option>Terminado</option><option>Entregado</option>
                 <option>Pagado</option><option>Rechazado</option><option>Cancelado</option>
               </select>
             </label>
             <label>
-              Período
+              <span data-i18n="periodo">Período</span>
               <select id="trabajosFiltroPeriodo">
-                <option value="este_mes">Este mes</option>
-                <option value="mes_anterior">Mes anterior</option>
-                <option value="tres_meses">Últimos 3 meses</option>
-                <option value="este_ano">Este año</option>
-                <option value="todo">Todo</option>
+                <option value="este_mes" data-i18n="esteMes">Este mes</option>
+                <option value="mes_anterior" data-i18n="mesAnterior">Mes anterior</option>
+                <option value="tres_meses" data-i18n="ultimosTresMeses">Últimos 3 meses</option>
+                <option value="este_ano" data-i18n="esteAno">Este año</option>
+                <option value="todo" data-i18n="todo">Todo</option>
               </select>
             </label>
             <label>
-              Modo
+              <span data-i18n="modo">Modo</span>
               <select id="trabajosFiltroModo">
-                <option value="todos">Todos</option>
+                <option value="todos" data-i18n="todos">Todos</option>
                 <option value="basico">Básico</option>
                 <option value="avanzado">Avanzado</option>
               </select>
             </label>
             <label>
-              Ordenar
+              <span data-i18n="ordenar">Ordenar</span>
               <select id="trabajosOrden">
-                <option value="recientes">Más recientes</option>
-                <option value="antiguos">Más antiguos</option>
-                <option value="mayor_precio">Mayor precio</option>
-                <option value="menor_precio">Menor precio</option>
-                <option value="mayor_utilidad">Mayor utilidad</option>
-                <option value="nombre">Nombre</option>
+                <option value="recientes" data-i18n="masRecientes">Más recientes</option>
+                <option value="antiguos" data-i18n="masAntiguos">Más antiguos</option>
+                <option value="mayor_precio" data-i18n="mayorPrecio">Mayor precio</option>
+                <option value="menor_precio" data-i18n="menorPrecio">Menor precio</option>
+                <option value="mayor_utilidad" data-i18n="mayorUtilidad">Mayor utilidad</option>
+                <option value="nombre" data-i18n="nombre">Nombre</option>
               </select>
             </label>
           </div>
@@ -1050,11 +1068,11 @@
     <section id="misClientesPanel" class="panel result-panel clients-panel">
       <div class="clients-heading">
         <div>
-          <p class="eyebrow">Relaciones comerciales</p>
-          <h2>Mis clientes</h2>
-          <p class="help-text">Guarda y reutiliza los datos de tus clientes en trabajos y cotizaciones.</p>
+          <p class="eyebrow" data-i18n="relacionesComerciales">Relaciones comerciales</p>
+          <h2 data-i18n="misClientes">Mis clientes</h2>
+          <p class="help-text" data-i18n="clientesDescripcion">Guarda y reutiliza los datos de tus clientes en trabajos y cotizaciones.</p>
         </div>
-        <button type="button" id="nuevoClienteButton">+ Nuevo cliente</button>
+        <button type="button" id="nuevoClienteButton" data-i18n="nuevoCliente">+ Nuevo cliente</button>
       </div>
 
       <div id="clientesResumen" class="jobs-kpi-grid clients-kpi-grid" aria-live="polite"></div>
@@ -1062,25 +1080,25 @@
       <div class="clients-filters-card">
         <div id="clientesFiltros" class="jobs-filters clients-filters">
           <label class="jobs-search-field">
-            Buscar
-            <input type="search" id="clientesBusqueda" placeholder="Nombre, empresa, correo, teléfono, identificación o etiqueta">
+            <span data-i18n="buscar">Buscar</span>
+            <input type="search" id="clientesBusqueda" placeholder="Nombre, empresa, correo, teléfono, identificación o etiqueta" data-i18n-placeholder="buscarClientesPlaceholder">
           </label>
           <label>
-            Mostrar
+            <span data-i18n="mostrar">Mostrar</span>
             <select id="clientesFiltro">
-              <option value="todos">Todos</option>
-              <option value="con_trabajos">Con trabajos</option>
-              <option value="sin_trabajos">Sin trabajos</option>
-              <option value="recientes">Clientes recientes</option>
+              <option value="todos" data-i18n="todos">Todos</option>
+              <option value="con_trabajos" data-i18n="conTrabajos">Con trabajos</option>
+              <option value="sin_trabajos" data-i18n="sinTrabajosFiltro">Sin trabajos</option>
+              <option value="recientes" data-i18n="clientesRecientes">Clientes recientes</option>
             </select>
           </label>
           <label>
-            Ordenar
+            <span data-i18n="ordenar">Ordenar</span>
             <select id="clientesOrden">
-              <option value="nombre">Nombre</option>
-              <option value="recientes">Más recientes</option>
-              <option value="mayor_venta">Mayor venta</option>
-              <option value="mayor_trabajos">Mayor cantidad de trabajos</option>
+              <option value="nombre" data-i18n="nombre">Nombre</option>
+              <option value="recientes" data-i18n="masRecientes">Más recientes</option>
+              <option value="mayor_venta" data-i18n="mayorVenta">Mayor venta</option>
+              <option value="mayor_trabajos" data-i18n="mayorCantidadTrabajos">Mayor cantidad de trabajos</option>
             </select>
           </label>
         </div>
@@ -1092,9 +1110,9 @@
       <details class="clients-tools-panel">
         <summary data-i18n="herramientasRespaldo">Herramientas y respaldo</summary>
         <div class="actions clients-data-actions">
-          <button type="button" id="exportarClientesCsvButton" class="secondary">Exportar clientes CSV</button>
-          <button type="button" id="exportarClientesJsonButton" class="secondary">Exportar clientes JSON</button>
-          <button type="button" id="importarClientesButton" class="secondary">Importar clientes JSON</button>
+          <button type="button" id="exportarClientesCsvButton" class="secondary" data-i18n="exportarClientesCsv">Exportar clientes CSV</button>
+          <button type="button" id="exportarClientesJsonButton" class="secondary" data-i18n="exportarClientesJson">Exportar clientes JSON</button>
+          <button type="button" id="importarClientesButton" class="secondary" data-i18n="importarClientesJson">Importar clientes JSON</button>
           <input type="file" id="importarClientesInput" accept="application/json,.json" hidden>
         </div>
       </details>
@@ -1104,39 +1122,39 @@
     <section id="misImpresorasPanel" class="panel result-panel printers-panel">
       <div class="clients-heading printers-heading">
         <div>
-          <p class="eyebrow">Equipo de producción</p>
-          <h2>Mis impresoras</h2>
-          <p class="help-text">Guarda los costos y características de tus impresoras para reutilizarlos en tus cotizaciones.</p>
+          <p class="eyebrow" data-i18n="equipoProduccion">Equipo de producción</p>
+          <h2 data-i18n="misImpresoras">Mis impresoras</h2>
+          <p class="help-text" data-i18n="impresorasDescripcion">Guarda los costos y características de tus impresoras para reutilizarlos en tus cotizaciones.</p>
         </div>
-        <button type="button" id="nuevaImpresoraButton">+ Agregar impresora</button>
+        <button type="button" id="nuevaImpresoraButton" data-i18n="nuevaImpresora">+ Agregar impresora</button>
       </div>
 
       <div id="impresorasResumen" class="jobs-kpi-grid printers-kpi-grid" aria-live="polite"></div>
 
       <div class="jobs-filters printers-filters">
         <label class="jobs-search-field">
-          Buscar
-          <input type="search" id="impresorasBusqueda" placeholder="Nombre, marca o modelo">
+          <span data-i18n="buscar">Buscar</span>
+          <input type="search" id="impresorasBusqueda" placeholder="Nombre, marca o modelo" data-i18n-placeholder="buscarImpresorasPlaceholder">
         </label>
         <label>
-          Mostrar
+          <span data-i18n="mostrar">Mostrar</span>
           <select id="impresorasFiltro">
-            <option value="todas">Todas</option>
-            <option value="Activa">Activas</option>
-            <option value="En mantenimiento">En mantenimiento</option>
-            <option value="Fuera de servicio">Fuera de servicio</option>
-            <option value="Retirada">Retiradas</option>
+            <option value="todas" data-i18n="todas">Todas</option>
+            <option value="Activa" data-i18n="activas">Activas</option>
+            <option value="En mantenimiento" data-i18n="enMantenimiento">En mantenimiento</option>
+            <option value="Fuera de servicio" data-i18n="fueraServicio">Fuera de servicio</option>
+            <option value="Retirada" data-i18n="retiradas">Retiradas</option>
             <option value="FDM / FFF">FDM / FFF</option>
             <option value="Resina">Resina</option>
           </select>
         </label>
         <label>
-          Ordenar
+          <span data-i18n="ordenar">Ordenar</span>
           <select id="impresorasOrden">
-            <option value="nombre">Nombre</option>
-            <option value="recientes">Más recientes</option>
-            <option value="mayor_costo">Mayor costo por hora</option>
-            <option value="menor_costo">Menor costo por hora</option>
+            <option value="nombre" data-i18n="nombre">Nombre</option>
+            <option value="recientes" data-i18n="masRecientes">Más recientes</option>
+            <option value="mayor_costo" data-i18n="mayorCostoHora">Mayor costo por hora</option>
+            <option value="menor_costo" data-i18n="menorCostoHora">Menor costo por hora</option>
           </select>
         </label>
       </div>
@@ -1145,9 +1163,9 @@
       <section id="impresoraDetallePanel" class="client-detail-panel printer-detail-panel" aria-live="polite" hidden></section>
 
       <div class="actions clients-data-actions">
-        <button type="button" id="exportarImpresorasCsvButton" class="secondary">Exportar impresoras CSV</button>
-        <button type="button" id="exportarImpresorasJsonButton" class="secondary">Exportar impresoras JSON</button>
-        <button type="button" id="importarImpresorasButton" class="secondary">Importar impresoras JSON</button>
+        <button type="button" id="exportarImpresorasCsvButton" class="secondary" data-i18n="exportarImpresorasCsv">Exportar impresoras CSV</button>
+        <button type="button" id="exportarImpresorasJsonButton" class="secondary" data-i18n="exportarImpresorasJson">Exportar impresoras JSON</button>
+        <button type="button" id="importarImpresorasButton" class="secondary" data-i18n="importarImpresorasJson">Importar impresoras JSON</button>
         <input type="file" id="importarImpresorasInput" accept="application/json,.json" hidden>
       </div>
       <p id="impresorasMessage" class="help-text" role="status"></p>
@@ -1156,28 +1174,28 @@
     <section id="inventarioFilamentosPanel" class="panel result-panel filaments-panel">
       <div class="clients-heading filaments-heading">
         <div>
-          <p class="eyebrow">Materiales</p>
+          <p class="eyebrow" data-i18n="materiales">Materiales</p>
           <h2 data-i18n="inventarioFilamentos">Inventario de filamentos</h2>
-          <p class="help-text">Registra tus bobinas, controla el material disponible y utiliza su costo real por gramo.</p>
+          <p class="help-text" data-i18n="filamentosDescripcion">Registra tus bobinas, controla el material disponible y utiliza su costo real por gramo.</p>
         </div>
-        <button type="button" id="nuevaBobinaButton">+ Agregar bobina</button>
+        <button type="button" id="nuevaBobinaButton" data-i18n="nuevaBobina">+ Agregar bobina</button>
       </div>
 
       <div id="filamentosResumen" class="jobs-kpi-grid filaments-kpi-grid" aria-live="polite"></div>
 
       <div class="jobs-filters filaments-filters">
-        <label class="jobs-search-field" for="filamentosBusqueda">Buscar
-          <input type="search" id="filamentosBusqueda" placeholder="Nombre, marca, material, color o ubicación">
+        <label class="jobs-search-field" for="filamentosBusqueda"><span data-i18n="buscar">Buscar</span>
+          <input type="search" id="filamentosBusqueda" placeholder="Nombre, marca, material, color o ubicación" data-i18n-placeholder="buscarFilamentosPlaceholder">
         </label>
-        <label for="filamentosEstadoFiltro">Mostrar
+        <label for="filamentosEstadoFiltro"><span data-i18n="mostrar">Mostrar</span>
           <select id="filamentosEstadoFiltro">
-            <option value="activas">Activas</option>
-            <option value="todas">Todas</option>
-            <option value="Sellada">Selladas</option>
-            <option value="En uso">En uso</option>
-            <option value="Agotada">Agotadas</option>
-            <option value="Archivada">Archivadas</option>
-            <option value="stock_bajo">Stock bajo</option>
+            <option value="activas" data-i18n="activas">Activas</option>
+            <option value="todas" data-i18n="todas">Todas</option>
+            <option value="Sellada" data-i18n="selladas">Selladas</option>
+            <option value="En uso" data-i18n="enUso">En uso</option>
+            <option value="Agotada" data-i18n="agotadas">Agotadas</option>
+            <option value="Archivada" data-i18n="archivadas">Archivadas</option>
+            <option value="stock_bajo" data-i18n="stockBajo">Stock bajo</option>
           </select>
         </label>
         <label for="filamentosMaterialFiltro">Material
@@ -1421,16 +1439,16 @@
   </main>
   </div>
 
-  <footer class="site-footer" aria-label="Información pública del sitio">
+  <footer class="site-footer" aria-label="Información pública del sitio" data-i18n-aria-label="pieNavegacion">
     <div class="site-footer__inner">
-      <p>Calculadora de precio de impresión 3D · <span id="siteFooterYear">2026</span></p>
-      <nav class="site-footer__links" aria-label="Enlaces públicos">
-        <a href="pages/acerca-de.html">Acerca de</a>
-        <a href="pages/como-funciona.html">Cómo funciona</a>
-        <a href="pages/preguntas-frecuentes.html">Preguntas frecuentes</a>
+      <p><span data-i18n="pieDescripcion">Calculadora local para cotizar impresiones 3D.</span> · <span id="siteFooterYear">2026</span></p>
+      <nav class="site-footer__links" aria-label="Enlaces públicos" data-i18n-aria-label="pieNavegacion">
+        <a href="pages/acerca-de.html" data-i18n="acercaDe">Acerca de</a>
+        <a href="pages/como-funciona.html" data-i18n="comoFunciona">Cómo funciona</a>
+        <a href="pages/preguntas-frecuentes.html" data-i18n="preguntasFrecuentes">Preguntas frecuentes</a>
         <a href="blog/index.html">Blog</a>
-        <a href="pages/privacidad.html">Privacidad</a>
-        <a href="pages/terminos.html">Términos</a>
+        <a href="pages/privacidad.html" data-i18n="privacidad">Privacidad</a>
+        <a href="pages/terminos.html" data-i18n="terminos">Términos</a>
       </nav>
     </div>
   </footer>
@@ -1814,27 +1832,27 @@
   <div id="backupImportModal" class="job-modal" hidden>
     <div class="job-modal__backdrop" data-backup-close></div>
     <section class="job-modal__content backup-import-modal__content" role="dialog" aria-modal="true" aria-labelledby="backupImportModalTitle" aria-describedby="backupImportPreview">
-      <button type="button" class="job-modal__close" data-backup-close aria-label="Cerrar importación">×</button>
-      <h2 id="backupImportModalTitle">Revisar respaldo antes de importar</h2>
+      <button type="button" class="job-modal__close" data-backup-close aria-label="Cerrar importación" data-i18n-aria-label="cerrarImportacion">×</button>
+      <h2 id="backupImportModalTitle" data-i18n="revisarRespaldo">Revisar respaldo antes de importar</h2>
       <div id="backupImportPreview" class="backup-import-preview"></div>
       <fieldset class="backup-import-options">
-        <legend>¿Cómo quieres restaurar los datos?</legend>
-        <label><input type="radio" name="backupImportMode" value="combinar" checked> Combinar con los datos actuales</label>
-        <label><input type="radio" name="backupImportMode" value="reemplazar"> Reemplazar todos los datos actuales</label>
+        <legend data-i18n="restaurarPregunta">¿Cómo quieres restaurar los datos?</legend>
+        <label><input type="radio" name="backupImportMode" value="combinar" checked> <span data-i18n="combinarDatos">Combinar con los datos actuales</span></label>
+        <label><input type="radio" name="backupImportMode" value="reemplazar"> <span data-i18n="reemplazarDatos">Reemplazar todos los datos actuales</span></label>
       </fieldset>
       <label class="backup-conflict-option">
-        En caso de conflicto
+        <span data-i18n="enCasoConflicto">En caso de conflicto</span>
         <select id="backupConflictPolicy">
-          <option value="actual">Conservar el registro actual</option>
-          <option value="importado">Usar el registro importado</option>
-          <option value="ambos">Conservar ambos cuando sea seguro</option>
+          <option value="actual" data-i18n="conservarActual">Conservar el registro actual</option>
+          <option value="importado" data-i18n="usarImportado">Usar el registro importado</option>
+          <option value="ambos" data-i18n="conservarAmbos">Conservar ambos cuando sea seguro</option>
         </select>
       </label>
-      <p id="backupReplaceWarning" class="backup-warning" hidden>Reemplazar eliminará los datos locales actuales. Antes de continuar se creará un respaldo previo descargable.</p>
+      <p id="backupReplaceWarning" class="backup-warning" data-i18n="reemplazoAdvertencia" hidden>Reemplazar eliminará los datos locales actuales. Antes de continuar se creará un respaldo previo descargable.</p>
       <div class="actions">
-        <button type="button" id="confirmarImportacionButton">Importar datos</button>
-        <button type="button" id="descargarRespaldoPrevioModalButton" class="secondary" hidden>Descargar respaldo previo</button>
-        <button type="button" class="secondary" data-backup-close>Cancelar</button>
+        <button type="button" id="confirmarImportacionButton" data-i18n="importarDatos">Importar datos</button>
+        <button type="button" id="descargarRespaldoPrevioModalButton" class="secondary" data-i18n="descargarRespaldoPrevio" hidden>Descargar respaldo previo</button>
+        <button type="button" class="secondary" data-backup-close data-i18n="cancelar">Cancelar</button>
       </div>
     </section>
   </div>
@@ -1846,25 +1864,25 @@
   <script src="js/printer-catalog.js?v=20260715-catalog-v1"></script>
   <script src="js/printers.js?v=20260715-printers-v2"></script>
   <script src="js/geolocation.js"></script>
-  <script src="js/i18n.js?v=20260724-business-profile-v1"></script>
-  <script src="js/presets.js"></script>
+  <script src="js/i18n.js?v=20260724-business-logo-v1"></script>
+  <script src="js/presets.js?v=20260724-i18n-fix-v1"></script>
   <script src="js/filaments.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/comparator.js"></script>
   <script src="js/storage.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/clients.js?v=20260714-clients-v1"></script>
   <script src="js/quotes.js?v=20260715-quotes-v2"></script>
-  <script src="js/jobs-dashboard.js?v=20260715-filaments-jobs-v2"></script>
+  <script src="js/jobs-dashboard.js?v=20260724-i18n-fix-v1"></script>
   <script src="js/backup.js?v=20260715-backup-v1"></script>
   <script src="js/reports.js?v=20260715-reports-v1"></script>
-  <script src="js/help.js"></script>
+  <script src="js/help.js?v=20260724-i18n-fix-v1"></script>
   <script src="js/validation.js?v=20260716-validation-v1"></script>
-  <script src="js/navigation.js?v=20260724-result-hierarchy-v1"></script>
-  <script src="js/clients-dashboard.js?v=20260714-clients-v3"></script>
-  <script src="js/printers-dashboard.js?v=20260715-printers-v2"></script>
-  <script src="js/filaments-dashboard.js?v=20260715-filaments-jobs-v2"></script>
-  <script src="js/quotes-dashboard.js?v=20260724-business-profile-v1"></script>
-  <script src="js/reports-dashboard.js?v=20260715-reports-v1"></script>
-  <script src="app.js?v=20260724-business-profile-v1"></script>
+  <script src="js/navigation.js?v=20260724-i18n-fix-v1"></script>
+  <script src="js/clients-dashboard.js?v=20260724-i18n-fix-v1"></script>
+  <script src="js/printers-dashboard.js?v=20260724-i18n-fix-v1"></script>
+  <script src="js/filaments-dashboard.js?v=20260724-i18n-fix-v1"></script>
+  <script src="js/quotes-dashboard.js?v=20260724-business-logo-v1"></script>
+  <script src="js/reports-dashboard.js?v=20260724-i18n-fix-v1"></script>
+  <script src="app.js?v=20260724-business-logo-v1"></script>
   <script>
     document.getElementById("siteFooterYear").textContent = new Date().getFullYear();
   </script>
