@@ -408,8 +408,16 @@
   function mostrarResultadoEnCotizar() {
     mostrarSeccion("cotizar");
     window.requestAnimationFrame(() => {
-      columnaResultado.focus({ preventScroll: true });
-      columnaResultado.scrollIntoView({ behavior: "smooth", block: "start" });
+      const tituloBasico = resultadoBasico?.querySelector("#resultadoBasicoTitulo");
+      const tituloAvanzado = resultadoAvanzado?.querySelector("h2");
+      const objetivo = resultadoBasico && !resultadoBasico.hidden
+        ? tituloBasico
+        : tituloAvanzado || tituloBasico || columnaResultado;
+      if (objetivo && !objetivo.hasAttribute("tabindex")) {
+        objetivo.setAttribute("tabindex", "-1");
+      }
+      objetivo?.focus({ preventScroll: true });
+      objetivo?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
 

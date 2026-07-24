@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
   <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
   <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
-  <link rel="stylesheet" href="styles.css?v=20260724-navigation-v1">
+  <link rel="stylesheet" href="styles.css?v=20260724-accessibility-v1">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -100,7 +100,7 @@
           </button>
           <button type="button" class="dashboard-nav__button" data-section="cotizaciones" data-tooltip="Historial de cotizaciones" title="Historial de cotizaciones" aria-label="Historial de cotizaciones" data-i18n-title="navCotizacionesTitulo" data-i18n-aria-label="navCotizacionesTitulo">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM15 3v4h4M9 11h6M9 15h6M9 19h4"/></svg>
-            <span class="dashboard-nav__label" data-i18n="navCotizacionesTitulo">Historial de cotizaciones</span>
+            <span class="dashboard-nav__label" data-i18n="navCotizacionesEtiqueta">Cotizaciones</span>
           </button>
         </section>
         <section class="dashboard-nav__group" aria-labelledby="navGroupProduction">
@@ -216,9 +216,11 @@
                 </div>
               </div>
               <div class="field-block">
-                <span class="field-label" id="costoUnidadLabelBasico">Precio por kilo</span>
-                <button type="button" class="info-btn info-btn--campo inline-info" data-help="precioFilamentoCampo" aria-label="Información sobre precio del filamento">i</button>
-                <input type="number" id="costoUnidadBasico" min="0" placeholder="$">
+                <div class="field-label-row">
+                  <label class="field-label" id="costoUnidadLabelBasico" for="costoUnidadBasico">Precio por kilo</label>
+                  <button type="button" class="info-btn info-btn--campo inline-info" data-help="precioFilamentoCampo" aria-label="Información sobre precio del filamento">i</button>
+                </div>
+                <input type="number" id="costoUnidadBasico" min="0" placeholder="$" aria-describedby="costoUnidadHelpBasico">
                 <p class="help-text" id="costoUnidadHelpBasico">Costo por gramo calculado: $0.</p>
               </div>
               <label>
@@ -253,26 +255,32 @@
               <button type="button" class="info-btn" data-help="ventaGanancia" aria-label="Información sobre trabajo y ganancia">i</button>
             </div>
             <div class="field-grid basic-flow-fields">
-              <label>
-                <span data-i18n="nivelTrabajo">Nivel de trabajo</span>
-                <button type="button" class="info-btn info-btn--campo inline-info" data-help="nivelTrabajoCampo" aria-label="Información sobre nivel de trabajo">i</button>
+              <div class="field-block">
+                <div class="field-label-row">
+                  <label for="nivelTrabajoBasico" data-i18n="nivelTrabajo">Nivel de trabajo</label>
+                  <button type="button" class="info-btn info-btn--campo inline-info" data-help="nivelTrabajoCampo" aria-label="Información sobre nivel de trabajo">i</button>
+                </div>
                 <select id="nivelTrabajoBasico">
                   <option value="basico" data-i18n="trabajoBasico">Básico</option>
                   <option value="normal" data-i18n="trabajoNormal">Normal</option>
                   <option value="detallado" data-i18n="trabajoDetallado">Detallado</option>
                   <option value="personalizado" data-i18n="trabajoPersonalizado">Personalizado</option>
                 </select>
-              </label>
-              <label>
-                <span data-i18n="trabajoTerminacionesPorUnidad">Trabajo / terminaciones por unidad</span>
-                <button type="button" class="info-btn info-btn--campo inline-info" data-help="manoObraSimpleCampo" aria-label="Información sobre trabajo y terminaciones">i</button>
+              </div>
+              <div class="field-block">
+                <div class="field-label-row">
+                  <label for="manoObraSimpleBasico" data-i18n="trabajoTerminacionesPorUnidad">Trabajo / terminaciones por unidad</label>
+                  <button type="button" class="info-btn info-btn--campo inline-info" data-help="manoObraSimpleCampo" aria-label="Información sobre trabajo y terminaciones">i</button>
+                </div>
                 <input type="number" id="manoObraSimpleBasico" min="0" value="1500">
-              </label>
-              <label>
-                <span data-i18n="porcentajeGanancia">Porcentaje de ganancia</span>
-                <button type="button" class="info-btn info-btn--campo inline-info" data-help="margenCampo" aria-label="Información sobre margen">i</button>
+              </div>
+              <div class="field-block">
+                <div class="field-label-row">
+                  <label for="margenBasico" data-i18n="porcentajeGanancia">Porcentaje de ganancia</label>
+                  <button type="button" class="info-btn info-btn--campo inline-info" data-help="margenCampo" aria-label="Información sobre porcentaje de ganancia">i</button>
+                </div>
                 <input type="number" id="margenBasico" min="0" placeholder="%">
-              </label>
+              </div>
             </div>
           </section>
         </div>
@@ -434,7 +442,7 @@
           <span><span data-i18n="resultado">Resultado</span> básico</span>
           <button type="button" class="info-btn" data-help="resultado" aria-label="Información sobre resultado">i</button>
         </h2>
-        <div id="resultBasico" class="result-box">
+        <div id="resultBasico" class="result-box" role="status" aria-live="polite" aria-atomic="true">
           Aún no hay un cálculo. Completa los datos y presiona Calcular precio.
         </div>
         <details class="collapsible-section" hidden>
@@ -1396,7 +1404,7 @@
     <section class="mobile-more-menu__group" aria-labelledby="mobileNavGroupSales">
       <p class="mobile-more-menu__group-title" id="mobileNavGroupSales" data-i18n="navGroupSales">Ventas</p>
       <button type="button" data-section="cotizacion-cliente" data-i18n="navCotizacionClienteTitulo">Nueva cotización</button>
-      <button type="button" data-section="cotizaciones" data-i18n="navCotizacionesTitulo">Historial de cotizaciones</button>
+      <button type="button" data-section="cotizaciones" data-i18n="navCotizacionesEtiqueta">Cotizaciones</button>
     </section>
     <section class="mobile-more-menu__group" aria-labelledby="mobileNavGroupProduction">
       <p class="mobile-more-menu__group-title" id="mobileNavGroupProduction" data-i18n="navGroupProduction">Producción</p>
@@ -1785,7 +1793,7 @@
   <script src="js/printer-catalog.js?v=20260715-catalog-v1"></script>
   <script src="js/printers.js?v=20260715-printers-v2"></script>
   <script src="js/geolocation.js"></script>
-  <script src="js/i18n.js?v=20260724-navigation-v1"></script>
+  <script src="js/i18n.js?v=20260724-accessibility-v1"></script>
   <script src="js/presets.js"></script>
   <script src="js/filaments.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/comparator.js"></script>
@@ -1797,7 +1805,7 @@
   <script src="js/reports.js?v=20260715-reports-v1"></script>
   <script src="js/help.js"></script>
   <script src="js/validation.js?v=20260716-validation-v1"></script>
-  <script src="js/navigation.js?v=20260724-navigation-v1"></script>
+  <script src="js/navigation.js?v=20260724-accessibility-v1"></script>
   <script src="js/clients-dashboard.js?v=20260714-clients-v3"></script>
   <script src="js/printers-dashboard.js?v=20260715-printers-v2"></script>
   <script src="js/filaments-dashboard.js?v=20260715-filaments-jobs-v2"></script>

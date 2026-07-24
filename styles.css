@@ -2000,7 +2000,7 @@ button:disabled:hover {
 }
 
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 3px solid rgba(245, 158, 11, 0.75);
+  outline: 3px solid rgba(245, 158, 11, 0.92);
   outline-offset: 3px;
 }
 
@@ -2054,7 +2054,7 @@ button.danger-button:hover {
 }
 
 .info-btn:hover,
-.info-btn:focus {
+.info-btn:focus-visible {
   color: #ffffff;
   background: var(--primary);
 }
@@ -5916,6 +5916,8 @@ body.modal-open {
 }
 
 .basic-quote-panel .info-btn {
+  width: 32px;
+  height: 32px;
   min-width: 32px;
   min-height: 32px;
 }
