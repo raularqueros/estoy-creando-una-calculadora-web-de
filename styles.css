@@ -502,15 +502,17 @@ body {
 }
 
 .filaments-kpi-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 24px 0;
 }
 
 .filaments-kpi-grid .jobs-kpi-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
+  display: flex;
+  min-height: 108px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .filaments-kpi-grid .jobs-kpi-card span,
@@ -519,13 +521,43 @@ body {
 }
 
 .filaments-kpi-grid .jobs-kpi-card strong {
-  justify-self: end;
-  text-align: right;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  text-align: left;
+}
+
+.filaments-filters-card {
+  margin-bottom: 22px;
+  padding: 18px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.filaments-filters-heading {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.filaments-filters-heading h3 {
+  margin: 0;
+}
+
+.filaments-filters-heading button {
+  min-height: 44px;
 }
 
 .filaments-filters {
-  grid-template-columns: minmax(240px, 2fr) repeat(4, minmax(135px, 1fr));
-  margin-bottom: 22px;
+  grid-template-columns: minmax(260px, 2fr) repeat(5, minmax(128px, 1fr));
+  margin: 0;
+}
+
+.filaments-filters input,
+.filaments-filters select {
+  min-width: 0;
+  min-height: 44px;
 }
 
 .filaments-table-scroll,
@@ -567,7 +599,7 @@ body {
   background: #0f766e;
 }
 
-.filament-low-stock {
+.filament-stock-alert {
   display: inline-flex;
   align-items: center;
   min-height: 26px;
@@ -579,6 +611,12 @@ body {
   color: #92400e;
   font-size: 0.76rem;
   font-weight: 800;
+}
+
+.filament-stock-alert--empty {
+  border-color: #b91c1c;
+  color: #991b1b;
+  background: #fef2f2;
 }
 
 .filament-color-line {
@@ -596,19 +634,78 @@ body {
   border-radius: 50%;
 }
 
+.filament-color-line > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.filament-color-line small {
+  color: #475569;
+}
+
 .filament-row-actions,
 .filament-detail-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px;
 }
 
 .filament-row-actions button,
-.filament-detail-actions button {
-  width: auto;
-  min-height: 36px;
+.filament-detail-actions button,
+.filament-secondary-actions summary {
+  width: 100%;
+  min-height: 44px;
   padding: 7px 10px;
   font-size: 0.8rem;
+}
+
+.filament-secondary-actions {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.filament-secondary-actions summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  color: #0f4f4a;
+  background: #fff;
+  border: 1px solid #8fb9b5;
+  border-radius: 6px;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+
+.filament-secondary-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.filament-secondary-actions summary::after {
+  content: "⌄";
+  margin-left: 8px;
+  transition: transform 0.18s ease;
+}
+
+.filament-secondary-actions[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.filament-secondary-actions summary:hover {
+  background: #f0fdfa;
+}
+
+.filament-secondary-actions summary:focus-visible {
+  outline: 3px solid rgba(15, 118, 110, 0.3);
+  outline-offset: 2px;
+}
+
+.filament-secondary-actions > div {
+  display: grid;
+  gap: 7px;
+  margin-top: 7px;
 }
 
 .filament-detail-panel {
@@ -649,6 +746,7 @@ body {
 .filament-modal__content {
   width: min(920px, calc(100vw - 32px));
   max-height: min(92vh, 940px);
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -656,7 +754,55 @@ body {
 .filament-stock-modal__content {
   width: min(520px, calc(100vw - 32px));
   max-height: min(90vh, 680px);
+  overflow-x: hidden;
   overflow-y: auto;
+}
+
+.filament-stock-context {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 18px;
+  padding: 14px;
+  border-left: 4px solid #0f766e;
+  background: #f0fdfa;
+}
+
+.filament-stock-context strong {
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+
+.filament-stock-context span {
+  color: #475569;
+}
+
+.filament-stock-modal__content form {
+  display: grid;
+  gap: 14px;
+}
+
+.filament-stock-modal__content label,
+.filament-stock-modal__content select,
+.filament-stock-modal__content input,
+.filament-stock-modal__content textarea,
+.filament-stock-modal__content button {
+  min-width: 0;
+}
+
+.filament-stock-modal__content select,
+.filament-stock-modal__content input,
+.filament-stock-modal__content button {
+  min-height: 44px;
+}
+
+.filament-stock-modal__content .actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.filament-stock-modal__content .actions button {
+  width: 100%;
+  min-width: 0;
 }
 
 .filament-form-section {
@@ -724,18 +870,31 @@ body {
 }
 
 .filament-modal-actions {
-  position: sticky;
-  bottom: -1px;
-  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 20px -2px 0;
   padding: 14px 2px 2px;
   background: #fff;
   border-top: 1px solid #e2e8f0;
 }
 
+.filament-modal-actions button {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+}
+
 @media (max-width: 1100px) {
+  .filaments-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .filaments-filters {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filaments-filters .jobs-search-field {
+    grid-column: 1 / -1;
   }
 
   .filament-detail-grid {
@@ -755,7 +914,15 @@ body {
     width: 100%;
   }
 
-  .filaments-kpi-grid,
+  .filament-detail-actions,
+  .filament-stock-modal__content .actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .filament-stock-modal__content .actions button {
+    width: 100%;
+  }
+
   .filaments-filters,
   .filament-form-section .field-grid,
   .filament-detail-grid,
@@ -814,8 +981,7 @@ body {
   }
 
   .filament-row-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .filament-row-actions button {
@@ -833,11 +999,20 @@ body {
   .filament-form-section {
     padding: 14px;
   }
+
+  .filaments-filters-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filaments-filters-heading button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 390px) {
   .filaments-kpi-grid,
-  .filament-row-actions {
+  .filament-modal-actions {
     grid-template-columns: minmax(0, 1fr);
   }
 

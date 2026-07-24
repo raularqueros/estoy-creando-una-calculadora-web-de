@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
   <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
   <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
-  <link rel="stylesheet" href="styles.css?v=20260724-visible-language-v1">
+  <link rel="stylesheet" href="styles.css?v=20260724-filaments-ui-v1">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -1213,8 +1213,8 @@
     <section id="inventarioFilamentosPanel" class="panel result-panel filaments-panel">
       <div class="clients-heading filaments-heading">
         <div>
-          <p class="eyebrow" data-i18n="materiales">Materiales</p>
-          <h2 data-i18n="inventarioFilamentos">Inventario de filamentos</h2>
+          <p class="eyebrow" data-i18n="inventarioMateriales">Inventario de materiales</p>
+          <h2 data-i18n="misFilamentos">Mis filamentos</h2>
           <p class="help-text" data-i18n="filamentosDescripcion">Registra tus bobinas, controla el material disponible y utiliza su costo real por gramo.</p>
         </div>
         <button type="button" id="nuevaBobinaButton" data-i18n="nuevaBobina">+ Agregar bobina</button>
@@ -1222,47 +1222,57 @@
 
       <div id="filamentosResumen" class="jobs-kpi-grid filaments-kpi-grid" aria-live="polite"></div>
 
-      <div class="jobs-filters filaments-filters">
-        <label class="jobs-search-field" for="filamentosBusqueda"><span data-i18n="buscar">Buscar</span>
-          <input type="search" id="filamentosBusqueda" placeholder="Nombre, marca, material, color o ubicación" data-i18n-placeholder="buscarFilamentosPlaceholder">
-        </label>
-        <label for="filamentosEstadoFiltro"><span data-i18n="mostrar">Mostrar</span>
-          <select id="filamentosEstadoFiltro">
-            <option value="activas" data-i18n="activas">Activas</option>
-            <option value="todas" data-i18n="todas">Todas</option>
-            <option value="Sellada" data-i18n="selladas">Selladas</option>
-            <option value="En uso" data-i18n="enUso">En uso</option>
-            <option value="Agotada" data-i18n="agotadas">Agotadas</option>
-            <option value="Archivada" data-i18n="archivadas">Archivadas</option>
-            <option value="stock_bajo" data-i18n="stockBajo">Stock bajo</option>
-          </select>
-        </label>
-        <label for="filamentosMaterialFiltro">Material
-          <select id="filamentosMaterialFiltro"><option value="">Todos</option></select>
-        </label>
-        <label for="filamentosMarcaFiltro">Marca
-          <select id="filamentosMarcaFiltro"><option value="">Todas</option></select>
-        </label>
-        <label for="filamentosOrden">Ordenar
-          <select id="filamentosOrden">
-            <option value="recientes">Más recientes</option>
-            <option value="nombre">Nombre</option>
-            <option value="menor_stock">Menor stock</option>
-            <option value="mayor_stock">Mayor stock</option>
-            <option value="mayor_costo">Mayor costo por gramo</option>
-            <option value="material">Material</option>
-            <option value="marca">Marca</option>
-          </select>
-        </label>
+      <div class="filaments-filters-card">
+        <div class="filaments-filters-heading">
+          <h3 data-i18n="filtros">Filtros</h3>
+          <button type="button" id="limpiarFiltrosFilamentosButton" class="secondary" data-i18n="limpiarFiltros">Limpiar filtros</button>
+        </div>
+        <div class="jobs-filters filaments-filters">
+          <label class="jobs-search-field" for="filamentosBusqueda"><span data-i18n="buscar">Buscar</span>
+            <input type="search" id="filamentosBusqueda" placeholder="Nombre, marca, material, color, lote o ubicación" data-i18n-placeholder="buscarFilamentosPlaceholder">
+          </label>
+          <label for="filamentosMaterialFiltro"><span data-i18n="material">Material</span>
+            <select id="filamentosMaterialFiltro"><option value="" data-i18n="todos">Todos</option></select>
+          </label>
+          <label for="filamentosEstadoFiltro"><span data-i18n="estado">Estado</span>
+            <select id="filamentosEstadoFiltro">
+              <option value="activas" data-i18n="activas">Activas</option>
+              <option value="todas" data-i18n="todas">Todas</option>
+              <option value="Sellada" data-i18n="selladas">Selladas</option>
+              <option value="En uso" data-i18n="enUso">En uso</option>
+              <option value="Agotada" data-i18n="agotadas">Agotadas</option>
+              <option value="Archivada" data-i18n="archivadas">Archivadas</option>
+            </select>
+          </label>
+          <label for="filamentosStockFiltro"><span data-i18n="stock">Stock</span>
+            <select id="filamentosStockFiltro">
+              <option value="todas" data-i18n="todas">Todas</option>
+              <option value="disponibles" data-i18n="disponibles">Disponibles</option>
+              <option value="stock_bajo" data-i18n="stockBajo">Stock bajo</option>
+              <option value="agotadas" data-i18n="agotadas">Agotadas</option>
+            </select>
+          </label>
+          <label for="filamentosMarcaFiltro"><span data-i18n="marca">Marca</span>
+            <select id="filamentosMarcaFiltro"><option value="" data-i18n="todas">Todas</option></select>
+          </label>
+          <label for="filamentosOrden"><span data-i18n="ordenar">Ordenar</span>
+            <select id="filamentosOrden">
+              <option value="nombre" data-i18n="nombre">Nombre</option>
+              <option value="recientes" data-i18n="masRecientes">Más recientes</option>
+              <option value="menor_stock" data-i18n="menorStock">Menor stock</option>
+              <option value="mayor_stock" data-i18n="mayorStock">Mayor stock</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <div id="filamentosListado" class="filaments-list"></div>
       <section id="filamentoDetallePanel" class="client-detail-panel filament-detail-panel" aria-live="polite" hidden></section>
 
       <div class="actions clients-data-actions">
-        <button type="button" id="exportarFilamentosCsvButton" class="secondary">Exportar inventario CSV</button>
-        <button type="button" id="exportarFilamentosJsonButton" class="secondary">Exportar inventario JSON</button>
-        <button type="button" id="importarFilamentosButton" class="secondary">Importar inventario JSON</button>
+        <button type="button" id="exportarFilamentosCsvButton" class="secondary" data-i18n="exportarInventarioCsv">Exportar inventario CSV</button>
+        <button type="button" id="exportarFilamentosJsonButton" class="secondary" data-i18n="exportarInventarioJson">Exportar inventario JSON</button>
+        <button type="button" id="importarFilamentosButton" class="secondary" data-i18n="importarInventarioJson">Importar inventario JSON</button>
         <input type="file" id="importarFilamentosInput" accept="application/json,.json" hidden>
       </div>
       <p id="filamentosMessage" class="help-text" role="status"></p>
@@ -1697,120 +1707,127 @@
   <div id="filamentoModal" class="job-modal" hidden>
     <div class="job-modal__backdrop" data-filament-close></div>
     <section class="job-modal__content filament-modal__content" role="dialog" aria-modal="true" aria-labelledby="filamentoModalTitle">
-      <button type="button" class="job-modal__close" data-filament-close aria-label="Cerrar formulario">×</button>
-      <h2 id="filamentoModalTitle">Agregar bobina</h2>
+      <button type="button" class="job-modal__close" data-filament-close aria-label="Cerrar formulario" data-i18n-aria-label="cerrarFormulario">×</button>
+      <h2 id="filamentoModalTitle" data-i18n="agregarBobina">Agregar bobina</h2>
       <form id="filamentoForm" novalidate>
         <input type="hidden" id="filamentoFormId">
 
         <fieldset class="filament-form-section">
-          <legend>Identificación</legend>
+          <legend data-i18n="identificacion">Identificación</legend>
           <div class="field-grid">
-            <label for="filamentoNombre">Nombre personalizado
-              <input type="text" id="filamentoNombre" placeholder="Ej: PLA negro para producción">
+            <label for="filamentoNombre"><span data-i18n="nombrePersonalizado">Nombre personalizado</span>
+              <input type="text" id="filamentoNombre" placeholder="Ej: PLA negro para producción" data-i18n-placeholder="nombreFilamentoPlaceholder">
             </label>
-            <label for="filamentoMarca">Marca
+            <label for="filamentoMarca"><span data-i18n="marca">Marca</span>
               <input type="text" id="filamentoMarca">
             </label>
-            <label for="filamentoMaterial">Material *</label>
-            <select id="filamentoMaterial" required aria-describedby="error-filamento-material"></select>
-            <span class="field-error" id="error-filamento-material" data-filament-error="materialNombre"></span>
-            <label for="filamentoVariante">Variante
-              <input type="text" id="filamentoVariante" placeholder="Ej: alta velocidad">
+            <label for="filamentoMaterial"><span data-i18n="materialObligatorio">Material *</span>
+              <select id="filamentoMaterial" required aria-describedby="error-filamento-material"></select>
+              <span class="field-error" id="error-filamento-material" data-filament-error="materialNombre"></span>
             </label>
-            <label for="filamentoColorNombre">Color
-              <input type="text" id="filamentoColorNombre" placeholder="Ej: Negro mate">
+            <label for="filamentoVariante"><span data-i18n="variante">Variante</span>
+              <input type="text" id="filamentoVariante" placeholder="Ej: alta velocidad" data-i18n-placeholder="varianteFilamentoPlaceholder">
             </label>
-            <label for="filamentoColorHex">Color visual opcional
+            <label for="filamentoColorNombre"><span data-i18n="color">Color</span>
+              <input type="text" id="filamentoColorNombre" placeholder="Ej: Negro mate" data-i18n-placeholder="colorFilamentoPlaceholder">
+            </label>
+            <label for="filamentoColorHex"><span data-i18n="colorVisualOpcional">Color visual opcional</span>
               <input type="color" id="filamentoColorHex" value="#111827">
             </label>
-            <label for="filamentoDiametro">Diámetro
+            <label for="filamentoDiametro"><span data-i18n="diametro">Diámetro</span>
               <select id="filamentoDiametro">
                 <option value="1.75">1,75 mm</option>
                 <option value="2.85">2,85 mm</option>
-                <option value="Otro">Otro</option>
+                <option value="Otro" data-i18n="otro">Otro</option>
               </select>
             </label>
           </div>
         </fieldset>
 
         <fieldset class="filament-form-section">
-          <legend>Peso y stock</legend>
+          <legend data-i18n="pesoYStock">Peso y stock</legend>
           <div class="field-grid">
-            <label for="filamentoPesoInicial">Peso neto inicial (g) *
+            <label for="filamentoPesoInicial"><span data-i18n="pesoNetoInicialObligatorio">Peso neto inicial (g) *</span>
               <input type="number" id="filamentoPesoInicial" min="0.01" step="any" value="1000" required aria-describedby="error-filamento-peso">
               <span class="field-error" id="error-filamento-peso" data-filament-error="pesoNetoInicialGramos"></span>
             </label>
-            <label for="filamentoPesoRestante">Peso restante (g)
+            <label for="filamentoPesoRestante"><span data-i18n="pesoRestanteGramos">Peso restante (g)</span>
               <input type="number" id="filamentoPesoRestante" min="0" step="any" value="1000">
             </label>
-            <label for="filamentoTara">Tara de la bobina (g)
+            <label for="filamentoTara"><span data-i18n="taraBobina">Tara de la bobina (g)</span>
               <input type="number" id="filamentoTara" min="0" step="any">
-              <small class="help-text">Si pesas la bobina completa, resta la tara para estimar cuánto filamento queda.</small>
+              <small class="help-text" data-i18n="taraBobinaAyuda">Si pesas la bobina completa, resta la tara para estimar cuánto filamento queda.</small>
             </label>
-            <label for="filamentoStockMinimo">Stock mínimo (g)
+            <label for="filamentoStockMinimo"><span data-i18n="stockMinimoGramos">Stock mínimo (g)</span>
               <input type="number" id="filamentoStockMinimo" min="0" step="any" value="200">
             </label>
           </div>
           <div class="filament-weight-tool">
-            <label for="filamentoPesoMedido">Peso total medido (g)
+            <label for="filamentoPesoMedido"><span data-i18n="pesoTotalMedido">Peso total medido (g)</span>
               <input type="number" id="filamentoPesoMedido" min="0" step="any">
             </label>
-            <div aria-live="polite"><span>Peso restante estimado</span><strong id="filamentoPesoEstimado">—</strong></div>
-            <button type="button" id="aplicarPesoEstimadoButton" class="secondary compact-button" disabled>Aplicar estimación</button>
+            <div aria-live="polite"><span data-i18n="pesoRestanteEstimado">Peso restante estimado</span><strong id="filamentoPesoEstimado">—</strong></div>
+            <button type="button" id="aplicarPesoEstimadoButton" class="secondary compact-button" disabled data-i18n="aplicarEstimacion">Aplicar estimación</button>
           </div>
         </fieldset>
 
         <fieldset class="filament-form-section">
-          <legend>Costo</legend>
-          <label for="filamentoModoCosto">¿Cómo quieres ingresar el costo?</label>
+          <legend data-i18n="costo">Costo</legend>
+          <label for="filamentoModoCosto" data-i18n="modoIngresoCosto">¿Cómo quieres ingresar el costo?</label>
           <select id="filamentoModoCosto" aria-describedby="error-filamento-modo">
-            <option value="precio_total">Precio total de la bobina</option>
-            <option value="precio_kilo">Precio por kilo</option>
+            <option value="precio_total" data-i18n="precioTotalBobina">Precio total de la bobina</option>
+            <option value="precio_kilo" data-i18n="precioPorKilo">Precio por kilo</option>
           </select>
           <span class="field-error" id="error-filamento-modo" data-filament-error="modoCosto"></span>
           <div class="field-grid filament-cost-fields">
-            <label id="filamentoPrecioTotalGrupo" for="filamentoPrecioTotal">Precio total de la bobina *
+            <label id="filamentoPrecioTotalGrupo" for="filamentoPrecioTotal"><span data-i18n="precioTotalBobinaObligatorio">Precio total de la bobina *</span>
               <input type="number" id="filamentoPrecioTotal" min="0" step="any" aria-describedby="error-filamento-precio-total">
               <span class="field-error" id="error-filamento-precio-total" data-filament-error="precioCompraTotal"></span>
             </label>
-            <label id="filamentoPrecioKiloGrupo" for="filamentoPrecioKilo" hidden>Precio por kilo *
+            <label id="filamentoPrecioKiloGrupo" for="filamentoPrecioKilo" hidden><span data-i18n="precioPorKiloObligatorio">Precio por kilo *</span>
               <input type="number" id="filamentoPrecioKilo" min="0" step="any" aria-describedby="error-filamento-precio-kilo">
               <span class="field-error" id="error-filamento-precio-kilo" data-filament-error="precioPorKilo"></span>
             </label>
-            <label for="filamentoMoneda">Moneda de compra *</label>
-            <select id="filamentoMoneda" required aria-describedby="error-filamento-moneda"></select>
-            <span class="field-error" id="error-filamento-moneda" data-filament-error="monedaCompra"></span>
+            <label for="filamentoMoneda"><span data-i18n="monedaCompraObligatoria">Moneda de compra *</span>
+              <select id="filamentoMoneda" required aria-describedby="error-filamento-moneda"></select>
+              <span class="field-error" id="error-filamento-moneda" data-filament-error="monedaCompra"></span>
+            </label>
           </div>
-          <aside class="filament-cost-preview" aria-live="polite">
-            <span>Costo por gramo calculado</span>
-            <strong id="filamentoCostoGramoPreview">—</strong>
-            <small>El costo por gramo se calcula usando el precio y el peso neto del filamento, sin incluir el peso de la bobina.</small>
-          </aside>
         </fieldset>
 
         <fieldset class="filament-form-section">
-          <legend>Compra y organización</legend>
+          <legend data-i18n="compraOrganizacion">Compra y organización</legend>
           <div class="field-grid">
-            <label for="filamentoProveedor">Proveedor<input type="text" id="filamentoProveedor"></label>
-            <label for="filamentoLote">Lote o SKU<input type="text" id="filamentoLote"></label>
-            <label for="filamentoUbicacion">Ubicación<input type="text" id="filamentoUbicacion"></label>
-            <label for="filamentoFechaCompra">Fecha de compra<input type="date" id="filamentoFechaCompra"></label>
-            <label for="filamentoFechaApertura">Fecha de apertura<input type="date" id="filamentoFechaApertura"></label>
-            <label for="filamentoEstado">Estado
+            <label for="filamentoProveedor"><span data-i18n="proveedor">Proveedor</span><input type="text" id="filamentoProveedor"></label>
+            <label for="filamentoLote"><span data-i18n="loteSku">Lote o SKU</span><input type="text" id="filamentoLote"></label>
+            <label for="filamentoUbicacion"><span data-i18n="ubicacion">Ubicación</span><input type="text" id="filamentoUbicacion"></label>
+            <label for="filamentoFechaCompra"><span data-i18n="fechaCompra">Fecha de compra</span><input type="date" id="filamentoFechaCompra"></label>
+            <label for="filamentoFechaApertura"><span data-i18n="fechaApertura">Fecha de apertura</span><input type="date" id="filamentoFechaApertura"></label>
+            <label for="filamentoEstado"><span data-i18n="estado">Estado</span>
               <select id="filamentoEstado">
-                <option>Sellada</option><option>En uso</option><option>Agotada</option><option>Archivada</option>
+                <option data-i18n="sellada">Sellada</option><option data-i18n="enUso">En uso</option><option data-i18n="agotada">Agotada</option><option data-i18n="archivada">Archivada</option>
               </select>
             </label>
           </div>
-          <label class="field-wide" for="filamentoNotas">Notas
+        </fieldset>
+
+        <fieldset class="filament-form-section">
+          <legend data-i18n="notas">Notas</legend>
+          <label class="field-wide" for="filamentoNotas"><span data-i18n="notas">Notas</span>
             <textarea id="filamentoNotas" rows="3"></textarea>
           </label>
         </fieldset>
 
+        <aside class="filament-cost-preview" aria-live="polite">
+          <span data-i18n="costoGramoCalculado">Costo por gramo calculado</span>
+          <strong id="filamentoCostoGramoPreview">—</strong>
+          <small data-i18n="costoGramoAyuda">El costo por gramo se calcula usando el precio y el peso neto del filamento, sin incluir el peso de la bobina.</small>
+        </aside>
+
         <p id="filamentoFormMessage" class="help-text" role="alert"></p>
         <div class="actions filament-modal-actions">
-          <button type="submit">Guardar bobina</button>
-          <button type="button" class="secondary" data-filament-close>Cancelar</button>
+          <button type="submit" data-i18n="guardarBobina">Guardar bobina</button>
+          <button type="button" class="secondary" data-filament-close data-i18n="cancelar">Cancelar</button>
         </div>
       </form>
     </section>
@@ -1819,28 +1836,33 @@
   <div id="filamentoStockModal" class="job-modal" hidden>
     <div class="job-modal__backdrop" data-stock-close></div>
     <section class="job-modal__content filament-stock-modal__content" role="dialog" aria-modal="true" aria-labelledby="filamentoStockModalTitle">
-      <button type="button" class="job-modal__close" data-stock-close aria-label="Cerrar ajuste de stock">×</button>
-      <h2 id="filamentoStockModalTitle">Ajustar stock</h2>
+      <button type="button" class="job-modal__close" data-stock-close aria-label="Cerrar ajuste de stock" data-i18n-aria-label="cerrarAjusteStock">×</button>
+      <h2 id="filamentoStockModalTitle" data-i18n="ajustarStock">Ajustar stock</h2>
       <form id="filamentoStockForm" novalidate>
         <input type="hidden" id="filamentoStockId">
-        <label for="filamentoStockTipo">Tipo de ajuste
+        <div class="filament-stock-context">
+          <strong id="filamentoStockNombre"></strong>
+          <span id="filamentoStockActual"></span>
+        </div>
+        <label for="filamentoStockTipo"><span data-i18n="tipoMovimiento">Tipo de movimiento</span>
           <select id="filamentoStockTipo">
-            <option value="consumo_manual">Registrar consumo</option>
-            <option value="correccion">Establecer peso restante</option>
-            <option value="ajuste_entrada">Registrar entrada</option>
-            <option value="ajuste_salida">Registrar salida</option>
+            <option value="consumo_manual" data-i18n="registrarConsumo">Registrar consumo</option>
+            <option value="correccion" data-i18n="establecerPesoRestante">Establecer peso restante</option>
+            <option value="ajuste_entrada" data-i18n="registrarEntrada">Registrar entrada</option>
+            <option value="ajuste_salida" data-i18n="registrarSalida">Registrar salida</option>
           </select>
         </label>
+        <p id="filamentoStockTipoAyuda" class="help-text"></p>
         <label for="filamentoStockCantidad"><span id="filamentoStockCantidadLabel">Cantidad (g)</span>
           <input type="number" id="filamentoStockCantidad" min="0" step="any" required>
         </label>
-        <label for="filamentoStockNota">Nota
+        <label for="filamentoStockNota"><span data-i18n="nota">Nota</span>
           <textarea id="filamentoStockNota" rows="3"></textarea>
         </label>
         <p id="filamentoStockMessage" class="help-text" role="alert"></p>
         <div class="actions">
-          <button type="submit">Guardar ajuste</button>
-          <button type="button" class="secondary" data-stock-close>Cancelar</button>
+          <button type="submit" data-i18n="guardarAjuste">Guardar ajuste</button>
+          <button type="button" class="secondary" data-stock-close data-i18n="cancelar">Cancelar</button>
         </div>
       </form>
     </section>
@@ -1903,7 +1925,7 @@
   <script src="js/printer-catalog.js?v=20260715-catalog-v1"></script>
   <script src="js/printers.js?v=20260715-printers-v2"></script>
   <script src="js/geolocation.js"></script>
-  <script src="js/i18n.js?v=20260724-visible-language-v1"></script>
+  <script src="js/i18n.js?v=20260724-filaments-ui-v1"></script>
   <script src="js/presets.js?v=20260724-i18n-fix-v1"></script>
   <script src="js/filaments.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/comparator.js"></script>
@@ -1918,7 +1940,7 @@
   <script src="js/navigation.js?v=20260724-i18n-fix-v1"></script>
   <script src="js/clients-dashboard.js?v=20260724-i18n-fix-v1"></script>
   <script src="js/printers-dashboard.js?v=20260724-printers-ui-v1"></script>
-  <script src="js/filaments-dashboard.js?v=20260724-i18n-fix-v1"></script>
+  <script src="js/filaments-dashboard.js?v=20260724-filaments-ui-v1"></script>
   <script src="js/quotes-dashboard.js?v=20260724-professional-quote-v1"></script>
   <script src="js/reports-dashboard.js?v=20260724-i18n-fix-v1"></script>
   <script src="app.js?v=20260724-visible-language-v1"></script>
