@@ -5455,15 +5455,50 @@ body.modal-open {
 }
 
 /* Editor de cotizaciones comerciales v2 */
+.client-quote-panel,
+.client-quote-panel > *,
+.quote-commercial-editor,
+.quote-commercial-editor > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.quote-builder-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.quote-builder-heading .eyebrow {
+  margin-bottom: 4px;
+}
+
+.quote-builder-heading h2,
+.quote-finalize-card h3 {
+  margin: 0;
+}
+
+.quote-builder-heading .help-text {
+  max-width: 680px;
+  margin: 7px 0 0;
+}
+
+.quote-builder-heading > button {
+  flex: 0 0 auto;
+  min-width: 170px;
+}
+
 .quote-commercial-editor {
   display: grid;
   gap: 18px;
-  margin: 22px 0;
+  margin: 0 0 18px;
 }
 
 .quote-editor-block {
   border: 1px solid var(--border, #cbd8df);
-  border-radius: 8px;
+  border-radius: 10px;
   background: #fff;
   padding: 18px;
 }
@@ -5480,6 +5515,32 @@ body.modal-open {
 .quote-editor-title h3,
 .quote-editor-section-heading h3 {
   margin: 2px 0 0;
+}
+
+.quote-editor-identity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.quote-number {
+  overflow-wrap: anywhere;
+  color: var(--primary-dark);
+  font-weight: 800;
+}
+
+.quote-main-fields {
+  grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(130px, 0.7fr));
+}
+
+.quote-save-actions {
+  justify-content: flex-end;
+}
+
+.quote-save-actions button {
+  min-width: 190px;
 }
 
 .quote-editor-section-heading p {
@@ -5553,13 +5614,40 @@ body.modal-open {
 }
 
 .quote-item-actions .compact-button {
-  min-height: 36px;
+  min-height: 44px;
   padding: 6px 9px;
   font-size: 0.8rem;
 }
 
 .quote-items-cards {
   display: none;
+}
+
+.quote-items-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 32px 20px;
+  color: var(--muted);
+  background: var(--soft);
+  border: 1px dashed #b6c8d0;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.quote-items-empty strong {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.quote-items-empty p {
+  max-width: 540px;
+  margin: 0;
+}
+
+.quote-items-empty .actions {
+  justify-content: center;
+  margin-top: 8px;
 }
 
 .quote-item-card {
@@ -5610,11 +5698,34 @@ body.modal-open {
   background: #f7fafb;
 }
 
+.quote-editor-commerce-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 360px);
+  gap: 18px;
+  align-items: start;
+}
+
+.quote-products-editor {
+  min-width: 0;
+}
+
 .quote-commercial-totals {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.55fr);
-  gap: 24px;
-  align-items: start;
+  gap: 16px;
+  min-width: 0;
+}
+
+.quote-commercial-totals h3 {
+  margin: 0;
+}
+
+.quote-commercial-totals > div > .help-text {
+  margin: 5px 0 0;
+}
+
+.quote-total-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .quote-totals-summary {
@@ -5655,6 +5766,9 @@ body.modal-open {
 }
 
 .quote-conditions-editor summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   cursor: pointer;
   font-weight: 750;
 }
@@ -5681,6 +5795,47 @@ body.modal-open {
   color: var(--muted);
   font-size: 0.84rem;
   text-align: center;
+}
+
+.quote-finalize-card {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 118, 110, 0.32);
+  border-radius: 10px;
+  box-shadow: 0 8px 22px rgba(15, 118, 110, 0.08);
+}
+
+.quote-finalize-card__heading .help-text {
+  margin: 5px 0 0;
+}
+
+.quote-finalize-card .quote-actions {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.15fr) repeat(2, minmax(170px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.quote-finalize-card .quote-actions button {
+  width: 100%;
+  min-width: 0;
+}
+
+.quote-finalize-card .print-help {
+  margin: 0;
+}
+
+@media (max-width: 1180px) {
+  .quote-editor-commerce-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .quote-main-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -5716,10 +5871,6 @@ body.modal-open {
     gap: 12px;
   }
 
-  .quote-commercial-totals {
-    grid-template-columns: 1fr;
-  }
-
   .quote-item-actions button {
     flex: 1 1 auto;
   }
@@ -5727,6 +5878,36 @@ body.modal-open {
   .quotes-table-wrap {
     overflow-x: auto;
     overscroll-behavior-inline: contain;
+  }
+
+  .quote-finalize-card .quote-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .quote-builder-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .quote-builder-heading > button,
+  .quote-save-actions button,
+  .quote-items-empty .actions,
+  .quote-items-empty .actions button,
+  .quote-item-form .actions,
+  .quote-item-form .actions button {
+    width: 100%;
+  }
+
+  .quote-main-fields,
+  .quote-total-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .quote-editor-identity {
+    justify-content: flex-start;
   }
 }
 
@@ -5739,6 +5920,8 @@ body.modal-open {
 @media print {
   .quote-commercial-editor,
   .quotes-panel,
+  #cotizacionClientePanel > .quote-builder-heading,
+  #cotizacionClientePanel > .quote-finalize-card,
   #cotizacionClientePanel > .quote-actions,
   #cotizacionClientePanel > .print-help,
   #cotizacionClientePanel > #cotizacionMessage {

@@ -22,6 +22,11 @@
     Servicio: "tipoServicio", "Descuento de línea": "tipoDescuentoLinea", Otro: "otro"
   }[tipo]);
   const tipoVisible = (tipo) => t(claveTipo(tipo) || "otro");
+  const origenVisible = (origen) => t({
+    calculo: "origenCalculo",
+    trabajo: "origenTrabajo",
+    manual: "origenManual"
+  }[origen] || "origenManual");
   const escapar = (valor) => String(valor ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -128,7 +133,7 @@
   function filaItem(item, indice, total) {
     return `
       <tr data-quote-item-id="${escapar(item.id)}">
-        <td><strong>${escapar(item.descripcion)}</strong><small>${escapar(tipoVisible(item.tipo))} · ${escapar(item.origen)}${item.detalle ? `<br>${escapar(item.detalle)}` : ""}</small></td>
+        <td><strong>${escapar(item.descripcion)}</strong><small>${escapar(tipoVisible(item.tipo))} · ${escapar(origenVisible(item.origen))}${item.detalle ? `<br>${escapar(item.detalle)}` : ""}</small></td>
         <td>${item.cantidad}</td>
         <td>${moneda(item.precioUnitario)}</td>
         <td><strong>${item.tipo === "Descuento de línea" ? "−" : ""}${moneda(item.totalLinea)}</strong></td>
@@ -147,7 +152,7 @@
   function tarjetaItem(item, indice, total) {
     return `
       <article class="quote-item-card" data-quote-item-id="${escapar(item.id)}">
-        <div><span>${escapar(tipoVisible(item.tipo))}</span><strong>${escapar(item.descripcion)}</strong><small>${escapar(item.detalle || item.origen)}</small></div>
+        <div><span>${escapar(tipoVisible(item.tipo))}</span><strong>${escapar(item.descripcion)}</strong><small>${escapar(item.detalle || origenVisible(item.origen))}</small></div>
         <dl><div><dt>${escapar(t("cantidad"))}</dt><dd>${item.cantidad}</dd></div><div><dt>${escapar(t("precioUnitario"))}</dt><dd>${moneda(item.precioUnitario)}</dd></div><div><dt>${escapar(t("total"))}</dt><dd>${item.tipo === "Descuento de línea" ? "−" : ""}${moneda(item.totalLinea)}</dd></div></dl>
         <div class="quote-item-actions">
           <button type="button" class="secondary compact-button" data-quote-action="editar-item">${escapar(t("editar"))}</button>
@@ -164,7 +169,15 @@
     if (!contenedor || !cotizacionActual) return;
     const items = cotizacionActual.items;
     if (!items.length) {
-      contenedor.innerHTML = `<p class="empty-state">${escapar(t("sinItemsCotizacion"))}</p>`;
+      contenedor.innerHTML = `
+        <div class="quote-items-empty">
+          <strong>${escapar(t("sinItemsCotizacion"))}</strong>
+          <p>${escapar(t("sinItemsCotizacionAyuda"))}</p>
+          <div class="actions">
+            <button type="button" data-quote-action="agregar-calculo">${escapar(t("agregarCalculoActual"))}</button>
+            <button type="button" class="secondary" data-quote-action="mostrar-item-form">${escapar(t("agregarProductoServicio"))}</button>
+          </div>
+        </div>`;
       actualizarBotonesVista();
       return;
     }
@@ -189,8 +202,8 @@
         <div class="quote-total-final"><dt>${escapar(t("totalFinal"))}</dt><dd>${moneda(total.totalFinal)}</dd></div>
         ${total.montoAbono > 0 ? `<div><dt>${escapar(t("abonoRequerido"))}</dt><dd>${moneda(total.montoAbono)}</dd></div><div><dt>${escapar(t("saldo"))}</dt><dd>${moneda(total.saldo)}</dd></div>` : ""}
       </dl>
-      ${total.descuentoExcedeSubtotal ? '<p class="warning-message">El descuento supera el subtotal. El total se mantiene en cero antes de sumar el envío.</p>' : ""}
-      <p class="help-text">${cotizacionActual.items.every((item) => item.precioIncluyeImpuesto) ? "Impuestos incluidos en los precios comerciales." : "Revisa las líneas marcadas sin impuesto incluido."}</p>`;
+      ${total.descuentoExcedeSubtotal ? `<p class="warning-message">${escapar(t("descuentoSuperaSubtotal"))}</p>` : ""}
+      <p class="help-text">${escapar(cotizacionActual.items.every((item) => item.precioIncluyeImpuesto) ? t("impuestosIncluidosComerciales") : t("revisarLineasSinImpuesto"))}</p>`;
   }
 
   function renderizarEditor() {
@@ -201,44 +214,55 @@
       editor = document.createElement("div");
       editor.id = "quoteCommercialEditor";
       editor.className = "quote-commercial-editor";
-      panel.querySelector(".quote-actions")?.before(editor);
+      panel.querySelector(".quote-finalize-card")?.before(editor);
     }
 
     editor.innerHTML = `
-      <section class="quote-editor-block quote-editor-header">
-        <div class="quote-editor-title"><div><p class="eyebrow">${escapar(t("borradorComercial"))}</p><h3>${escapar(cotizacionActual.numeroCotizacion)}</h3></div><span class="quote-status-badge">${escapar(estadoVisible(cotizacionActual.estado))}</span></div>
-        <div class="field-grid">
+      <section class="quote-editor-block quote-editor-header" aria-labelledby="quoteMainInfoTitle">
+        <div class="quote-editor-title">
+          <div>
+            <p class="eyebrow">${escapar(t("borradorComercial"))}</p>
+            <h3 id="quoteMainInfoTitle">${escapar(t("informacionPrincipal"))}</h3>
+          </div>
+          <div class="quote-editor-identity">
+            <span class="quote-number">${escapar(cotizacionActual.numeroCotizacion)}</span>
+            <span class="quote-status-badge">${escapar(estadoVisible(cotizacionActual.estado))}</span>
+          </div>
+        </div>
+        <div class="field-grid quote-main-fields">
           <label>${escapar(t("clienteGuardado"))}<select id="quoteClienteId">${opcionesClientes(cotizacionActual.clienteId)}</select></label>
           <label>${escapar(t("fecha"))}<input type="text" value="${escapar(fecha(cotizacionActual.fechaCreacion))}" readonly></label>
           <label>${escapar(t("validezCotizacionDias"))}<input type="number" id="quoteValidez" min="0" value="${cotizacionActual.validezDias}"></label>
           <label>${escapar(t("estado"))}<select id="quoteEstado">${opcionesEstados(cotizacionActual.estado)}</select></label>
         </div>
-        <div class="actions">
+        <div class="actions quote-save-actions">
           <button type="button" data-quote-action="guardar">${escapar(t("guardarBorrador"))}</button>
-          <button type="button" class="secondary" data-quote-action="nueva">${escapar(t("navCotizacionClienteTitulo"))}</button>
         </div>
       </section>
 
-      <section class="quote-editor-block">
-        <div class="quote-editor-section-heading"><div><h3>${escapar(t("productosServicios"))}</h3><p>${escapar(t("productosServiciosAyuda"))}</p></div><div class="actions"><button type="button" data-quote-action="agregar-calculo">${escapar(t("agregarCalculoActual"))}</button><button type="button" class="secondary" data-quote-action="mostrar-item-form">${escapar(t("agregarProductoServicio"))}</button></div></div>
-        <div id="quoteItemsEditor"></div>
-        <form id="quoteItemForm" class="quote-item-form" hidden>
-          <input type="hidden" id="quoteItemId">
-          <div class="field-grid">
-            <label>${escapar(t("tipo"))}<select id="quoteItemTipo">${opcionesTipos()}</select></label>
-            <label>${escapar(t("descripcion"))}<input type="text" id="quoteItemDescripcion" required></label>
-            <label class="field-wide">${escapar(t("detalleOpcional"))}<textarea id="quoteItemDetalle" rows="2"></textarea></label>
-            <label>${escapar(t("cantidad"))}<input type="number" id="quoteItemCantidad" min="0" step="any" value="1" required></label>
-            <label>${escapar(t("precioUnitario"))}<input type="number" id="quoteItemPrecio" min="0" step="any" value="0" required></label>
-          </div>
-          <div class="actions"><button type="submit">${escapar(t("guardarLinea"))}</button><button type="button" class="secondary" data-quote-action="cancelar-item">${escapar(t("cancelar"))}</button></div>
-        </form>
-      </section>
+      <div class="quote-editor-commerce-grid">
+        <section class="quote-editor-block quote-products-editor" aria-labelledby="quoteProductsTitle">
+          <div class="quote-editor-section-heading"><div><h3 id="quoteProductsTitle">${escapar(t("productosServicios"))}</h3><p>${escapar(t("productosServiciosAyuda"))}</p></div><div class="actions"><button type="button" data-quote-action="agregar-calculo">${escapar(t("agregarCalculoActual"))}</button><button type="button" class="secondary" data-quote-action="mostrar-item-form">${escapar(t("agregarProductoServicio"))}</button></div></div>
+          <div id="quoteItemsEditor"></div>
+          <form id="quoteItemForm" class="quote-item-form" hidden>
+            <input type="hidden" id="quoteItemId">
+            <div class="field-grid">
+              <label>${escapar(t("tipo"))}<select id="quoteItemTipo">${opcionesTipos()}</select></label>
+              <label>${escapar(t("descripcion"))}<input type="text" id="quoteItemDescripcion" required></label>
+              <label class="field-wide">${escapar(t("detalleOpcional"))}<textarea id="quoteItemDetalle" rows="2"></textarea></label>
+              <label>${escapar(t("cantidad"))}<input type="number" id="quoteItemCantidad" min="0" step="any" value="1" required></label>
+              <label>${escapar(t("precioUnitario"))}<input type="number" id="quoteItemPrecio" min="0" step="any" value="0" required></label>
+            </div>
+            <div class="actions"><button type="submit">${escapar(t("guardarLinea"))}</button><button type="button" class="secondary" data-quote-action="cancelar-item">${escapar(t("cancelar"))}</button></div>
+          </form>
+        </section>
 
-      <section class="quote-editor-block quote-commercial-totals">
-        <div>
-          <h3>${escapar(t("totalesComerciales"))}</h3>
-          <div class="field-grid">
+        <aside class="quote-editor-block quote-commercial-totals" aria-labelledby="quoteTotalsTitle">
+          <div>
+            <h3 id="quoteTotalsTitle">${escapar(t("resumenComercial"))}</h3>
+            <p class="help-text">${escapar(t("resumenComercialAyuda"))}</p>
+          </div>
+          <div class="field-grid quote-total-controls">
             <label>${escapar(t("descuento"))}<select id="quoteDescuentoTipo"><option value="sin" ${cotizacionActual.descuento.tipo === "sin" ? "selected" : ""}>${escapar(t("sinDescuento"))}</option><option value="porcentaje" ${cotizacionActual.descuento.tipo === "porcentaje" ? "selected" : ""}>${escapar(t("porcentaje"))}</option><option value="monto" ${cotizacionActual.descuento.tipo === "monto" ? "selected" : ""}>${escapar(t("montoFijo"))}</option></select></label>
             <label>${escapar(t("valorDescuento"))}<input type="number" id="quoteDescuentoValor" min="0" step="any" value="${cotizacionActual.descuento.valor}"></label>
             <label>${escapar(t("envioAdicional"))}<input type="number" id="quoteEnvio" min="0" step="any" value="${cotizacionActual.envio}"></label>
@@ -246,9 +270,9 @@
             <label>${escapar(t("porcentajeAbono"))}<input type="number" id="quoteAbonoPorcentaje" min="0" max="100" step="any" value="${cotizacionActual.porcentajeAbono}"></label>
             <label>${escapar(t("montoAbono"))}<input type="number" id="quoteAbonoMonto" min="0" step="any" value="${cotizacionActual.montoAbono}"></label>
           </div>
-        </div>
-        <div id="quoteTotalsSummary" class="quote-totals-summary"></div>
-      </section>
+          <div id="quoteTotalsSummary" class="quote-totals-summary"></div>
+        </aside>
+      </div>
 
       <details class="quote-editor-block quote-conditions-editor">
         <summary>${escapar(t("condicionesObservaciones"))}</summary>
@@ -297,7 +321,7 @@
   function guardarActual(mostrar = true) {
     leerEditor();
     if (!cotizacionActual?.items.length) {
-      if (mostrar) mensaje("Agrega al menos un producto o servicio antes de guardar.", true);
+      if (mostrar) mensaje(t("agregaLineaAntesGuardar"), true);
       return null;
     }
     const guardada = window.CotizacionesPrecio3D.guardarCotizacion(cotizacionActual);
@@ -305,7 +329,7 @@
       cotizacionActual = guardada;
       renderizarEditor();
       renderizarListado();
-      if (mostrar) mensaje("Cotización guardada correctamente.");
+      if (mostrar) mensaje(t("cotizacionGuardadaCorrectamente"));
     }
     return guardada;
   }
@@ -316,14 +340,14 @@
     renderizarEditor();
     const vista = $("#cotizacionClienteVista");
     if (vista) { vista.hidden = true; vista.innerHTML = ""; }
-    mensaje("Nueva cotización preparada. Agrega productos o servicios para comenzar.");
+    mensaje(t("nuevaCotizacionEditorPreparada"));
     return cotizacionActual;
   }
 
   function agregarCalculoActual() {
     const calculo = opciones.obtenerCalculoActual?.();
     if (!calculo?.datos || !calculo?.resultado || calculo.resultado.precioNeto === null) {
-      mensaje("Primero realiza un cálculo válido para agregarlo a la cotización.", true);
+      mensaje(t("primeroCalculoValidoCotizacion"), true);
       return null;
     }
     asegurarActual({ moneda: calculo.datos.moneda });
@@ -336,14 +360,14 @@
     if (guardada) cotizacionActual = guardada;
     renderizarEditor();
     renderizarListado();
-    mensaje("Cálculo agregado como línea comercial. El cálculo original no fue modificado.");
+    mensaje(t("calculoAgregadoLineaComercial"));
     return cotizacionActual;
   }
 
   function agregarTrabajo(trabajo) {
     if (!trabajo) return null;
     const usarVendido = numero(trabajo.precioVendidoReal) > 0
-      && confirm("Este trabajo tiene un precio vendido real. ¿Quieres usarlo en lugar del precio cotizado?");
+      && confirm(t("confirmarUsarPrecioVendido"));
     asegurarActual({
       moneda: trabajo.moneda,
       clienteId: trabajo.clienteId,
@@ -361,7 +385,7 @@
     cotizacionActual = window.CotizacionesPrecio3D.guardarCotizacion(cotizacionActual) || cotizacionActual;
     renderizarEditor();
     renderizarListado();
-    mensaje("Trabajo agregado a la cotización sin cambiar su estado.");
+    mensaje(t("trabajoAgregadoCotizacion"));
     window.NavegacionPrecio3D?.mostrarSeccion?.("cotizacion-cliente", { enfocar: true });
     return cotizacionActual;
   }
@@ -392,7 +416,7 @@
   function renderizarVistaPrevia() {
     leerEditor();
     if (!cotizacionActual?.items.length) {
-      mensaje("Agrega al menos un producto o servicio para generar la cotización.", true);
+      mensaje(t("agregaLineaAntesGenerar"), true);
       return false;
     }
     const vista = $("#cotizacionClienteVista");
@@ -412,11 +436,11 @@
         </section>
         <section class="print-quote__section"><h3>${escapar(t("detalle"))}</h3><table class="print-quote__table"><thead><tr><th>${escapar(t("descripcion"))}</th><th>${escapar(t("cantidad"))}</th><th>${escapar(t("precioUnitario"))}</th><th>${escapar(t("total"))}</th></tr></thead><tbody>${cotizacionActual.items.map((item) => `<tr><td><strong>${escapar(item.descripcion)}</strong>${item.detalle ? `<br><small>${escapar(item.detalle)}</small>` : ""}</td><td>${item.cantidad}</td><td>${moneda(item.precioUnitario)}</td><td>${item.tipo === "Descuento de línea" ? "−" : ""}${moneda(item.totalLinea)}</td></tr>`).join("")}</tbody></table>
           <dl class="print-quote__totals"><div><dt>${escapar(t("subtotal"))}</dt><dd>${moneda(totales.subtotal)}</dd></div>${totales.descuentoTotal ? `<div><dt>${escapar(t("descuento"))}</dt><dd>−${moneda(totales.descuentoTotal)}</dd></div>` : ""}${totales.envio ? `<div><dt>${escapar(t("envio"))}</dt><dd>${moneda(totales.envio)}</dd></div>` : ""}<div class="print-quote__grand-total"><dt>${escapar(t("totalFinal"))}</dt><dd>${moneda(totales.totalFinal)}</dd></div>${totales.montoAbono ? `<div><dt>${escapar(t("abonoRequerido"))}</dt><dd>${moneda(totales.montoAbono)}</dd></div><div><dt>${escapar(t("saldo"))}</dt><dd>${moneda(totales.saldo)}</dd></div>` : ""}</dl>
-          ${cotizacionActual.items.every((item) => item.precioIncluyeImpuesto) ? '<p class="print-quote__tax-note">Impuestos incluidos.</p>' : ""}
+          ${cotizacionActual.items.every((item) => item.precioIncluyeImpuesto) ? `<p class="print-quote__tax-note">${escapar(t("impuestosIncluidos"))}</p>` : ""}
         </section>
         <section class="print-quote__section print-quote__conditions"><h3>${escapar(t("condiciones"))}</h3>${lineaDato(t("entrega"), cotizacionActual.tiempoEntrega)}${lineaDato(t("pago"), cotizacionActual.condicionesPago)}${lineaDato(t("observaciones"), cotizacionActual.observaciones)}</section>
       </article>`;
-    mensaje("Vista previa de cotización generada.");
+    mensaje(t("vistaPreviaGenerada"));
     return true;
   }
 
@@ -525,11 +549,10 @@
     const accion = boton.dataset.quoteAction;
     const itemId = boton.closest("[data-quote-item-id]")?.dataset.quoteItemId;
     if (accion === "guardar") guardarActual();
-    if (accion === "nueva") nuevaCotizacion();
     if (accion === "agregar-calculo") agregarCalculoActual();
     if (accion === "mostrar-item-form") $("#quoteItemForm").hidden = false;
     if (accion === "cancelar-item") { $("#quoteItemForm").reset(); $("#quoteItemId").value = ""; $("#quoteItemForm").hidden = true; }
-    if (accion === "eliminar-item" && confirm("¿Eliminar esta línea de la cotización?")) cotizacionActual = window.CotizacionesPrecio3D.eliminarItem(cotizacionActual, itemId);
+    if (accion === "eliminar-item" && confirm(t("confirmarEliminarLineaCotizacion"))) cotizacionActual = window.CotizacionesPrecio3D.eliminarItem(cotizacionActual, itemId);
     if (accion === "duplicar-item") {
       const item = cotizacionActual.items.find((actual) => actual.id === itemId);
       if (item) cotizacionActual = window.CotizacionesPrecio3D.agregarItem(cotizacionActual, { ...item, id: "", descripcion: `${item.descripcion} (copia)` });
@@ -568,7 +591,7 @@
       precioIncluyeImpuesto: true
     };
     if (!item.descripcion || item.cantidad <= 0 || item.precioUnitario < 0) {
-      mensaje("Completa descripción, cantidad y precio con valores válidos.", true);
+      mensaje(t("completaLineaValida"), true);
       return;
     }
     const id = $("#quoteItemId").value;
@@ -580,7 +603,7 @@
     event.target.hidden = true;
     renderizarItems();
     renderizarTotales();
-    mensaje("Línea comercial actualizada.");
+    mensaje(t("lineaComercialActualizada"));
   }
 
   function manejarEditorInput(event) {
