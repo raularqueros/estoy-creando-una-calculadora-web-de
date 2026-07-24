@@ -81,6 +81,7 @@ const seccionModoBasico = document.querySelector("#seccionModoBasico");
 const seccionModoAvanzado = document.querySelector("#seccionModoAvanzado");
 const currencySelect = document.querySelector("#currencySelect");
 const currencySelectBasico = document.querySelector("#currencySelectBasico");
+const languageSelectHeader = document.querySelector("#languageSelectHeader");
 const languageSelect = document.querySelector("#languageSelect");
 const languageSelectBasico = document.querySelector("#languageSelectBasico");
 const currencyFormatPreview = document.querySelector("#currencyFormatPreview");
@@ -246,6 +247,8 @@ let temporizadorGuardado = null;
 let avisoStorageMostrado = false;
 let monedaSeleccionadaManualmente = false;
 let hayMonedaGuardada = false;
+let idiomaSeleccionadoManualmente = false;
+let hayIdiomaGuardado = false;
 let monedaActualConfirmada = "CLP";
 let advertenciaMonedaSinConversion = false;
 let cambioMonedaPendiente = null;
@@ -857,7 +860,7 @@ function obtenerConfiguracionActual() {
 
   return {
     modoActual,
-    idioma: languageSelectBasico?.value || languageSelect?.value || "es",
+    idioma: languageSelectHeader?.value || languageSelectBasico?.value || languageSelect?.value || "es",
     moneda: currencySelectBasico?.value || currencySelect?.value || "CLP",
     monedaManual: monedaSeleccionadaManualmente,
     advertenciaMonedaSinConversion,
@@ -988,12 +991,14 @@ function aplicarConfiguracion(configuracion, mostrarMensaje = false, opciones = 
   guardadoPausado = true;
   const monedaConfiguracion = configuracion.moneda || "CLP";
   hayMonedaGuardada = Boolean(configuracion.moneda);
+  hayIdiomaGuardado = Boolean(configuracion.idioma);
   monedaSeleccionadaManualmente = Boolean(opciones.preferenciaManual || configuracion.monedaManual);
   monedaActualConfirmada = monedaConfiguracion;
   advertenciaMonedaSinConversion = Boolean(configuracion.advertenciaMonedaSinConversion);
 
   asignarValorCampo("currencySelectBasico", monedaConfiguracion);
   asignarValorCampo("currencySelect", monedaConfiguracion);
+  asignarValorCampo("languageSelectHeader", configuracion.idioma);
   asignarValorCampo("languageSelectBasico", configuracion.idioma);
   asignarValorCampo("languageSelect", configuracion.idioma);
 
@@ -1208,6 +1213,8 @@ function restablecerConfiguracionGuardada() {
   limpiarFormulario({ preservarMoneda: false });
   monedaSeleccionadaManualmente = false;
   hayMonedaGuardada = false;
+  idiomaSeleccionadoManualmente = false;
+  hayIdiomaGuardado = false;
   guardadoPausado = false;
   mostrarMensajeAlmacenamiento("Configuración restablecida.");
   inicializarDeteccionMoneda();
@@ -1355,6 +1362,7 @@ function cargarMonedas() {
 }
 
 function cargarIdiomas() {
+  cargarSelectorIdiomas(languageSelectHeader);
   cargarSelectorIdiomas(languageSelect);
   cargarSelectorIdiomas(languageSelectBasico);
 }
@@ -1674,6 +1682,32 @@ function aplicarDeteccionMoneda(deteccion, permitirReemplazoManual = false) {
   return true;
 }
 
+function obtenerIdiomaAutomatico(deteccion) {
+  const pais = String(deteccion?.countryCode || "").toUpperCase();
+  const paisesPortugues = new Set(["BR", "PT", "AO", "MZ", "CV", "GW", "ST", "TL"]);
+  const paisesEspanol = new Set([
+    "AR", "BO", "CL", "CO", "CR", "CU", "DO", "EC", "ES", "GQ",
+    "GT", "HN", "MX", "NI", "PA", "PE", "PR", "PY", "SV", "UY", "VE"
+  ]);
+
+  if (paisesPortugues.has(pais)) return "pt";
+  if (paisesEspanol.has(pais)) return "es";
+  if (pais) return "en";
+
+  const idiomaNavegador = String(navigator.language || "").slice(0, 2).toLowerCase();
+  return ["es", "en", "pt"].includes(idiomaNavegador) ? idiomaNavegador : "en";
+}
+
+function aplicarIdiomaAutomatico(deteccion) {
+  if (hayIdiomaGuardado || idiomaSeleccionadoManualmente || !languageSelectHeader) {
+    return false;
+  }
+
+  languageSelectHeader.value = obtenerIdiomaAutomatico(deteccion);
+  sincronizarIdiomas(languageSelectHeader);
+  return true;
+}
+
 async function inicializarDeteccionMoneda() {
   if (!window.GeolocalizacionPrecio3D) return;
 
@@ -1681,12 +1715,21 @@ async function inicializarDeteccionMoneda() {
     actualizarEstadoDeteccionMoneda(
       textoInterfaz("monedaGuardadaCambiable", { moneda: currencySelectBasico.value || currencySelect.value })
     );
-    return;
+    if (hayIdiomaGuardado) return;
+  } else {
+    actualizarEstadoDeteccionMoneda(textoInterfaz("detectandoMoneda"));
   }
 
-  actualizarEstadoDeteccionMoneda(textoInterfaz("detectandoMoneda"));
   const deteccion = await window.GeolocalizacionPrecio3D.detectarMonedaAutomatica();
-  aplicarDeteccionMoneda(deteccion);
+  const idiomaAplicado = aplicarIdiomaAutomatico(deteccion);
+
+  if (!hayMonedaGuardada) {
+    aplicarDeteccionMoneda(deteccion);
+  }
+
+  if (idiomaAplicado) {
+    guardarConfiguracionActual(false);
+  }
 }
 
 async function detectarMonedaNuevamente() {
@@ -1710,9 +1753,18 @@ async function detectarMonedaNuevamente() {
   }
 }
 
-function sincronizarIdiomas(origen) {
+function sincronizarIdiomas(origen, opciones = {}) {
   const valor = origen.value;
   const monedaActual = obtenerCodigoMonedaActivo();
+
+  if (opciones.manual) {
+    idiomaSeleccionadoManualmente = true;
+    hayIdiomaGuardado = true;
+  }
+
+  if (languageSelectHeader && languageSelectHeader !== origen) {
+    languageSelectHeader.value = valor;
+  }
 
   if (languageSelect && languageSelect !== origen) {
     languageSelect.value = valor;
@@ -4550,6 +4602,7 @@ function cargarUltimoCalculoGuardado() {
   mostrarAvisoLimpiarMoneda(false);
 
   if (ultimo.idioma) {
+    asignarValorCampo("languageSelectHeader", ultimo.idioma);
     asignarValorCampo("languageSelectBasico", ultimo.idioma);
     asignarValorCampo("languageSelect", ultimo.idioma);
     window.cambiarIdioma(ultimo.idioma);
@@ -4753,6 +4806,7 @@ function limpiarFormulario(opciones = {}) {
   const monedaLimpieza = opciones.preservarMoneda === false ? "CLP" : monedaAnterior;
   currencySelect.value = monedaLimpieza;
   currencySelectBasico.value = monedaLimpieza;
+  languageSelectHeader.value = "es";
   languageSelect.value = "es";
   languageSelectBasico.value = "es";
   metodoPagoComparador.value = "automatico";
@@ -4945,8 +4999,9 @@ currencySelectBasico.addEventListener("change", () => {
 });
 detectarMonedaAvanzado?.addEventListener("click", detectarMonedaNuevamente);
 detectarMonedaBasico?.addEventListener("click", detectarMonedaNuevamente);
-languageSelect.addEventListener("change", () => sincronizarIdiomas(languageSelect));
-languageSelectBasico.addEventListener("change", () => sincronizarIdiomas(languageSelectBasico));
+languageSelectHeader?.addEventListener("change", () => sincronizarIdiomas(languageSelectHeader, { manual: true }));
+languageSelect.addEventListener("change", () => sincronizarIdiomas(languageSelect, { manual: true }));
+languageSelectBasico.addEventListener("change", () => sincronizarIdiomas(languageSelectBasico, { manual: true }));
 metodoPagoComparador.addEventListener("change", () => {
   aplicarMetodoPagoAvanzado();
   window.ValidacionPrecio3D?.marcarResultadoDesactualizado?.();

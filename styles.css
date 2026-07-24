@@ -95,13 +95,33 @@ body {
 }
 
 .printers-kpi-grid {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 24px 0;
 }
 
-.printers-filters {
-  grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(160px, 1fr));
+.printers-filters-card {
   margin-bottom: 22px;
+  padding: 16px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.printers-filters-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.printers-filters-heading h3 {
+  margin: 0;
+}
+
+.printers-filters {
+  grid-template-columns: minmax(240px, 2fr) repeat(3, minmax(145px, 1fr));
+  margin: 0;
 }
 
 .printers-table-scroll {
@@ -140,16 +160,41 @@ body {
 }
 
 .printer-row-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 7px;
+  min-width: 145px;
 }
 
-.printer-row-actions button {
-  width: auto;
-  min-height: 36px;
+.printer-row-actions button,
+.printer-secondary-actions summary {
+  width: 100%;
+  min-height: 44px;
   padding: 7px 10px;
   font-size: 0.8rem;
+}
+
+.printer-secondary-actions summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  background: #edf2f4;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.printer-secondary-actions > div {
+  display: grid;
+  gap: 7px;
+  margin-top: 7px;
+}
+
+.printers-table td > small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
 }
 
 .printer-empty-state {
@@ -187,6 +232,7 @@ body {
 .printer-modal__content {
   width: min(900px, calc(100vw - 32px));
   max-height: min(92vh, 920px);
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -314,9 +360,20 @@ body {
   font-size: clamp(1.25rem, 3vw, 1.7rem);
 }
 
+#impresoraForm > .actions {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.25fr) minmax(150px, 0.75fr);
+  gap: 10px;
+}
+
+#impresoraForm > .actions button {
+  width: 100%;
+  min-width: 0;
+}
+
 @media (max-width: 1100px) {
   .printers-kpi-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -327,6 +384,7 @@ body {
   }
 
   .printers-heading > button,
+  .printers-filters-heading button,
   .printer-detail-actions button,
   .printer-empty-state button {
     width: 100%;
@@ -394,7 +452,7 @@ body {
 
   .printer-row-actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .printer-row-actions button {
@@ -931,6 +989,16 @@ body {
   gap: 18px;
 }
 
+.printer-form-section:first-of-type {
+  border-color: rgba(15, 118, 110, 0.48);
+  background: rgba(240, 253, 250, 0.52);
+}
+
+.printer-form-section:first-of-type legend {
+  color: var(--primary-dark);
+  font-size: 1.05rem;
+}
+
 .result-workflow-panel {
   display: grid;
   grid-column: 1 / -1;
@@ -974,6 +1042,15 @@ body {
 @media (min-width: 601px) and (max-width: 1180px) {
   .result-workflow-panel .actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .printers-filters-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  #impresoraForm > .actions {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -6844,11 +6921,15 @@ body.modal-open {
 }
 
 .site-header__copy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   min-width: 0;
   max-width: 780px;
 }
 
 .site-header .eyebrow {
+  grid-column: 1;
   margin-bottom: 6px;
   color: #facc15;
   font-size: 0.75rem;
@@ -6856,6 +6937,7 @@ body.modal-open {
 }
 
 .site-header h1 {
+  grid-column: 1 / -1;
   margin-bottom: 8px;
   font-size: clamp(2rem, 3.5vw, 3rem);
   line-height: 1.02;
@@ -6863,6 +6945,7 @@ body.modal-open {
 }
 
 .site-header .intro {
+  grid-column: 1 / -1;
   max-width: 720px;
   color: #d9f3f4;
   font-size: clamp(0.94rem, 1.2vw, 1.06rem);
@@ -6870,6 +6953,7 @@ body.modal-open {
 }
 
 .privacy-note {
+  grid-column: 1 / -1;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -6902,6 +6986,65 @@ body.modal-open {
   max-width: 100%;
   height: auto;
   object-fit: contain;
+}
+
+.site-language-picker {
+  grid-column: 2;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-self: end;
+  min-height: 44px;
+  max-width: 100%;
+  margin: 0 0 6px 16px;
+  padding: 5px 6px 5px 12px;
+  color: #e6fffb;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(204, 251, 241, 0.35);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  backdrop-filter: blur(8px);
+}
+
+.site-language-picker svg {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: #99f6e4;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.site-language-picker select {
+  width: auto;
+  min-width: 112px;
+  min-height: 34px;
+  margin: 0;
+  padding: 5px 30px 5px 10px;
+  color: #073b3a;
+  background-color: #f0fdfa;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.site-language-picker:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(204, 251, 241, 0.6);
+}
+
+.site-language-picker:focus-within {
+  outline: 3px solid #facc15;
+  outline-offset: 3px;
+}
+
+.site-language-picker select:focus-visible {
+  outline: 0;
 }
 
 .estimation-strip {
@@ -6989,14 +7132,23 @@ body.modal-open {
     display: contents;
   }
 
+  .site-language-picker {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: start;
+    margin: 0 0 10px;
+  }
+
   .site-header .eyebrow {
     grid-column: 1;
+    grid-row: 2;
     margin-bottom: 5px;
     font-size: 0.68rem;
   }
 
   .site-header h1 {
     grid-column: 1;
+    grid-row: 3;
     margin-bottom: 7px;
     font-size: clamp(1.65rem, 7.6vw, 2rem);
     line-height: 1.06;
@@ -7004,19 +7156,21 @@ body.modal-open {
 
   .site-header .intro {
     grid-column: 1 / -1;
+    grid-row: 4;
     font-size: 0.88rem;
     line-height: 1.38;
   }
 
   .privacy-note {
     grid-column: 1 / -1;
+    grid-row: 5;
     margin-top: 9px;
     font-size: 0.76rem;
   }
 
   .site-header__visual {
     grid-column: 2;
-    grid-row: 1 / 3;
+    grid-row: 2 / 4;
   }
 
   .site-header__visual img {
@@ -7043,6 +7197,16 @@ body.modal-open {
 
   .site-header__visual {
     display: none;
+  }
+
+  .site-language-picker {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .site-language-picker select {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .estimation-strip {

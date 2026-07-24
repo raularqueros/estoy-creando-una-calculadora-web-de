@@ -37,7 +37,16 @@
 
   function costoHora(impresora) {
     const costo = api()?.calcularCostoHoraEstimado(impresora);
-    return costo === null ? "No calculable" : formatoMoneda(costo, impresora.monedaCompra);
+    return costo === null ? t("noCalculable") : formatoMoneda(costo, impresora.monedaCompra);
+  }
+
+  function estadoVisible(estado) {
+    return t({
+      Activa: "activa",
+      "En mantenimiento": "enMantenimiento",
+      "Fuera de servicio": "fueraServicio",
+      Retirada: "retirada"
+    }[estado] || "estado");
   }
 
   function mostrarMensaje(texto, error = false) {
@@ -58,19 +67,12 @@
 
   function renderizarResumen() {
     const lista = api()?.obtenerImpresoras() || [];
-    const costos = lista.map((item) => ({ item, costo: api().calcularCostoHoraEstimado(item) }))
-      .filter(({ costo }) => costo !== null);
-    const monedas = new Set(costos.map(({ item }) => item.monedaCompra));
-    const promedio = costos.length && monedas.size === 1
-      ? formatoMoneda(costos.reduce((total, item) => total + item.costo, 0) / costos.length, costos[0].item.monedaCompra)
-      : costos.length ? t("variasMonedas") : t("sinDatos");
     const predeterminada = lista.find((item) => item.esPredeterminada);
     const items = [
-      [t("total"), lista.length],
+      [t("totalImpresoras"), lista.length],
       [t("activas"), lista.filter((item) => item.estado === "Activa").length],
       [t("enMantenimiento"), lista.filter((item) => item.estado === "En mantenimiento").length],
-      [t("costoHorarioPromedio"), promedio],
-      [t("predeterminada"), predeterminada?.nombre || t("sinDefinir")]
+      [t("impresoraPredeterminada"), predeterminada?.nombre || t("sinPredeterminada")]
     ];
     $("#impresorasResumen").innerHTML = items.map(([etiqueta, valor]) => `
       <article class="jobs-kpi-card">
@@ -84,8 +86,16 @@
     return `
       <div class="printer-row-actions">
         <button type="button" class="secondary" data-printer-action="detalle">${escapar(t("verDetalle"))}</button>
-        <button type="button" class="secondary" data-printer-action="editar">${escapar(t("editar"))}</button>
-        <button type="button" class="secondary" data-printer-action="duplicar">${escapar(t("duplicar"))}</button>
+        <details class="printer-secondary-actions">
+          <summary>${escapar(t("masAcciones"))}</summary>
+          <div>
+            <button type="button" class="secondary" data-printer-action="editar">${escapar(t("editar"))}</button>
+            ${impresora.esPredeterminada || impresora.estado === "Retirada" ? "" : `<button type="button" class="secondary" data-printer-action="predeterminada">${escapar(t("marcarPredeterminada"))}</button>`}
+            <button type="button" class="secondary" data-printer-action="duplicar">${escapar(t("duplicar"))}</button>
+            ${impresora.estado === "Retirada" ? "" : `<button type="button" class="secondary" data-printer-action="archivar">${escapar(t("archivar"))}</button>`}
+            <button type="button" class="secondary danger-button" data-printer-action="eliminar">${escapar(t("eliminar"))}</button>
+          </div>
+        </details>
       </div>
     `;
   }
@@ -93,8 +103,10 @@
   function renderizarListado() {
     const consulta = $("#impresorasBusqueda")?.value || "";
     const filtro = $("#impresorasFiltro")?.value || "todas";
+    const tecnologia = $("#impresorasTecnologiaFiltro")?.value || "todas";
     const orden = $("#impresorasOrden")?.value || "nombre";
-    const lista = api()?.buscarImpresoras(consulta, { filtro, orden }) || [];
+    const lista = (api()?.buscarImpresoras(consulta, { filtro, orden }) || [])
+      .filter((item) => tecnologia === "todas" || item.tecnologia === tecnologia);
     const contenedor = $("#impresorasListado");
     if (!contenedor) return;
 
@@ -104,7 +116,9 @@
         <div class="printer-empty-state">
           <strong>${escapar(t(tieneRegistros ? "sinImpresorasFiltros" : "sinImpresoras"))}</strong>
           <p>${escapar(t(tieneRegistros ? "pruebaOtroFiltro" : "agregaImpresoraAyuda"))}</p>
-          ${tieneRegistros ? "" : `<button type="button" data-printer-action="nueva">${escapar(t("nuevaImpresora"))}</button>`}
+          ${tieneRegistros
+            ? `<button type="button" class="secondary" data-printer-action="limpiar-filtros">${escapar(t("limpiarFiltros"))}</button>`
+            : `<button type="button" data-printer-action="nueva">${escapar(t("agregarPrimeraImpresora"))}</button>`}
         </div>
       `;
       return;
@@ -114,19 +128,19 @@
       <div class="printers-table-scroll">
         <table class="printers-table">
           <thead><tr>
-            <th>${escapar(t("impresora"))}</th><th>${escapar(t("marcaModelo"))}</th><th>${escapar(t("tecnologia"))}</th><th>${escapar(t("potencia"))}</th>
-            <th>${escapar(t("costoHora"))}</th><th>${escapar(t("estado"))}</th><th>${escapar(t("predeterminada"))}</th><th>${escapar(t("acciones"))}</th>
+            <th>${escapar(t("impresora"))}</th><th>${escapar(t("estado"))}</th><th>${escapar(t("costoHora"))}</th><th>${escapar(t("marcaModeloVariante"))}</th>
+            <th>${escapar(t("tecnologia"))}</th><th>${escapar(t("potencia"))}</th><th>${escapar(t("predeterminada"))}</th><th>${escapar(t("acciones"))}</th>
           </tr></thead>
           <tbody>${lista.map((item) => `
             <tr data-printer-id="${escapar(item.id)}">
-              <td data-label="Impresora"><strong>${escapar(item.nombre)}</strong></td>
-              <td data-label="Marca y modelo">${escapar([item.marca, item.modelo].filter(Boolean).join(" · ") || "Sin registrar")}</td>
-              <td data-label="Tecnología">${escapar(item.tecnologia)}</td>
-              <td data-label="Potencia">${escapar(item.potenciaPromedioWatts)} W</td>
-              <td data-label="Costo por hora"><strong>${escapar(costoHora(item))}</strong></td>
-              <td data-label="${escapar(t("estado"))}"><span class="printer-status">${escapar(t({ Activa: "activa", "En mantenimiento": "enMantenimiento", "Fuera de servicio": "fueraServicio", Retirada: "retirada" }[item.estado] || "estado"))}</span></td>
-              <td data-label="${escapar(t("predeterminada"))}">${item.esPredeterminada ? `<span class="printer-default-badge">${escapar(t("predeterminada"))}</span>` : t("no")}</td>
-              <td data-label="Acciones">${acciones(item)}</td>
+              <td data-label="${escapar(t("impresora"))}"><strong>${escapar(item.nombre)}</strong></td>
+              <td data-label="${escapar(t("estado"))}"><span class="printer-status">${escapar(estadoVisible(item.estado))}</span></td>
+              <td data-label="${escapar(t("costoHora"))}"><strong>${escapar(costoHora(item))}</strong><small>${escapar(item.monedaCompra)}</small></td>
+              <td data-label="${escapar(t("marcaModeloVariante"))}">${escapar([item.marca, item.modelo, item.variante].filter(Boolean).join(" · ") || t("sinRegistrar"))}</td>
+              <td data-label="${escapar(t("tecnologia"))}">${escapar(item.tecnologia)}</td>
+              <td data-label="${escapar(t("potencia"))}">${escapar(item.potenciaPromedioWatts)} W</td>
+              <td data-label="${escapar(t("predeterminada"))}">${item.esPredeterminada ? `<span class="printer-default-badge">${escapar(t("predeterminada"))}</span>` : escapar(t("no"))}</td>
+              <td data-label="${escapar(t("acciones"))}">${acciones(item)}</td>
             </tr>
           `).join("")}</tbody>
         </table>
@@ -149,46 +163,46 @@
     panel.innerHTML = `
       <div class="client-detail-header">
         <div>
-          <p class="eyebrow">Detalle de impresora</p>
+          <p class="eyebrow">${escapar(t("detalleImpresora"))}</p>
           <h3>${escapar(impresora.nombre)}</h3>
           <p>${escapar([impresora.marca, impresora.modelo, impresora.tecnologia].filter(Boolean).join(" · "))}</p>
         </div>
-        ${impresora.esPredeterminada ? '<span class="printer-default-badge">Predeterminada</span>' : ""}
+        ${impresora.esPredeterminada ? `<span class="printer-default-badge">${escapar(t("predeterminada"))}</span>` : ""}
       </div>
       <div class="client-detail-grid printer-detail-grid">
-        <section><h4>Identificación</h4>
-          <p><strong>Marca:</strong> ${escapar(impresora.marca || "Sin registrar")}</p>
-          <p><strong>Modelo:</strong> ${escapar(impresora.modelo || "Sin registrar")}</p>
-          <p><strong>Variante:</strong> ${escapar(impresora.variante || "Sin variante")}</p>
-          <p><strong>Tecnología:</strong> ${escapar(impresora.tecnologia)}</p>
-          <p><strong>Estado:</strong> ${escapar(impresora.estado)}</p>
+        <section><h4>${escapar(t("identificacion"))}</h4>
+          <p><strong>${escapar(t("marca"))}:</strong> ${escapar(impresora.marca || t("sinRegistrar"))}</p>
+          <p><strong>${escapar(t("modelo"))}:</strong> ${escapar(impresora.modelo || t("sinRegistrar"))}</p>
+          <p><strong>${escapar(t("variante"))}:</strong> ${escapar(impresora.variante || t("sinVariante"))}</p>
+          <p><strong>${escapar(t("tecnologia"))}:</strong> ${escapar(impresora.tecnologia)}</p>
+          <p><strong>${escapar(t("estado"))}:</strong> ${escapar(estadoVisible(impresora.estado))}</p>
         </section>
-        <section><h4>Costos</h4>
-          <p><strong>Compra:</strong> ${escapar(formatoMoneda(impresora.costoCompra, impresora.monedaCompra))}</p>
-          <p><strong>Herramientas:</strong> ${escapar(formatoMoneda(impresora.costoHerramientas, impresora.monedaCompra))}</p>
-          <p><strong>Mantenimiento estimado:</strong> ${escapar((impresora.porcentajeMantenimiento * 100).toLocaleString("es-CL"))}%</p>
-          <p><strong>Mantenimiento anual adicional:</strong> ${escapar(formatoMoneda(impresora.costoMantenimientoAnual, impresora.monedaCompra))}</p>
-          <p><strong>Costo estimado por hora:</strong> ${escapar(costoHora(impresora))}</p>
+        <section><h4>${escapar(t("costos"))}</h4>
+          <p><strong>${escapar(t("compra"))}:</strong> ${escapar(formatoMoneda(impresora.costoCompra, impresora.monedaCompra))}</p>
+          <p><strong>${escapar(t("herramientas"))}:</strong> ${escapar(formatoMoneda(impresora.costoHerramientas, impresora.monedaCompra))}</p>
+          <p><strong>${escapar(t("mantenimientoEstimado"))}:</strong> ${escapar((impresora.porcentajeMantenimiento * 100).toLocaleString(document.documentElement.lang || "es"))}%</p>
+          <p><strong>${escapar(t("mantenimientoAnualAdicional"))}:</strong> ${escapar(formatoMoneda(impresora.costoMantenimientoAnual, impresora.monedaCompra))}</p>
+          <p><strong>${escapar(t("costoHoraEstimado"))}:</strong> ${escapar(costoHora(impresora))}</p>
         </section>
-        <section><h4>Operación</h4>
-          <p><strong>Potencia:</strong> ${escapar(impresora.potenciaPromedioWatts)} W</p>
-          <p><strong>Vida útil:</strong> ${escapar(impresora.anosVidaUtil)} años</p>
-          <p><strong>Días operativos:</strong> ${escapar(impresora.diasOperativosAno)} al año</p>
-          <p><strong>Horas productivas:</strong> ${escapar(impresora.horasProductivasDia)} al día</p>
+        <section><h4>${escapar(t("operacion"))}</h4>
+          <p><strong>${escapar(t("potencia"))}:</strong> ${escapar(impresora.potenciaPromedioWatts)} W</p>
+          <p><strong>${escapar(t("vidaUtil"))}:</strong> ${escapar(impresora.anosVidaUtil)} ${escapar(t("anos"))}</p>
+          <p><strong>${escapar(t("diasOperativos"))}:</strong> ${escapar(impresora.diasOperativosAno)} ${escapar(t("alAno"))}</p>
+          <p><strong>${escapar(t("horasProductivas"))}:</strong> ${escapar(impresora.horasProductivasDia)} ${escapar(t("alDia"))}</p>
         </section>
-        <section><h4>Otros</h4>
-          <p><strong>Compra:</strong> ${fecha(impresora.fechaCompra)}</p>
-          <p><strong>Creación:</strong> ${fecha(impresora.fechaCreacion)}</p>
-          <p><strong>Actualización:</strong> ${fecha(impresora.fechaActualizacion)}</p>
-          <p><strong>Notas:</strong> ${escapar(impresora.notas || "Sin notas")}</p>
+        <section><h4>${escapar(t("otros"))}</h4>
+          <p><strong>${escapar(t("compra"))}:</strong> ${fecha(impresora.fechaCompra)}</p>
+          <p><strong>${escapar(t("creacion"))}:</strong> ${fecha(impresora.fechaCreacion)}</p>
+          <p><strong>${escapar(t("actualizacion"))}:</strong> ${fecha(impresora.fechaActualizacion)}</p>
+          <p><strong>${escapar(t("notas"))}:</strong> ${escapar(impresora.notas || t("sinNotas"))}</p>
         </section>
       </div>
       <div class="actions printer-detail-actions">
-        <button type="button" data-printer-action="editar">Editar</button>
-        <button type="button" class="secondary" data-printer-action="duplicar">Duplicar</button>
-        ${impresora.esPredeterminada || impresora.estado === "Retirada" ? "" : '<button type="button" class="secondary" data-printer-action="predeterminada">Marcar predeterminada</button>'}
-        ${impresora.estado === "Retirada" ? "" : '<button type="button" class="secondary" data-printer-action="archivar">Archivar</button>'}
-        <button type="button" class="secondary danger-button" data-printer-action="eliminar">Eliminar</button>
+        <button type="button" data-printer-action="editar">${escapar(t("editar"))}</button>
+        <button type="button" class="secondary" data-printer-action="duplicar">${escapar(t("duplicar"))}</button>
+        ${impresora.esPredeterminada || impresora.estado === "Retirada" ? "" : `<button type="button" class="secondary" data-printer-action="predeterminada">${escapar(t("marcarPredeterminada"))}</button>`}
+        ${impresora.estado === "Retirada" ? "" : `<button type="button" class="secondary" data-printer-action="archivar">${escapar(t("archivar"))}</button>`}
+        <button type="button" class="secondary danger-button" data-printer-action="eliminar">${escapar(t("eliminar"))}</button>
       </div>
     `;
   }
@@ -207,15 +221,27 @@
 
   function mostrarErrores(errores) {
     limpiarErrores();
+    const clavesError = {
+      nombre: "errorNombreImpresora",
+      tecnologia: "errorTecnologiaImpresora",
+      costoCompra: "errorCostoCompraImpresora",
+      costoHerramientas: "errorCostoHerramientasImpresora",
+      potenciaPromedioWatts: "errorPotenciaImpresora",
+      anosVidaUtil: "errorVidaUtilImpresora",
+      diasOperativosAno: "errorDiasOperativosImpresora",
+      horasProductivasDia: "errorHorasProductivasImpresora",
+      porcentajeMantenimiento: "errorMantenimientoImpresora",
+      costoMantenimientoAnual: "errorMantenimientoAnualImpresora"
+    };
     Object.entries(errores).forEach(([campo, mensaje]) => {
       const error = document.querySelector(`[data-printer-error="${campo}"]`);
       const input = document.querySelector(`[name="${campo}"]`);
-      if (error) error.textContent = mensaje;
+      if (error) error.textContent = clavesError[campo] ? t(clavesError[campo]) : mensaje;
       input?.setAttribute("aria-invalid", "true");
     });
     const primero = Object.keys(errores)[0];
     document.querySelector(`[name="${primero}"]`)?.focus();
-    $("#impresoraFormMessage").textContent = "Revisa los campos indicados.";
+    $("#impresoraFormMessage").textContent = t("revisaCamposIndicados");
   }
 
   function datosFormulario() {
@@ -242,7 +268,7 @@
   function poblarMarcas(seleccionada = "") {
     const selector = $("#impresoraMarcaCatalogo");
     if (!selector || !catalogo()) return;
-    selector.innerHTML = '<option value="">Selecciona una marca</option>'
+    selector.innerHTML = `<option value="">${escapar(t("seleccionaMarca"))}</option>`
       + catalogo().obtenerMarcas().map((marca) => `<option value="${escapar(marca.id)}">${escapar(marca.nombre)}</option>`).join("");
     selector.value = seleccionada;
   }
@@ -251,7 +277,7 @@
     const selector = $("#impresoraModeloCatalogo");
     if (!selector) return;
     const modelos = catalogo()?.obtenerModelosPorMarca(marcaId) || [];
-    selector.innerHTML = '<option value="">Selecciona un modelo</option>'
+    selector.innerHTML = `<option value="">${escapar(t("seleccionaModelo"))}</option>`
       + modelos.map((modelo) => `<option value="${escapar(modelo.id)}">${escapar(modelo.modelo)}</option>`).join("");
     selector.disabled = !modelos.length;
     selector.value = seleccionada;
@@ -261,7 +287,7 @@
     const selector = $("#impresoraVarianteCatalogo");
     if (!selector) return;
     const variantes = catalogo()?.obtenerVariantes(modeloId) || [];
-    selector.innerHTML = '<option value="">Sin variante</option>'
+    selector.innerHTML = `<option value="">${escapar(t("sinVariante"))}</option>`
       + variantes.map((variante) => `<option value="${escapar(variante)}">${escapar(variante)}</option>`).join("");
     selector.disabled = !variantes.length;
     selector.value = variantes.includes(seleccionada) ? seleccionada : "";
@@ -272,7 +298,7 @@
     if (panel) panel.hidden = !activo;
     if (activo) {
       $("#impresoraCatalogoModeloId").value = "";
-      $("#impresoraCatalogoMeta").textContent = "Identificación personalizada. Completa marca, modelo y tecnología manualmente.";
+      $("#impresoraCatalogoMeta").textContent = t("identificacionPersonalizadaAyuda");
       $("#impresoraMarca")?.focus();
     }
   }
@@ -289,8 +315,14 @@
     $("#impresoraVariante").value = variante || modelo.variante || "";
     $("#impresoraTecnologia").value = modelo.tecnologia;
     $("#impresoraIdentificacionManual").hidden = true;
-    const detalles = [modelo.volumenImpresion, modelo.cerrada ? "cerrada" : "abierta", modelo.multicolorCompatible ? "compatible con multicolor" : "sin dato multicolor"];
-    $("#impresoraCatalogoMeta").textContent = `Datos del catálogo: ${detalles.filter(Boolean).join(" · ")}. Los costos y valores operativos no se completan automáticamente.`;
+    const detalles = [
+      modelo.volumenImpresion,
+      modelo.cerrada ? t("cerrada") : t("abierta"),
+      modelo.multicolorCompatible ? t("compatibleMulticolor") : t("sinDatoMulticolor")
+    ];
+    $("#impresoraCatalogoMeta").textContent = t("datosCatalogoAyuda", {
+      detalles: detalles.filter(Boolean).join(" · ")
+    });
   }
 
   function renderizarBusquedaCatalogo() {
@@ -309,7 +341,7 @@
     const datos = datosFormulario();
     const costo = api()?.calcularCostoHoraEstimado(datos);
     $("#impresoraCostoHoraPreview").textContent = costo === null
-      ? "No calculable: revisa vida útil y horas productivas."
+      ? t("costoHoraNoCalculableAyuda")
       : formatoMoneda(costo, datos.monedaCompra || "CLP");
   }
 
@@ -326,7 +358,7 @@
     $("#impresoraCatalogoBusqueda").value = "";
     $("#impresoraCatalogoResultados").hidden = true;
     $("#impresoraFormId").value = impresora?.id || "";
-    $("#impresoraModalTitle").textContent = impresora ? "Editar impresora" : "Agregar impresora";
+    $("#impresoraModalTitle").textContent = t(impresora ? "editarImpresora" : "agregarImpresora");
     $("#impresoraNombre").value = impresora?.nombre || "";
     $("#impresoraMarca").value = impresora?.marca || "";
     $("#impresoraModelo").value = impresora?.modelo || "";
@@ -352,7 +384,7 @@
       aplicarModeloCatalogo(modeloCatalogo.id, impresora.variante);
     } else {
       activarModoManual(Boolean(impresora));
-      if (!impresora) $("#impresoraCatalogoMeta").textContent = "El catálogo solo completa la identificación. Debes ingresar el costo real y los datos operativos.";
+      if (!impresora) $("#impresoraCatalogoMeta").textContent = t("catalogoSoloIdentificacion");
     }
     modal.hidden = false;
     document.body.classList.add("modal-open");
@@ -380,14 +412,14 @@
     const id = $("#impresoraFormId").value;
     const guardada = id ? api().actualizarImpresora(id, datos) : api().crearImpresora(datos);
     if (!guardada) {
-      $("#impresoraFormMessage").textContent = "No fue posible guardar la impresora.";
+      $("#impresoraFormMessage").textContent = t("impresoraNoGuardada");
       return;
     }
     impresoraDetalleId = guardada.id;
     cerrarFormulario();
     actualizarVista();
     renderizarDetalle(guardada.id);
-    mostrarMensaje(id ? "Impresora actualizada." : "Impresora guardada.");
+    mostrarMensaje(t(id ? "impresoraActualizada" : "impresoraGuardada"));
   }
 
   function descargar(nombre, contenido, tipo) {
@@ -406,6 +438,14 @@
       || "";
   }
 
+  function limpiarFiltros() {
+    $("#impresorasBusqueda").value = "";
+    $("#impresorasFiltro").value = "todas";
+    $("#impresorasTecnologiaFiltro").value = "todas";
+    $("#impresorasOrden").value = "nombre";
+    renderizarListado();
+  }
+
   function manejarAccion(event) {
     const boton = event.target.closest("[data-printer-action]");
     if (!boton) return;
@@ -413,6 +453,7 @@
     const id = idDesdeAccion(boton);
     const impresora = id ? api()?.obtenerImpresoraPorId(id) : null;
     if (accion === "nueva") abrirFormulario();
+    if (accion === "limpiar-filtros") limpiarFiltros();
     if (accion === "detalle" && impresora) {
       renderizarDetalle(id);
       $("#impresoraDetallePanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -424,34 +465,34 @@
         impresoraDetalleId = copia.id;
         actualizarVista();
         renderizarDetalle(copia.id);
-        mostrarMensaje("Impresora duplicada. La copia no quedó como predeterminada.");
+        mostrarMensaje(t("impresoraDuplicada"));
       }
     }
     if (accion === "predeterminada" && impresora) {
-      if (confirm(`¿Usar “${impresora.nombre}” como impresora predeterminada?`)) {
+      if (confirm(t("confirmarPredeterminada", { nombre: impresora.nombre }))) {
         api().establecerPredeterminada(id);
         actualizarVista();
-        mostrarMensaje("Impresora predeterminada actualizada.");
+        mostrarMensaje(t("predeterminadaActualizada"));
       }
     }
     if (accion === "archivar" && impresora) {
       const aviso = impresora.esPredeterminada
-        ? "Esta es la impresora predeterminada. Al archivarla dejarás de tener una predeterminada."
-        : "La impresora quedará retirada y seguirá guardada.";
-      if (confirm(`${aviso}\n\n¿Continuar?`)) {
+        ? t("archivarPredeterminadaAviso")
+        : t("archivarImpresoraAviso");
+      if (confirm(`${aviso}\n\n${t("confirmarContinuar")}`)) {
         api().archivarImpresora(id);
         actualizarVista();
-        mostrarMensaje("Impresora archivada.");
+        mostrarMensaje(t("impresoraArchivada"));
       }
     }
     if (accion === "eliminar" && impresora) {
-      const aviso = impresora.esPredeterminada ? " También dejarás de tener una impresora predeterminada." : "";
-      if (confirm(`Eliminar borra este perfil de forma permanente.${aviso}\n\n¿Eliminar “${impresora.nombre}”?`)) {
+      const aviso = impresora.esPredeterminada ? ` ${t("eliminarPredeterminadaAviso")}` : "";
+      if (confirm(`${t("eliminarImpresoraAviso")}${aviso}\n\n${t("confirmarEliminarImpresora", { nombre: impresora.nombre })}`)) {
         api().eliminarImpresora(id);
         impresoraDetalleId = "";
         actualizarVista();
         renderizarDetalle("");
-        mostrarMensaje("Impresora eliminada.");
+        mostrarMensaje(t("impresoraEliminada"));
       }
     }
   }
@@ -459,13 +500,13 @@
   async function importarArchivo(event) {
     const archivo = event.target.files?.[0];
     if (!archivo) return;
-    const modo = confirm("Aceptar: combinar sin duplicar IDs.\nCancelar: reemplazar las impresoras actuales.")
+    const modo = confirm(t("confirmarImportarImpresoras"))
       ? "combinar" : "reemplazar";
     const resultado = api().importarImpresorasJSON(await archivo.text(), modo);
     mostrarMensaje(
       resultado.ok
-        ? `${resultado.importadas} impresoras importadas; ${resultado.rechazadas} rechazadas.`
-        : `No se importaron impresoras. Registros rechazados: ${resultado.rechazadas}.`,
+        ? t("impresorasImportadas", resultado)
+        : t("impresorasNoImportadas", resultado),
       !resultado.ok
     );
     event.target.value = "";
@@ -501,7 +542,9 @@
     $("#nuevaImpresoraButton").addEventListener("click", () => abrirFormulario());
     $("#impresorasBusqueda").addEventListener("input", renderizarListado);
     $("#impresorasFiltro").addEventListener("change", renderizarListado);
+    $("#impresorasTecnologiaFiltro").addEventListener("change", renderizarListado);
     $("#impresorasOrden").addEventListener("change", renderizarListado);
+    $("#limpiarFiltrosImpresorasButton").addEventListener("click", limpiarFiltros);
     $("#impresoraForm").addEventListener("submit", guardarFormulario);
     $("#impresoraForm").addEventListener("input", actualizarVistaPrevia);
     $("#impresoraForm").addEventListener("change", actualizarVistaPrevia);
