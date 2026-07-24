@@ -2028,7 +2028,7 @@ textarea {
   width: 100%;
   max-width: 210mm;
   margin: 18px auto 0;
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .currency-detection {
@@ -2056,19 +2056,21 @@ textarea {
 }
 
 .print-quote {
-  padding: 28px;
+  padding: 24px;
   color: var(--text);
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(31, 41, 51, 0.08);
   overflow-wrap: anywhere;
   word-break: normal;
 }
 
 .print-quote__header {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.6fr);
+  grid-template-columns: minmax(0, 1fr) minmax(220px, auto);
   gap: 18px;
+  align-items: start;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
 }
@@ -2082,27 +2084,35 @@ textarea {
   text-transform: uppercase;
 }
 
-.print-quote__brand h2,
-.print-quote__meta h1 {
-  margin: 0 0 6px;
-}
-
 .print-quote__brand {
   display: flex;
   gap: 12px;
-  align-items: flex-start;
+  align-items: center;
   min-width: 0;
 }
 
 .print-quote__logo {
   flex: 0 0 auto;
-  width: 72px;
-  height: 72px;
+  width: 58px;
+  height: 58px;
   object-fit: contain;
 }
 
-.print-quote__title {
+.print-quote__brand h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.print-quote__document {
   min-width: 0;
+  text-align: right;
+}
+
+.print-quote__document h1 {
+  margin: 0 0 7px;
+  color: var(--primary-dark);
+  font-size: 1.65rem;
+  line-height: 1.05;
 }
 
 .print-quote h2,
@@ -2112,7 +2122,8 @@ textarea {
 }
 
 .print-quote__meta {
-  text-align: right;
+  display: grid;
+  gap: 2px;
 }
 
 .print-quote__meta p,
@@ -2149,8 +2160,13 @@ textarea {
 
 .print-quote__section {
   margin-top: 14px;
+  overflow: visible;
+}
+
+.print-quote__table-wrap {
+  max-width: 100%;
   overflow-x: auto;
-  page-break-inside: avoid;
+  overscroll-behavior-inline: contain;
 }
 
 .print-quote__table {
@@ -2171,12 +2187,26 @@ textarea {
   background: var(--soft);
 }
 
-.print-quote__total {
-  margin-top: 12px;
-  color: var(--primary-dark);
-  font-size: 1.35rem;
-  font-weight: 700;
-  text-align: right;
+.print-quote__table small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.print-quote__summary {
+  display: grid;
+  justify-content: end;
+  margin-top: 14px;
+}
+
+.print-quote__totals {
+  width: min(100%, 360px);
+  min-width: min(100%, 300px);
+}
+
+.print-quote__conditions {
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
 }
 
 .jobs-summary {
@@ -2882,6 +2912,10 @@ button.danger-button:hover {
     text-align: left;
   }
 
+  .print-quote__document {
+    text-align: left;
+  }
+
   .table-wrap {
     margin-inline: -2px;
     padding-bottom: 6px;
@@ -2998,6 +3032,10 @@ button.danger-button:hover {
   }
 
   .print-quote__meta {
+    text-align: left;
+  }
+
+  .print-quote__document {
     text-align: left;
   }
 
@@ -5283,12 +5321,12 @@ body.modal-open {
     background: #ffffff;
   }
 
-  body * {
+  body:not(.printing-report) * {
     visibility: hidden;
   }
 
-  #cotizacionClientePanel,
-  #cotizacionClientePanel * {
+  body:not(.printing-report) #cotizacionClientePanel,
+  body:not(.printing-report) #cotizacionClientePanel * {
     visibility: visible;
   }
 
@@ -5303,16 +5341,22 @@ body.modal-open {
     box-shadow: none;
   }
 
-  #cotizacionClientePanel > h2,
-  #cotizacionClientePanel > .help-text,
-  .quote-actions,
-  #cotizacionMessage {
+  .quote-commercial-editor,
+  .quotes-panel,
+  #cotizacionClientePanel > .quote-builder-heading,
+  #cotizacionClientePanel > .quote-finalize-card,
+  #cotizacionClientePanel > .quote-actions,
+  #cotizacionClientePanel > .print-help,
+  #cotizacionClientePanel > #cotizacionMessage {
     display: none !important;
   }
 
   .client-quote-preview {
     display: block !important;
+    width: 100%;
+    max-width: none;
     margin: 0;
+    overflow: visible;
   }
 
   .print-quote {
@@ -5330,7 +5374,7 @@ body.modal-open {
 
   .print-quote__header {
     grid-template-columns: minmax(0, 1fr) minmax(46mm, 0.8fr);
-    gap: 7mm;
+    gap: 6mm;
     padding-bottom: 2.5mm;
     border-color: #666666;
   }
@@ -5342,13 +5386,21 @@ body.modal-open {
   }
 
   .print-quote__brand h2 {
-    font-size: 15pt;
+    margin: 0;
+    font-size: 13pt;
     line-height: 1.12;
   }
 
-  .print-quote__meta h1 {
+  .print-quote__logo {
+    width: 16mm;
+    height: 16mm;
+    max-height: 16mm;
+  }
+
+  .print-quote__document h1 {
     margin-bottom: 1.5mm;
-    font-size: 18pt;
+    color: #000000;
+    font-size: 17pt;
     line-height: 1.05;
     text-transform: uppercase;
   }
@@ -5382,20 +5434,19 @@ body.modal-open {
     margin-bottom: 0.7mm;
   }
 
-  .print-quote__section,
-  .print-quote__table,
-  .print-quote__table tr {
-    page-break-inside: avoid;
-  }
-
   .print-quote__section {
     margin-top: 2.5mm;
+    overflow: visible;
+  }
+
+  .print-quote__table-wrap {
     overflow: visible;
   }
 
   .print-quote__table {
     margin-top: 1.5mm;
     font-size: 9pt;
+    page-break-inside: auto;
   }
 
   .print-quote__table th,
@@ -5408,16 +5459,29 @@ body.modal-open {
     background: #ffffff;
   }
 
-  .print-quote__total {
-    margin-top: 3mm;
-    color: #000000;
-    font-size: 15pt;
+  .print-quote__table thead {
+    display: table-header-group;
+  }
+
+  .print-quote__table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-quote__table small {
+    margin-top: 0.5mm;
+    color: #333333;
+  }
+
+  .print-quote__summary {
+    margin-top: 2.5mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .print-quote__totals {
     gap: 1mm;
     max-width: 78mm;
-    margin-top: 2.5mm;
     margin-left: auto;
     font-size: 9.5pt;
   }
@@ -5435,22 +5499,19 @@ body.modal-open {
     font-size: 8.5pt;
   }
 
-  .print-quote__footer {
-    margin-top: 3mm;
+  .print-quote__conditions {
+    margin-top: 2.5mm;
     padding-top: 2mm;
-    border-color: #999999;
-    color: #333333;
-    font-size: 8.5pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .print-quote__header,
   .print-quote__commercial,
-  .print-quote__total,
-  .print-quote__section,
-  .print-quote__table tr,
   .print-quote__totals,
-  .print-quote__footer {
+  .print-quote__conditions {
     break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
 
@@ -6219,33 +6280,6 @@ body.modal-open {
   }
 }
 
-@media print {
-  .quote-commercial-editor,
-  .quotes-panel,
-  #cotizacionClientePanel > .quote-builder-heading,
-  #cotizacionClientePanel > .quote-finalize-card,
-  #cotizacionClientePanel > .quote-actions,
-  #cotizacionClientePanel > .print-help,
-  #cotizacionClientePanel > #cotizacionMessage {
-    display: none !important;
-  }
-
-  .print-quote__table thead {
-    display: table-header-group;
-  }
-
-  .print-quote__table tr,
-  .print-quote__commercial,
-  .print-quote__section,
-  .print-quote__totals {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  .print-quote__table small {
-    color: #333;
-  }
-}
 /* Integracion compacta entre cotizaciones e inventario de filamentos */
 .filament-picker {
   padding: 0.85rem;

@@ -400,7 +400,7 @@
   function clienteCotizacion(cotizacion) {
     const snapshot = cotizacion.snapshotCliente || {};
     return {
-      nombre: snapshot.nombre || snapshot.clienteCotizacion || "Cliente no especificado",
+      nombre: snapshot.nombre || snapshot.clienteCotizacion || t("clienteNoEspecificado"),
       empresa: snapshot.empresa || snapshot.empresaCliente || "",
       rut: snapshot.rutIdFiscal || snapshot.rutCliente || "",
       telefono: snapshot.telefono || snapshot.contactoCliente || "",
@@ -420,44 +420,154 @@
       : "";
   }
 
+  function cotizacionParaVistaPrevia() {
+    if (!cotizacionActual) return null;
+    const clienteId = $("#quoteClienteId")?.value || cotizacionActual.clienteId;
+    const cliente = window.ClientesPrecio3D?.obtenerClientePorId?.(clienteId);
+    return window.CotizacionesPrecio3D.normalizarCotizacion({
+      ...cotizacionActual,
+      clienteId,
+      snapshotCliente: cliente ? snapshotCliente(cliente) : cotizacionActual.snapshotCliente,
+      validezDias: numero($("#quoteValidez")?.value ?? cotizacionActual.validezDias),
+      descuento: {
+        tipo: $("#quoteDescuentoTipo")?.value || cotizacionActual.descuento.tipo,
+        valor: numero($("#quoteDescuentoValor")?.value ?? cotizacionActual.descuento.valor)
+      },
+      envio: numero($("#quoteEnvio")?.value ?? cotizacionActual.envio),
+      tipoAbono: $("#quoteAbonoTipo")?.value || cotizacionActual.tipoAbono,
+      porcentajeAbono: numero($("#quoteAbonoPorcentaje")?.value ?? cotizacionActual.porcentajeAbono),
+      montoAbono: numero($("#quoteAbonoMonto")?.value ?? cotizacionActual.montoAbono),
+      tiempoEntrega: $("#quoteTiempoEntrega")?.value ?? cotizacionActual.tiempoEntrega,
+      condicionesPago: $("#quoteCondicionesPago")?.value ?? cotizacionActual.condicionesPago,
+      observaciones: $("#quoteObservaciones")?.value ?? cotizacionActual.observaciones,
+      datosNegocio: { ...(cotizacionActual.datosNegocio || {}) }
+    });
+  }
+
   function renderizarVistaPrevia() {
-    leerEditor();
-    if (!cotizacionActual?.items.length) {
+    const cotizacionVista = cotizacionParaVistaPrevia();
+    if (!cotizacionVista?.items.length) {
       mensaje(t("agregaLineaAntesGenerar"), true);
       return false;
     }
     const vista = $("#cotizacionClienteVista");
     if (!vista) return false;
-    const negocio = cotizacionActual.datosNegocio || {};
-    const cliente = clienteCotizacion(cotizacionActual);
-    const totales = window.CotizacionesPrecio3D.calcularTotales(cotizacionActual);
-    const fechaValidez = new Date(cotizacionActual.fechaCreacion);
-    fechaValidez.setDate(fechaValidez.getDate() + cotizacionActual.validezDias);
+    const negocio = cotizacionVista.datosNegocio || {};
+    const cliente = clienteCotizacion(cotizacionVista);
+    const totales = window.CotizacionesPrecio3D.calcularTotales(cotizacionVista);
+    const fechaValidez = new Date(cotizacionVista.fechaCreacion);
+    fechaValidez.setDate(fechaValidez.getDate() + cotizacionVista.validezDias);
+    const condiciones = [
+      lineaDato(t("entrega"), cotizacionVista.tiempoEntrega),
+      lineaDato(t("pago"), cotizacionVista.condicionesPago),
+      lineaDato(t("observaciones"), cotizacionVista.observaciones)
+    ].filter(Boolean).join("");
+    const notaImpuestos = cotizacionVista.items.every((item) => item.precioIncluyeImpuesto)
+      ? t("impuestosIncluidos")
+      : t("revisarLineasSinImpuesto");
+
     vista.hidden = false;
     vista.innerHTML = `
       <article class="print-quote">
-        <header class="print-quote__header"><div class="print-quote__brand">${logoCotizacion(negocio)}<div class="print-quote__title"><h2>${escapar(t("cotizacion"))}</h2><h3>${escapar(negocio.nombreNegocio || t("negocioNoConfigurado"))}</h3></div></div><div class="print-quote__meta">${lineaDato("N°", cotizacionActual.numeroCotizacion)}${lineaDato(t("fecha"), fecha(cotizacionActual.fechaCreacion))}${lineaDato(t("validaHasta"), fecha(fechaValidez))}${lineaDato(t("moneda"), cotizacionActual.moneda)}</div></header>
+        <header class="print-quote__header">
+          <div class="print-quote__brand">
+            ${logoCotizacion(negocio)}
+            <div>
+              <p>${escapar(t("emitidaPor"))}</p>
+              <h2>${escapar(negocio.nombreNegocio || t("negocioNoConfigurado"))}</h2>
+            </div>
+          </div>
+          <div class="print-quote__document">
+            <h1>${escapar(t("cotizacion"))}</h1>
+            <div class="print-quote__meta">
+              ${lineaDato(t("numero"), cotizacionVista.numeroCotizacion)}
+              ${lineaDato(t("fecha"), fecha(cotizacionVista.fechaCreacion))}
+              ${lineaDato(t("validaHasta"), fecha(fechaValidez))}
+              ${lineaDato(t("moneda"), cotizacionVista.moneda)}
+            </div>
+          </div>
+        </header>
         <section class="print-quote__commercial">
-          <div class="print-quote__party"><h3>${escapar(t("datosQuienCotiza"))}</h3>${lineaDato(t("nombre"), negocio.nombreNegocio)}${lineaDato("RUT / ID", negocio.rutNegocio)}${lineaDato(t("contacto"), negocio.telefonoNegocio)}${lineaDato(t("correoCliente"), negocio.correoNegocio)}${lineaDato(t("direccion"), negocio.direccionNegocio)}${lineaDato(t("sitioWeb"), negocio.sitioWebNegocio)}${lineaDato("Instagram", negocio.instagramNegocio)}</div>
-          <div class="print-quote__party"><h3>${escapar(t("datosCliente"))}</h3>${lineaDato(t("cliente"), cliente.nombre)}${lineaDato(t("empresa"), cliente.empresa)}${lineaDato("RUT / ID", cliente.rut)}${lineaDato(t("contacto"), cliente.telefono)}${lineaDato(t("correoCliente"), cliente.correo)}${lineaDato(t("direccion"), cliente.direccion)}</div>
+          <div class="print-quote__party">
+            <h3>${escapar(t("datosQuienCotiza"))}</h3>
+            ${lineaDato(t("nombre"), negocio.nombreNegocio)}
+            ${lineaDato(t("rutNegocio"), negocio.rutNegocio)}
+            ${lineaDato(t("contacto"), negocio.telefonoNegocio)}
+            ${lineaDato(t("correoNegocio"), negocio.correoNegocio)}
+            ${lineaDato(t("direccionNegocio"), negocio.direccionNegocio)}
+            ${lineaDato(t("sitioWebNegocio"), negocio.sitioWebNegocio)}
+            ${lineaDato(t("instagramNegocio"), negocio.instagramNegocio)}
+          </div>
+          <div class="print-quote__party">
+            <h3>${escapar(t("datosCliente"))}</h3>
+            ${lineaDato(t("cliente"), cliente.nombre)}
+            ${lineaDato(t("empresa"), cliente.empresa)}
+            ${lineaDato(t("rutCliente"), cliente.rut)}
+            ${lineaDato(t("contacto"), cliente.telefono)}
+            ${lineaDato(t("correoCliente"), cliente.correo)}
+            ${lineaDato(t("direccionCliente"), cliente.direccion)}
+          </div>
         </section>
-        <section class="print-quote__section"><h3>${escapar(t("detalle"))}</h3><table class="print-quote__table"><thead><tr><th>${escapar(t("descripcion"))}</th><th>${escapar(t("cantidad"))}</th><th>${escapar(t("precioUnitario"))}</th><th>${escapar(t("total"))}</th></tr></thead><tbody>${cotizacionActual.items.map((item) => `<tr><td><strong>${escapar(item.descripcion)}</strong>${item.detalle ? `<br><small>${escapar(item.detalle)}</small>` : ""}</td><td>${item.cantidad}</td><td>${moneda(item.precioUnitario)}</td><td>${item.tipo === "Descuento de línea" ? "−" : ""}${moneda(item.totalLinea)}</td></tr>`).join("")}</tbody></table>
-          <dl class="print-quote__totals"><div><dt>${escapar(t("subtotal"))}</dt><dd>${moneda(totales.subtotal)}</dd></div>${totales.descuentoTotal ? `<div><dt>${escapar(t("descuento"))}</dt><dd>−${moneda(totales.descuentoTotal)}</dd></div>` : ""}${totales.envio ? `<div><dt>${escapar(t("envio"))}</dt><dd>${moneda(totales.envio)}</dd></div>` : ""}<div class="print-quote__grand-total"><dt>${escapar(t("totalFinal"))}</dt><dd>${moneda(totales.totalFinal)}</dd></div>${totales.montoAbono ? `<div><dt>${escapar(t("abonoRequerido"))}</dt><dd>${moneda(totales.montoAbono)}</dd></div><div><dt>${escapar(t("saldo"))}</dt><dd>${moneda(totales.saldo)}</dd></div>` : ""}</dl>
-          ${cotizacionActual.items.every((item) => item.precioIncluyeImpuesto) ? `<p class="print-quote__tax-note">${escapar(t("impuestosIncluidos"))}</p>` : ""}
+        <section class="print-quote__section print-quote__detail">
+          <h3>${escapar(t("detalle"))}</h3>
+          <div class="print-quote__table-wrap">
+            <table class="print-quote__table">
+              <thead><tr><th>${escapar(t("descripcion"))}</th><th>${escapar(t("cantidad"))}</th><th>${escapar(t("precioUnitario"))}</th><th>${escapar(t("total"))}</th></tr></thead>
+              <tbody>${cotizacionVista.items.map((item) => `<tr><td><strong>${escapar(item.descripcion)}</strong>${item.detalle ? `<small>${escapar(item.detalle)}</small>` : ""}</td><td>${item.cantidad}</td><td>${moneda(item.precioUnitario, cotizacionVista.moneda)}</td><td>${item.tipo === "Descuento de línea" ? "−" : ""}${moneda(item.totalLinea, cotizacionVista.moneda)}</td></tr>`).join("")}</tbody>
+            </table>
+          </div>
         </section>
-        <section class="print-quote__section print-quote__conditions"><h3>${escapar(t("condiciones"))}</h3>${lineaDato(t("entrega"), cotizacionActual.tiempoEntrega)}${lineaDato(t("pago"), cotizacionActual.condicionesPago)}${lineaDato(t("observaciones"), cotizacionActual.observaciones)}</section>
+        <section class="print-quote__summary" aria-label="${escapar(t("resumenComercial"))}">
+          <dl class="print-quote__totals">
+            <div><dt>${escapar(t("subtotal"))}</dt><dd>${moneda(totales.subtotal, cotizacionVista.moneda)}</dd></div>
+            ${totales.descuentoTotal ? `<div><dt>${escapar(t("descuento"))}</dt><dd>−${moneda(totales.descuentoTotal, cotizacionVista.moneda)}</dd></div>` : ""}
+            ${totales.envio ? `<div><dt>${escapar(t("envio"))}</dt><dd>${moneda(totales.envio, cotizacionVista.moneda)}</dd></div>` : ""}
+            <div class="print-quote__grand-total"><dt>${escapar(t("totalFinal"))}</dt><dd>${moneda(totales.totalFinal, cotizacionVista.moneda)}</dd></div>
+            ${totales.montoAbono ? `<div><dt>${escapar(t("abonoRequerido"))}</dt><dd>${moneda(totales.montoAbono, cotizacionVista.moneda)}</dd></div><div><dt>${escapar(t("saldo"))}</dt><dd>${moneda(totales.saldo, cotizacionVista.moneda)}</dd></div>` : ""}
+          </dl>
+          <p class="print-quote__tax-note">${escapar(notaImpuestos)}</p>
+        </section>
+        ${condiciones ? `<section class="print-quote__section print-quote__conditions"><h3>${escapar(t("condiciones"))}</h3>${condiciones}</section>` : ""}
       </article>`;
     mensaje(t("vistaPreviaGenerada"));
     return true;
   }
 
+  function nombreSeguroDocumento(valor) {
+    return String(valor || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 80);
+  }
+
   function imprimir() {
     if (!renderizarVistaPrevia()) return false;
-    const titulo = document.title;
-    document.title = cotizacionActual.numeroCotizacion || "Cotización";
-    window.addEventListener("afterprint", () => { document.title = titulo; }, { once: true });
-    window.print();
-    setTimeout(() => { document.title = titulo; }, 1500);
+    const tituloOriginal = document.title;
+    const cotizacionVista = cotizacionParaVistaPrevia() || cotizacionActual;
+    const cliente = clienteCotizacion(cotizacionVista).nombre;
+    const numeroSeguro = nombreSeguroDocumento(cotizacionVista.numeroCotizacion) || "Sin-numero";
+    const clienteSeguro = nombreSeguroDocumento(cliente) || "Sin-cliente";
+    let restaurado = false;
+    const restaurarTitulo = () => {
+      if (restaurado) return;
+      restaurado = true;
+      document.title = tituloOriginal;
+    };
+
+    document.title = `Cotizacion-${numeroSeguro}-${clienteSeguro}`;
+    window.addEventListener("afterprint", restaurarTitulo, { once: true });
+    window.addEventListener("focus", restaurarTitulo, { once: true });
+    try {
+      window.print();
+    } catch (error) {
+      restaurarTitulo();
+      throw error;
+    }
+    window.setTimeout(restaurarTitulo, 60000);
     return true;
   }
 
