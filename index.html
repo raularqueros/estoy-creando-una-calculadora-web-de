@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
   <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
   <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
-  <link rel="stylesheet" href="styles.css?v=20260724-result-hierarchy-v1">
+  <link rel="stylesheet" href="styles.css?v=20260724-jobs-hierarchy-v1">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -903,41 +903,54 @@
         <p class="help-text">Guarda cotizaciones calculadas en este navegador. Puedes exportarlas como JSON para respaldarlas o moverlas a otro equipo.</p>
 
         <div class="job-save-box">
-          <div class="field-grid">
-            <label>
-              <span data-i18n="clienteGuardado">Cliente guardado</span>
-              <select id="trabajoClienteGuardado">
-                <option value="" data-i18n="guardarSinCliente">Guardar sin cliente vinculado</option>
-              </select>
-            </label>
-            <label>
-              <span data-i18n="cliente">Cliente</span>
-              <input type="text" id="trabajoCliente" placeholder="Ej: Cliente particular" data-i18n-placeholder="placeholderClienteParticular">
-            </label>
-            <label>
-              Estado
-              <select id="trabajoEstado">
-                <option value="Pendiente" data-i18n="pendiente">Pendiente</option>
-                <option value="Aceptado" data-i18n="aceptado">Aceptado</option>
-                <option value="Rechazado" data-i18n="rechazado">Rechazado</option>
-                <option value="Terminado" data-i18n="terminado">Terminado</option>
-                <option value="Pagado" data-i18n="pagado">Pagado</option>
-              </select>
-            </label>
-            <label class="field-wide">
-              <span data-i18n="descripcion">Descripción</span>
-              <textarea id="trabajoDescripcion" rows="3" placeholder="Notas del pedido, requisitos o condiciones"></textarea>
-            </label>
-          </div>
-          <div class="actions">
-            <button type="button" id="guardarTrabajoActualButton" data-i18n="guardarTrabajoActual">Guardar trabajo actual</button>
-            <button type="button" id="nuevoClienteDesdeTrabajoButton" class="secondary" data-i18n="nuevoCliente">+ Nuevo cliente</button>
-            <button type="button" id="exportarTrabajosButton" class="secondary" data-i18n="exportarTrabajos">Exportar trabajos</button>
-            <button type="button" id="exportarTrabajosJsonButton" class="secondary">Exportar respaldo JSON</button>
-            <button type="button" id="importarTrabajosButton" class="secondary" data-i18n="importarTrabajos">Importar respaldo JSON</button>
-            <button type="button" id="borrarTrabajosButton" class="secondary danger-button" data-i18n="borrarTrabajos">Borrar todos los trabajos</button>
+          <section class="jobs-save-section">
+            <h3 data-i18n="guardarTrabajoActual">Guardar trabajo actual</h3>
+            <div class="field-grid jobs-save-fields">
+              <label>
+                <span data-i18n="clienteGuardado">Cliente guardado</span>
+                <select id="trabajoClienteGuardado">
+                  <option value="" data-i18n="guardarSinCliente">Guardar sin cliente vinculado</option>
+                </select>
+              </label>
+              <label>
+                <span data-i18n="cliente">Cliente</span>
+                <input type="text" id="trabajoCliente" placeholder="Ej: Cliente particular" data-i18n-placeholder="placeholderClienteParticular">
+              </label>
+              <label>
+                Estado
+                <select id="trabajoEstado">
+                  <option value="Pendiente" data-i18n="pendiente">Pendiente</option>
+                  <option value="Aceptado" data-i18n="aceptado">Aceptado</option>
+                  <option value="Rechazado" data-i18n="rechazado">Rechazado</option>
+                  <option value="Terminado" data-i18n="terminado">Terminado</option>
+                  <option value="Pagado" data-i18n="pagado">Pagado</option>
+                </select>
+              </label>
+              <label class="field-wide">
+                <span data-i18n="descripcion">Descripción</span>
+                <textarea id="trabajoDescripcion" rows="3" placeholder="Notas del pedido, requisitos o condiciones"></textarea>
+              </label>
+            </div>
+            <div class="actions jobs-save-actions">
+              <button type="button" id="guardarTrabajoActualButton" data-i18n="guardarTrabajoActual">Guardar trabajo actual</button>
+              <button type="button" id="nuevoClienteDesdeTrabajoButton" class="secondary" data-i18n="nuevoCliente">+ Nuevo cliente</button>
+            </div>
+          </section>
+
+          <details class="jobs-tools-panel">
+            <summary data-i18n="herramientasRespaldo">Herramientas y respaldo</summary>
+            <div class="jobs-tools-content">
+              <div class="jobs-tools-actions">
+                <button type="button" id="exportarTrabajosButton" class="secondary" data-i18n="exportarTrabajos">Exportar trabajos</button>
+                <button type="button" id="exportarTrabajosJsonButton" class="secondary">Exportar respaldo JSON</button>
+                <button type="button" id="importarTrabajosButton" class="secondary" data-i18n="importarTrabajos">Importar respaldo JSON</button>
+              </div>
+              <div class="jobs-danger-action">
+                <button type="button" id="borrarTrabajosButton" class="secondary danger-button" data-i18n="borrarTrabajos">Borrar todos los trabajos</button>
+              </div>
+            </div>
             <input type="file" id="importarTrabajosInput" accept="application/json,.json" hidden>
-          </div>
+          </details>
           <p id="trabajosMessage" class="help-text" role="status"></p>
         </div>
 
@@ -1801,7 +1814,7 @@
   <script src="js/printer-catalog.js?v=20260715-catalog-v1"></script>
   <script src="js/printers.js?v=20260715-printers-v2"></script>
   <script src="js/geolocation.js"></script>
-  <script src="js/i18n.js?v=20260724-accessibility-v1"></script>
+  <script src="js/i18n.js?v=20260724-jobs-hierarchy-v1"></script>
   <script src="js/presets.js"></script>
   <script src="js/filaments.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/comparator.js"></script>

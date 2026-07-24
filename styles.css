@@ -3400,6 +3400,149 @@ textarea {
   }
 }
 
+/* Guardado y herramientas de Mis trabajos */
+.jobs-panel,
+.job-save-box,
+.jobs-save-section,
+.jobs-tools-panel,
+.jobs-tools-content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.job-save-box {
+  display: grid;
+  gap: 14px;
+}
+
+.jobs-save-section {
+  padding: 16px;
+  background: #f8fbfb;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.jobs-save-section h3 {
+  margin: 0 0 14px;
+  color: var(--color-primary-dark);
+  font-size: 1.05rem;
+}
+
+.jobs-save-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.jobs-save-fields .field-wide {
+  grid-column: 1 / -1;
+}
+
+.jobs-save-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.jobs-save-actions #guardarTrabajoActualButton {
+  min-height: 48px;
+  font-weight: 800;
+}
+
+.jobs-save-actions #nuevoClienteDesdeTrabajoButton {
+  min-height: 48px;
+}
+
+.jobs-tools-panel {
+  overflow: clip;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.jobs-tools-panel > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-weight: 750;
+  cursor: pointer;
+  list-style: none;
+}
+
+.jobs-tools-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.jobs-tools-panel > summary::after {
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  margin-right: 3px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  content: "";
+  transform: rotate(45deg);
+  transition: transform 160ms ease;
+}
+
+.jobs-tools-panel[open] > summary::after {
+  transform: rotate(225deg);
+}
+
+.jobs-tools-panel > summary:hover,
+.jobs-tools-panel[open] > summary {
+  color: var(--dashboard-green-dark);
+  background: var(--dashboard-green-soft);
+}
+
+.jobs-tools-panel > summary:focus-visible {
+  outline: 3px solid rgba(245, 158, 11, 0.92);
+  outline-offset: -3px;
+}
+
+.jobs-tools-content {
+  padding: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.jobs-tools-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.jobs-tools-actions button {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+}
+
+.jobs-danger-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+#misTrabajosPanel .jobs-danger-action .danger-button {
+  min-height: 44px;
+  color: #9f2a1d;
+  background: transparent;
+  border: 1px solid rgba(159, 42, 29, 0.48);
+  box-shadow: none;
+}
+
+#misTrabajosPanel .jobs-danger-action .danger-button:hover,
+#misTrabajosPanel .jobs-danger-action .danger-button:focus-visible {
+  color: #ffffff;
+  background: #9f2a1d;
+  border-color: #9f2a1d;
+}
+
 /* Panel comercial de Mis trabajos */
 .jobs-dashboard-heading {
   display: flex;
@@ -3840,6 +3983,22 @@ body.modal-open {
 }
 
 @media (max-width: 768px) {
+  .jobs-save-fields,
+  .jobs-save-actions,
+  .jobs-tools-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jobs-save-actions button,
+  .jobs-tools-actions button,
+  .jobs-danger-action .danger-button {
+    width: 100%;
+  }
+
+  .jobs-danger-action {
+    display: block;
+  }
+
   .jobs-dashboard-heading {
     align-items: stretch;
     flex-direction: column;
