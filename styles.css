@@ -923,13 +923,27 @@ body {
   margin-bottom: 0;
 }
 
-.result-workflow-panel,
 .quote-step-panel {
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+}
+
+.result-workflow-panel {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 14px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.result-workflow-panel > div {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .result-workflow-panel h2,
@@ -943,8 +957,30 @@ body {
 }
 
 .result-workflow-panel .actions {
-  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   margin-top: 0;
+}
+
+.result-workflow-panel .actions button {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 601px) and (max-width: 1180px) {
+  .result-workflow-panel .actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .result-workflow-panel .actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .button-link {
@@ -2391,7 +2427,6 @@ button.danger-button:hover {
     flex-direction: column;
   }
 
-  .result-workflow-panel,
   .quote-step-panel {
     align-items: stretch;
     flex-direction: column;
@@ -3044,11 +3079,6 @@ textarea {
   display: flex;
   justify-content: flex-end;
   margin: 8px 0 2px;
-}
-
-.result-workflow-panel .actions {
-  display: grid;
-  grid-template-columns: 1fr;
 }
 
 .result-disclosure {
