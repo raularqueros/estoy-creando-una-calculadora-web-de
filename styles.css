@@ -3545,22 +3545,35 @@ textarea {
 
 /* Panel comercial de Mis trabajos */
 .jobs-dashboard-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
   gap: 16px;
   margin-top: 22px;
 }
 
+.jobs-dashboard-heading > div:first-child {
+  min-width: 0;
+}
+
+.jobs-dashboard-heading .eyebrow {
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
 .jobs-dashboard-heading h3 {
-  margin: 2px 0 0;
+  margin: 0;
   color: var(--color-primary-dark);
-  font-size: 1.15rem;
+  font-size: clamp(1.15rem, 2vw, 1.35rem);
+  line-height: 1.25;
 }
 
 .jobs-flow-control {
   display: inline-grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  max-width: 100%;
   gap: 4px;
   padding: 4px;
   background: #edf2f4;
@@ -3569,7 +3582,8 @@ textarea {
 }
 
 .jobs-flow-control button {
-  min-height: 38px;
+  min-width: 0;
+  min-height: 44px;
   padding-inline: 12px;
   border-radius: 7px;
   font-size: 0.82rem;
@@ -3588,6 +3602,11 @@ textarea {
   margin-top: 16px;
 }
 
+#misTrabajosPanel .jobs-kpi-grid {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .job-kpi {
   display: flex;
   align-items: flex-start;
@@ -3598,6 +3617,14 @@ textarea {
   border: 1px solid var(--color-border);
   border-radius: 12px;
   box-shadow: 0 5px 15px rgba(15, 23, 42, 0.04);
+}
+
+#misTrabajosPanel .job-kpi {
+  min-height: 104px;
+}
+
+#misTrabajosPanel .job-kpi > div:last-child {
+  min-width: 0;
 }
 
 .job-kpi__icon {
@@ -3644,19 +3671,34 @@ textarea {
 }
 
 .jobs-filters-panel {
+  overflow: clip;
+  min-width: 0;
+  max-width: 100%;
   margin-top: 16px;
   padding: 0;
-  background: var(--soft);
+  background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(15, 23, 42, 0.035);
 }
 
 .jobs-filters-panel > summary {
+  display: flex;
+  align-items: center;
   min-height: 44px;
   padding: 12px 14px;
   color: var(--text);
   font-weight: 700;
   cursor: pointer;
+}
+
+.jobs-filters-panel[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.jobs-filters-panel > summary:focus-visible {
+  outline: 3px solid rgba(245, 158, 11, 0.92);
+  outline-offset: -3px;
 }
 
 .jobs-filters {
@@ -3676,8 +3718,39 @@ textarea {
   font-size: 0.86rem;
 }
 
+#misTrabajosPanel .jobs-filters {
+  grid-template-columns: minmax(240px, 1.6fr) repeat(4, minmax(110px, 0.8fr));
+  min-width: 0;
+  padding: 14px;
+}
+
+#misTrabajosPanel .jobs-filters label {
+  min-width: 0;
+}
+
+#misTrabajosPanel .jobs-filters input,
+#misTrabajosPanel .jobs-filters select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+}
+
 .jobs-list {
+  min-width: 0;
+  max-width: 100%;
   margin-top: 14px;
+}
+
+#trabajosListado > .empty-state {
+  display: grid;
+  min-height: 138px;
+  margin: 0;
+  padding: 28px 20px;
+  place-items: center;
+  text-align: center;
+  background: #fbfcfd;
+  border: 1px dashed #b9c7d3;
+  border-radius: 12px;
 }
 
 .jobs-table-wrap {
@@ -4000,8 +4073,8 @@ body.modal-open {
   }
 
   .jobs-dashboard-heading {
+    grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
-    flex-direction: column;
   }
 
   .jobs-flow-control {
@@ -4137,6 +4210,17 @@ body.modal-open {
 
   .jobs-table td {
     grid-template-columns: 78px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 379px) {
+  #misTrabajosPanel .jobs-kpi-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #misTrabajosPanel .job-kpi {
+    display: flex;
+    min-height: 96px;
   }
 }
 
