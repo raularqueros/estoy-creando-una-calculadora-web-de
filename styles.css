@@ -7261,7 +7261,7 @@ body.modal-open {
 
 .site-header__copy {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   min-width: 0;
   max-width: 780px;
@@ -7327,62 +7327,59 @@ body.modal-open {
   object-fit: contain;
 }
 
-.site-language-picker {
-  grid-column: 2;
+.site-footer .site-language-picker {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  justify-self: end;
   min-height: 44px;
   max-width: 100%;
-  margin: 0 0 6px 16px;
+  margin: 0;
   padding: 5px 6px 5px 12px;
-  color: #e6fffb;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(204, 251, 241, 0.35);
+  color: var(--primary-dark);
+  background: #ffffff;
+  border: 1px solid var(--line);
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1;
-  backdrop-filter: blur(8px);
 }
 
-.site-language-picker svg {
+.site-footer .site-language-picker svg {
   flex: 0 0 auto;
   width: 18px;
   height: 18px;
   fill: none;
-  stroke: #99f6e4;
+  stroke: var(--primary);
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.site-language-picker select {
+.site-footer .site-language-picker select {
   width: auto;
   min-width: 112px;
   min-height: 34px;
   margin: 0;
   padding: 5px 30px 5px 10px;
-  color: #073b3a;
-  background-color: #f0fdfa;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: var(--text);
+  background-color: var(--soft);
+  border: 1px solid var(--line);
   border-radius: 999px;
   font: inherit;
   cursor: pointer;
 }
 
-.site-language-picker:hover {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(204, 251, 241, 0.6);
+.site-footer .site-language-picker:hover {
+  background: var(--soft);
+  border-color: var(--primary);
 }
 
-.site-language-picker:focus-within {
-  outline: 3px solid #facc15;
+.site-footer .site-language-picker:focus-within {
+  outline: 3px solid rgba(15, 118, 110, 0.3);
   outline-offset: 3px;
 }
 
-.site-language-picker select:focus-visible {
+.site-footer .site-language-picker select:focus-visible {
   outline: 0;
 }
 
@@ -7471,13 +7468,6 @@ body.modal-open {
     display: contents;
   }
 
-  .site-language-picker {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    justify-self: start;
-    margin: 0 0 10px;
-  }
-
   .site-header .eyebrow {
     grid-column: 1;
     grid-row: 2;
@@ -7538,12 +7528,12 @@ body.modal-open {
     display: none;
   }
 
-  .site-language-picker {
+  .site-footer .site-language-picker {
     width: 100%;
     justify-content: space-between;
   }
 
-  .site-language-picker select {
+  .site-footer .site-language-picker select {
     flex: 1 1 auto;
     min-width: 0;
   }
