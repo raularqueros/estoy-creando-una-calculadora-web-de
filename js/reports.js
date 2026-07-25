@@ -77,6 +77,15 @@
     return finDia(new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0));
   }
 
+  function diasInclusivos(inicio, fin) {
+    const desde = fechaLocal(inicio);
+    const hasta = fechaLocal(fin);
+    if (!desde || !hasta || hasta < desde) return 0;
+    const inicioUtc = Date.UTC(desde.getFullYear(), desde.getMonth(), desde.getDate());
+    const finUtc = Date.UTC(hasta.getFullYear(), hasta.getMonth(), hasta.getDate());
+    return Math.floor((finUtc - inicioUtc) / 86400000) + 1;
+  }
+
   function resolverPeriodo(filtros = {}) {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
@@ -143,7 +152,7 @@
 
   function periodoAnterior(periodo) {
     if (!periodo.comparable || !periodo.inicio || !periodo.fin) return null;
-    const duracion = Math.round((periodo.fin - periodo.inicio) / 86400000) + 1;
+    const duracion = diasInclusivos(periodo.inicio, periodo.fin);
     const fin = new Date(periodo.inicio);
     fin.setDate(fin.getDate() - 1);
     fin.setHours(23, 59, 59, 999);
@@ -195,6 +204,16 @@
 
   function costoHistorico(trabajo) {
     return numeroDisponible(trabajo.costoTotal) ?? numeroDisponible(trabajo.resultado?.costoTotal);
+  }
+
+  function costoMantenimientoHistorico(trabajo) {
+    return numeroDisponible(trabajo.costoMantenimiento)
+      ?? numeroDisponible(trabajo.resultado?.costoMantenimiento);
+  }
+
+  function costoHerramientasHistorico(trabajo) {
+    return numeroDisponible(trabajo.costoHerramientas)
+      ?? numeroDisponible(trabajo.resultado?.costoHerramientas);
   }
 
   function pagosTrabajo(trabajo) {
@@ -352,6 +371,9 @@
     trabajos.forEach((trabajo) => {
       const resultado = trabajo.resultado || {};
       const datos = trabajo.datos || {};
+      const mantenimiento = costoMantenimientoHistorico(trabajo);
+      const herramientas = costoHerramientasHistorico(trabajo);
+      const amortizacion = numeroDisponible(resultado.costoAmortizacion);
       const presentes = [
         "costoMaterial",
         "costoElectricidad",
@@ -359,7 +381,9 @@
         "costoAmortizacion",
         "costoLogistico",
         "impuesto"
-      ].filter((campo) => Number.isFinite(Number(resultado[campo])));
+      ].filter((campo) => Number.isFinite(Number(resultado[campo])))
+        .concat(mantenimiento !== null ? ["costoMantenimiento"] : [])
+        .concat(herramientas !== null ? ["costoHerramientas"] : []);
 
       if (!presentes.length) {
         sinDesglose += 1;
@@ -372,7 +396,9 @@
       totales.material += numero(resultado.costoMaterial);
       totales.energia += numero(resultado.costoElectricidad);
       totales.manoObra += numero(resultado.costoManoObra);
-      totales.amortizacion += numero(resultado.costoAmortizacion);
+      totales.mantenimiento += numero(mantenimiento);
+      totales.herramientas += numero(herramientas);
+      totales.amortizacion += Math.max(0, numero(amortizacion) - numero(mantenimiento) - numero(herramientas));
       totales.comisionesVenta += numero(resultado.feeFijoTotal);
       totales.comisionesPago += Math.max(0, numero(resultado.precioNeto) * numero(datos.feePorcentualTotal || resultado.feePorcentualTotal));
       totales.impuestos += numero(resultado.impuesto);
@@ -384,7 +410,7 @@
 
   function agruparEvolucion(ventas, pagos, periodo) {
     const dias = periodo.inicio && periodo.fin
-      ? Math.max(1, Math.round((periodo.fin - periodo.inicio) / 86400000) + 1)
+      ? Math.max(1, diasInclusivos(periodo.inicio, periodo.fin))
       : 366;
     const tipo = dias <= 31 ? "dia" : dias <= 120 ? "semana" : "mes";
     const mapa = new Map();
@@ -577,8 +603,10 @@
       item.porcentaje = metricas.resumen.pagosCobrados > 0 ? item.monto / metricas.resumen.pagosCobrados : null;
     });
 
+    const trabajosPeriodo = metricas.trabajosFiltrados
+      .filter((trabajo) => enPeriodo(fechaVentaTrabajo(trabajo), periodo));
     const distribucion = new Map();
-    metricas.trabajosFiltrados.forEach((trabajo) => {
+    trabajosPeriodo.forEach((trabajo) => {
       const estado = ESTADOS_CONOCIDOS.has(estadoTrabajo(trabajo)) ? estadoTrabajo(trabajo) : "Otro";
       const actual = distribucion.get(estado) || { estado, cantidad: 0, monto: 0 };
       actual.cantidad += 1;
@@ -620,7 +648,7 @@
       .filter((item) => !["Borrador", "Cancelado", "Rechazado"].includes(item.estado));
 
     const desgloseCostos = sumarComponentesCostos(metricas.ventas);
-    const calidadDatos = obtenerCalidadDatos(datos.trabajos, filtros, moneda);
+    const calidadDatos = obtenerCalidadDatos(trabajosPeriodo);
     calidadDatos.parciales = Math.max(0, calidadDatos.totalTrabajos - calidadDatos.completos);
 
     return {
@@ -664,6 +692,7 @@
           costoMaterial: Number.isFinite(Number(trabajo.resultado?.costoMaterial)) ? Number(trabajo.resultado.costoMaterial) : null,
           costoEnergia: Number.isFinite(Number(trabajo.resultado?.costoElectricidad)) ? Number(trabajo.resultado.costoElectricidad) : null,
           manoObra: Number.isFinite(Number(trabajo.resultado?.costoManoObra)) ? Number(trabajo.resultado.costoManoObra) : null,
+          mantenimiento: costoMantenimientoHistorico(trabajo),
           amortizacion: Number.isFinite(Number(trabajo.resultado?.costoAmortizacion)) ? Number(trabajo.resultado.costoAmortizacion) : null,
           comisiones: Number.isFinite(Number(trabajo.resultado?.feeFijoTotal)) ? Number(trabajo.resultado.feeFijoTotal) : null,
           otrosCostos: numero(trabajo.costosAdicionalesReales) || null,
@@ -774,7 +803,7 @@
         item.costoMaterial,
         item.costoEnergia,
         item.manoObra,
-        "",
+        item.mantenimiento,
         item.amortizacion,
         item.comisiones,
         item.otrosCostos,
