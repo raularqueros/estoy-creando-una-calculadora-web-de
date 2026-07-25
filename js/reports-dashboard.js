@@ -72,6 +72,20 @@
     return clave ? t(clave) : valor;
   }
 
+  function etiquetaCanalHistorico(valor) {
+    const normalizado = String(valor ?? "")
+      .trim()
+      .toLocaleLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    const clave = {
+      "venta directa": "presetVentaDirecta",
+      "direct sale": "presetVentaDirecta",
+      "venda direta": "presetVentaDirecta"
+    }[normalizado];
+    return clave ? t(clave) : valor;
+  }
+
   function descargar(nombre, contenido, tipo = "text/csv;charset=utf-8") {
     const blob = new Blob([contenido], { type: tipo });
     const url = URL.createObjectURL(blob);
@@ -125,10 +139,11 @@
     const clientesEtiquetas = Object.fromEntries(Object.entries(filtros.clientesEtiquetas || {}).map(([valor, etiqueta]) => [valor, etiquetaDatoReporte(etiqueta)]));
     const impresorasEtiquetas = Object.fromEntries(Object.entries(filtros.impresorasEtiquetas || {}).map(([valor, etiqueta]) => [valor, etiquetaDatoReporte(etiqueta)]));
     const modosEtiquetas = Object.fromEntries((filtros.modos || []).map((modo) => [modo, etiquetaDatoReporte(modo)]));
+    const canalesEtiquetas = Object.fromEntries((filtros.canales || []).map((canal) => [canal, etiquetaCanalHistorico(canal)]));
     poblarSelect($("#reporteCliente"), filtros.clientes || [], clientesEtiquetas, t("todos"));
     poblarSelect($("#reporteImpresora"), filtros.impresoras || [], impresorasEtiquetas, t("todas"));
     poblarSelect($("#reporteMaterial"), filtros.materiales || [], {}, t("todos"));
-    poblarSelect($("#reporteCanal"), filtros.canales || [], {}, t("todos"));
+    poblarSelect($("#reporteCanal"), filtros.canales || [], canalesEtiquetas, t("todos"));
     poblarSelect($("#reporteMetodoPago"), filtros.metodosPago || [], {}, t("todos"));
     poblarSelect($("#reporteModo"), filtros.modos || [], modosEtiquetas, t("todos"));
   }

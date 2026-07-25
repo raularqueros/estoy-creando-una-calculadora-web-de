@@ -5117,6 +5117,7 @@ document.addEventListener("precio3d:idioma-actualizado", () => {
   actualizarPredeterminadoConocido("tiempoEntrega", "tiempoEntregaCoordinar");
   actualizarPredeterminadoConocido("condicionesPago", "condicionesPagoDefecto");
   cargarPresetsVisuales();
+  cargarSelectoresFilamentos();
   cargarMetodosPagoComparador();
   actualizarEtiquetasAlcanceSlicer("basico");
   actualizarEtiquetasAlcanceSlicer("avanzado");
