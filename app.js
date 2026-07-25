@@ -1994,11 +1994,11 @@ function cargarSelectoresFilamentos() {
     if (!selector) return;
     const valorActual = selector.value;
     selector.innerHTML = "";
-    selector.add(new Option("Sin bobina / costo manual", ""));
+    selector.add(new Option(textoInterfaz("sinBobina"), ""));
     obtenerBobinasDisponibles().forEach((bobina) => selector.add(new Option(textoOpcionBobina(bobina), bobina.id)));
     if (filamentoTrabajoCargadoId && !Array.from(selector.options).some((opcion) => opcion.value === filamentoTrabajoCargadoId)) {
-      const nombre = filamentoTrabajoCargado?.nombre || filamentoTrabajoCargado?.materialNombre || "Bobina histórica";
-      selector.add(new Option(`${nombre} — referencia histórica no disponible`, filamentoTrabajoCargadoId));
+      const nombre = filamentoTrabajoCargado?.nombre || filamentoTrabajoCargado?.materialNombre || textoInterfaz("bobinaHistorica");
+      selector.add(new Option(textoInterfaz("referenciaHistoricaNoDisponible", { nombre }), filamentoTrabajoCargadoId));
     }
     selector.value = Array.from(selector.options).some((opcion) => opcion.value === valorActual)
       ? valorActual
