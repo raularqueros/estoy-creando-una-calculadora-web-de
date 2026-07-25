@@ -268,7 +268,18 @@ let baseComisionPagoBasicoActual = "precioNeto";
 exportExcelButton.disabled = true;
 
 function resultadoActualEsUsable() {
-  return Boolean(window.ValidacionPrecio3D?.esResultadoCalculable?.());
+  const validarResultadoActual = window.ValidacionPrecio3D?.esResultadoCalculable;
+
+  if (typeof validarResultadoActual === "function") {
+    return Boolean(window.ValidacionPrecio3D.esResultadoCalculable());
+  }
+
+  return Boolean(
+    ultimoDatosCalculo
+    && ultimoResultadoCalculo
+    && ultimoModoCalculo
+    && ultimoResultadoCalculo.precioNeto !== null
+  );
 }
 
 function actualizarBotonesGuardarTrabajo(habilitado) {
