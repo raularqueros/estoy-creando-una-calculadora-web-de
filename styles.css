@@ -2872,6 +2872,132 @@ button.danger-button:hover {
   border-color: #b24a40;
 }
 
+.help-quickstart-panel,
+.help-modes-panel,
+.help-data-panel,
+.help-faq-panel,
+.help-note-panel {
+  min-width: 0;
+}
+
+.help-section-heading {
+  margin-bottom: 16px;
+}
+
+.help-section-heading .eyebrow {
+  margin-bottom: 4px;
+}
+
+.help-section-heading h2 {
+  margin-bottom: 6px;
+  color: var(--primary-dark);
+  font-size: 1.2rem;
+}
+
+.help-quickstart-panel {
+  border-color: #b9d9d1;
+  background: linear-gradient(135deg, #f4fbf8, #ffffff 70%);
+}
+
+.help-quickstart-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.help-quickstart-steps li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.help-quickstart-steps span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: #ffffff;
+  border-radius: 50%;
+  background: var(--primary);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.help-quickstart-steps p,
+.help-mode-comparison p,
+.help-note-panel p:last-child {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.help-mode-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.help-mode-comparison article {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.help-mode-comparison h3 {
+  margin-bottom: 6px;
+  color: var(--primary-dark);
+  font-size: 1rem;
+}
+
+.help-data-panel {
+  border-left: 4px solid var(--primary);
+}
+
+.help-faq-item {
+  min-width: 0;
+  border-top: 1px solid var(--line);
+}
+
+.help-faq-item:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.help-faq-item > summary {
+  min-height: 44px;
+  padding: 13px 4px;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.help-faq-item > summary:hover,
+.help-faq-item > summary:focus-visible {
+  color: var(--primary-dark);
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.help-faq-item > p {
+  margin: 0;
+  padding: 0 4px 14px;
+  overflow-wrap: anywhere;
+}
+
+.help-note-panel {
+  border-left: 4px solid #b7660b;
+  background: #fffaf0;
+}
+
 @media (max-width: 600px) {
   .settings-group {
     padding: 14px;
@@ -2887,6 +3013,11 @@ button.danger-button:hover {
   .settings-danger-zone > button,
   .settings-tools__actions > button {
     width: 100%;
+  }
+
+  .help-quickstart-steps,
+  .help-mode-comparison {
+    grid-template-columns: 1fr;
   }
 }
 

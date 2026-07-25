@@ -286,7 +286,7 @@
     paneles.respaldo
   ]);
 
-  contenido("ayuda").innerHTML = `
+  const legacyHelpMarkup = `
     <section class="panel help-sources-panel">
       <h2 data-i18n="comoUsarAyuda">Como usar la ayuda</h2>
       <p data-i18n="comoUsarAyudaTexto">Los botones de información i explican los campos más técnicos sin cambiar tus datos.</p>
@@ -307,6 +307,74 @@
         <a class="button-link secondary" href="pages/terminos.html" data-i18n="terminos">Términos</a>
       </div>
     </section>
+  `;
+
+  contenido("ayuda").innerHTML = `
+    <section class="panel help-quickstart-panel">
+      <div class="help-section-heading">
+        <p class="eyebrow" data-i18n="ayudaInicioRapido">Inicio rápido</p>
+        <h2 data-i18n="ayudaInicioRapido">Inicio rápido</h2>
+        <p class="help-text" data-i18n="ayudaInicioRapidoAyuda">Completa estos pasos para obtener una primera cotización.</p>
+      </div>
+      <ol class="help-quickstart-steps">
+        <li><span>1</span><p data-i18n="ayudaPasoUno">Ingresa precio del filamento, peso y tiempo.</p></li>
+        <li><span>2</span><p data-i18n="ayudaPasoDos">Define trabajo y ganancia.</p></li>
+        <li><span>3</span><p data-i18n="ayudaPasoTres">Calcula y guarda el resultado.</p></li>
+      </ol>
+    </section>
+    <section class="panel help-modes-panel">
+      <div class="help-section-heading">
+        <p class="eyebrow" data-i18n="ayudaModosTitulo">¿Básico o Avanzado?</p>
+        <h2 data-i18n="ayudaModosTitulo">¿Básico o Avanzado?</h2>
+      </div>
+      <div class="help-mode-comparison">
+        <article>
+          <h3 data-i18n="ayudaBasicoTitulo">Básico</h3>
+          <p data-i18n="ayudaBasicoTexto">Cotización rápida con los datos esenciales.</p>
+        </article>
+        <article>
+          <h3 data-i18n="ayudaAvanzadoTitulo">Avanzado</h3>
+          <p data-i18n="ayudaAvanzadoTexto">Control detallado de electricidad, amortización, comisiones, impuestos y otros costos.</p>
+        </article>
+      </div>
+    </section>
+    <section class="panel help-data-panel">
+      <div class="help-section-heading">
+        <p class="eyebrow" data-i18n="ayudaDatosRespaldoTitulo">Datos y respaldo</p>
+        <h2 data-i18n="ayudaDatosRespaldoTitulo">Datos y respaldo</h2>
+        <p class="help-text" data-i18n="ayudaDatosRespaldoTexto">Tus datos se guardan localmente en este dispositivo. No existen cuentas ni almacenamiento en la nube. Exporta respaldos para trasladar o recuperar la información; borrar los datos del navegador puede eliminar lo que no hayas respaldado.</p>
+      </div>
+    </section>
+    <section class="panel help-faq-panel">
+      <div class="help-section-heading">
+        <p class="eyebrow" data-i18n="ayudaPreguntasFrecuentes">Preguntas frecuentes</p>
+        <h2 data-i18n="ayudaPreguntasFrecuentes">Preguntas frecuentes</h2>
+      </div>
+      <details class="help-faq-item">
+        <summary data-i18n="ayudaPreguntaPrecio">¿El precio calculado es definitivo?</summary>
+        <p data-i18n="ayudaRespuestaPrecio">No. Es una estimación basada en los valores ingresados; revisa tus costos y condiciones antes de cotizar.</p>
+      </details>
+      <details class="help-faq-item">
+        <summary data-i18n="ayudaPreguntaMoneda">¿La moneda convierte automáticamente los valores?</summary>
+        <p data-i18n="ayudaRespuestaMoneda">No. La moneda define la unidad de los costos y debes revisar los valores al cambiarla.</p>
+      </details>
+      <details class="help-faq-item">
+        <summary data-i18n="ayudaPreguntaDispositivo">¿Qué ocurre si cambio de dispositivo?</summary>
+        <p data-i18n="ayudaRespuestaDispositivo">Exporta un respaldo antes del cambio e impórtalo en el nuevo dispositivo.</p>
+      </details>
+      <details class="help-faq-item">
+        <summary data-i18n="ayudaPreguntaAvanzado">¿Cuándo debería usar el modo avanzado?</summary>
+        <p data-i18n="ayudaRespuestaAvanzado">Úsalo cuando necesites ajustar costos y comisiones con más detalle.</p>
+      </details>
+      <details class="help-faq-item">
+        <summary data-i18n="ayudaPreguntaRespaldo">¿Cómo respaldo mis trabajos y configuraciones?</summary>
+        <p data-i18n="ayudaRespuestaRespaldo">Usa la sección Configuración para descargar un respaldo completo y conservar una copia segura.</p>
+      </details>
+    </section>
+    <aside class="panel help-note-panel">
+      <p class="eyebrow" data-i18n="ayudaNotaFinal">Importante</p>
+      <p data-i18n="ayudaNotaFinalTexto">Los resultados son estimaciones y no reemplazan decisiones contables, tributarias o comerciales profesionales.</p>
+    </aside>
   `;
 
   function aplicarEstadoSidebar(expandida) {
