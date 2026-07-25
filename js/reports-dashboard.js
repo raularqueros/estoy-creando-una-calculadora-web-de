@@ -22,12 +22,44 @@
     if (typeof window.formatearMonedaPrecio3D === "function") {
       return window.formatearMonedaPrecio3D(Number(valor), moneda);
     }
-    return new Intl.NumberFormat("es-CL", { style: "currency", currency: moneda }).format(Number(valor));
+    return new Intl.NumberFormat(document.documentElement.lang || "es", { style: "currency", currency: moneda }).format(Number(valor));
   }
 
   function formatearPorcentaje(valor) {
     if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) return t("noDisponible");
-    return `${(Number(valor) * 100).toFixed(1)}%`;
+    return `${(Number(valor) * 100).toLocaleString(document.documentElement.lang || "es", { maximumFractionDigits: 1 })}%`;
+  }
+
+  function estadoVisible(estado) {
+    return t({
+      Borrador: "borrador",
+      Cotizado: "cotizado",
+      Pendiente: "pendiente",
+      Aceptado: "aceptado",
+      "Esperando abono": "esperandoAbono",
+      "En produccion": "enProduccion",
+      "En producción": "enProduccion",
+      Terminado: "terminado",
+      Entregado: "entregado",
+      Pagado: "pagado",
+      Rechazado: "rechazado",
+      Cancelado: "cancelado",
+      Otro: "otro"
+    }[estado] || "sinDefinir");
+  }
+
+  function periodoVisible(periodo) {
+    const clave = {
+      hoy: "hoy",
+      ultimos_7: "ultimosSieteDias",
+      este_mes: "esteMes",
+      mes_anterior: "mesAnterior",
+      ultimos_90: "ultimosTresMeses",
+      este_ano: "esteAno",
+      ano_anterior: "anoAnterior",
+      todo: "todoPeriodo"
+    }[periodo?.tipo];
+    return clave ? t(clave) : periodo?.etiqueta || t("rangoPersonalizado");
   }
 
   function descargar(nombre, contenido, tipo = "text/csv;charset=utf-8") {
@@ -78,7 +110,8 @@
       moneda.innerHTML = monedas.map((item) => `<option value="${escapar(item)}">${escapar(item)}</option>`).join("");
       moneda.value = monedas.includes(actual) ? actual : reporte.moneda;
     }
-    poblarSelect($("#reporteEstado"), filtros.estados || [], {}, t("todos"));
+    const estadosEtiquetas = Object.fromEntries((filtros.estados || []).map((estado) => [estado, estadoVisible(estado)]));
+    poblarSelect($("#reporteEstado"), filtros.estados || [], estadosEtiquetas, t("todos"));
     poblarSelect($("#reporteCliente"), filtros.clientes || [], filtros.clientesEtiquetas || {}, t("todos"));
     poblarSelect($("#reporteImpresora"), filtros.impresoras || [], filtros.impresorasEtiquetas || {}, t("todas"));
     poblarSelect($("#reporteMaterial"), filtros.materiales || [], {}, t("todos"));
@@ -92,22 +125,22 @@
     if (!contenedor) return;
     const moneda = reporte.moneda;
     const r = reporte.resumen;
+    const tieneVentas = r.trabajosVendidos > 0;
+    const trabajosConCosto = Math.max(0, r.trabajosVendidos - r.ventasSinCosto);
+    const valorVentas = tieneVentas ? formatearMoneda(r.ventasRegistradas, moneda) : t("sinDatos");
+    const valorCostos = trabajosConCosto ? formatearMoneda(r.costosProduccion, moneda) : t("sinDatos");
+    const valorUtilidad = trabajosConCosto ? formatearMoneda(r.utilidadBruta, moneda) : t("sinDatos");
     const items = [
-      ["Ventas registradas", formatearMoneda(r.ventasRegistradas, moneda), "Suma de trabajos vendidos en el periodo.", reporte.comparacion.ventasRegistradas?.texto],
-      ["Pagos cobrados", formatearMoneda(r.pagosCobrados, moneda), "Pagos registrados por fecha de pago.", reporte.comparacion.pagosCobrados?.texto],
-      ["Cuentas por cobrar", formatearMoneda(r.cuentasPorCobrar, moneda), "Saldo pendiente de trabajos filtrados.", reporte.comparacion.cuentasPorCobrar?.texto],
-      ["Costos de producción", formatearMoneda(r.costosProduccion, moneda), "Costos históricos guardados.", reporte.comparacion.costosProduccion?.texto],
-      ["Utilidad bruta estimada", formatearMoneda(r.utilidadBruta, moneda), "Ventas con costo histórico menos costos.", reporte.comparacion.utilidadBruta?.texto],
-      ["Margen bruto estimado", formatearPorcentaje(r.margenBruto), "Calculado solo con trabajos con costo histórico.", reporte.comparacion.margenBruto?.texto],
-      ["Ticket promedio", formatearMoneda(r.ticketPromedio, moneda), "Ventas divididas por trabajos vendidos.", reporte.comparacion.ticketPromedio?.texto],
-      ["Trabajos vendidos", r.trabajosVendidos, `${r.ventasSinCosto} sin costo histórico.`, reporte.comparacion.trabajosVendidos?.texto]
+      [t("ventasConsideradas"), valorVentas, t("ventasConsideradasAyuda", { cantidad: r.trabajosVendidos, moneda })],
+      [t("costosTotales"), valorCostos, t("costosTotalesAyuda", { cantidad: trabajosConCosto, moneda })],
+      [t("utilidadEstimada"), valorUtilidad, t("utilidadEstimadaAyuda", { cantidad: trabajosConCosto, moneda })],
+      [t("margenPromedio"), trabajosConCosto ? formatearPorcentaje(r.margenBruto) : t("sinDatos"), t("margenPromedioAyuda", { cantidad: trabajosConCosto })]
     ];
-    contenedor.innerHTML = items.map(([titulo, valor, ayuda, comparacion]) => `
+    contenedor.innerHTML = items.map(([titulo, valor, ayuda]) => `
       <article class="report-kpi-card">
         <span>${escapar(titulo)}</span>
         <strong>${escapar(valor)}</strong>
         <small>${escapar(ayuda)}</small>
-        ${comparacion ? `<em>${escapar(comparacion)}</em>` : ""}
       </article>
     `).join("");
   }
@@ -123,17 +156,23 @@
     const ancho = 720;
     const alto = 220;
     const margen = 34;
-    const maximo = Math.max(1, ...datos.flatMap((item) => [item.ventas, item.pagos, item.costos, item.utilidad].map(numero)));
-    const x = (indice) => margen + (datos.length === 1 ? 0 : (indice * (ancho - margen * 2)) / (datos.length - 1));
-    const y = (valor) => alto - margen - (numero(valor) / maximo) * (alto - margen * 2);
+    const valores = datos.flatMap((item) => [item.ventas, item.pagos, item.costos, item.utilidad].map(numero));
+    const maximo = Math.max(0, ...valores);
+    const minimo = Math.min(0, ...valores);
+    const rango = Math.max(1, maximo - minimo);
+    const x = (indice) => datos.length === 1
+      ? ancho / 2
+      : margen + (indice * (ancho - margen * 2)) / (datos.length - 1);
+    const y = (valor) => margen + ((maximo - numero(valor)) / rango) * (alto - margen * 2);
     const linea = (campo) => datos.map((item, indice) => `${x(indice)},${y(item[campo])}`).join(" ");
+    const baseCero = y(0);
     contenedor.innerHTML = `
       <figure class="report-chart">
-        <figcaption>Evolución de resultados por periodo</figcaption>
+        <figcaption>${escapar(t("evolucionResultadosPeriodo"))}</figcaption>
         <svg viewBox="0 0 ${ancho} ${alto}" role="img" aria-labelledby="reporteGraficoTitulo reporteGraficoDesc">
-          <title id="reporteGraficoTitulo">Evolución de ventas, pagos, costos y utilidad</title>
-          <desc id="reporteGraficoDesc">Gráfico temporal con tabla alternativa debajo.</desc>
-          <line x1="${margen}" y1="${alto - margen}" x2="${ancho - margen}" y2="${alto - margen}" />
+          <title id="reporteGraficoTitulo">${escapar(t("graficoResultadosTitulo"))}</title>
+          <desc id="reporteGraficoDesc">${escapar(t("graficoResultadosDescripcion"))}</desc>
+          <line class="report-chart-zero" x1="${margen}" y1="${baseCero}" x2="${ancho - margen}" y2="${baseCero}" />
           <line x1="${margen}" y1="${margen}" x2="${margen}" y2="${alto - margen}" />
           <polyline class="serie ventas" points="${linea("ventas")}" />
           <polyline class="serie pagos" points="${linea("pagos")}" />
@@ -141,10 +180,10 @@
           <polyline class="serie utilidad" points="${linea("utilidad")}" />
         </svg>
         <div class="report-chart-legend">
-          <span>Ventas</span><span>Pagos</span><span>Costos</span><span>Utilidad</span>
+          <span>${escapar(t("ventas"))}</span><span>${escapar(t("pagos"))}</span><span>${escapar(t("costos"))}</span><span>${escapar(t("utilidad"))}</span>
         </div>
       </figure>
-      ${tablaSimple(["Periodo", "Ventas", "Pagos", "Costos", "Utilidad"], datos.slice(0, 12).map((item) => [
+      ${tablaSimple([t("periodo"), t("ventas"), t("pagos"), t("costos"), t("utilidad")], datos.slice(0, 12).map((item) => [
         item.periodo,
         formatearMoneda(item.ventas, reporte.moneda),
         formatearMoneda(item.pagos, reporte.moneda),
@@ -169,16 +208,16 @@
   function renderRentabilidad(reporte) {
     const moneda = reporte.moneda;
     const grupos = [
-      ["reporteProductos", "Producto", reporte.rentabilidadProducto],
-      ["reporteClientes", "Cliente", reporte.rentabilidadCliente],
-      ["reporteImpresoras", "Impresora", reporte.rentabilidadImpresora],
-      ["reporteMateriales", "Material", reporte.rentabilidadMaterial]
+      ["reporteProductos", t("producto"), reporte.rentabilidadProducto],
+      ["reporteClientes", t("cliente"), reporte.rentabilidadCliente],
+      ["reporteImpresoras", t("impresora"), reporte.rentabilidadImpresora],
+      ["reporteMateriales", t("material"), reporte.rentabilidadMaterial]
     ];
     grupos.forEach(([id, titulo, datos]) => {
       const contenedor = $(`#${id}`);
       if (!contenedor) return;
       contenedor.innerHTML = tablaSimple(
-        [titulo, "Trabajos", "Ventas", "Costos", "Utilidad", "Margen", "Ticket"],
+        [titulo, t("trabajos"), t("ventas"), t("costos"), t("utilidad"), t("margen"), t("ticketPromedio")],
         datos.slice(0, LIMIT_TABLE).map((item) => [
           item.nombre,
           item.trabajos,
@@ -197,7 +236,7 @@
     const pendientes = $("#reporteCuentasPorCobrar");
     if (pendientes) {
       pendientes.innerHTML = tablaSimple(
-        ["Trabajo", "Cliente", "Fecha", "Precio", "Pagado", "Saldo", "Estado"],
+        [t("trabajo"), t("cliente"), t("fecha"), t("precio"), t("pagado"), t("saldo"), t("estado")],
         reporte.cuentasPorCobrar.slice(0, LIMIT_TABLE).map((item) => [
           item.nombre,
           item.cliente,
@@ -205,7 +244,7 @@
           formatearMoneda(item.precio, moneda),
           formatearMoneda(item.pagado, moneda),
           formatearMoneda(item.saldo, moneda),
-          item.estado
+          estadoVisible(item.estado)
         ])
       );
     }
@@ -213,12 +252,12 @@
     const canales = $("#reporteCanalesPago");
     if (canales) {
       canales.innerHTML = `
-        <h3>Canales de venta</h3>
-        ${tablaSimple(["Canal", "Trabajos", "Ventas", "Utilidad"], reporte.canalesVenta.slice(0, LIMIT_TABLE).map((item) => [
+        <h3>${escapar(t("canalesVenta"))}</h3>
+        ${tablaSimple([t("canal"), t("trabajos"), t("ventas"), t("utilidad")], reporte.canalesVenta.slice(0, LIMIT_TABLE).map((item) => [
           item.nombre, item.trabajos, formatearMoneda(item.ventas, moneda), formatearMoneda(item.utilidad, moneda)
         ]))}
-        <h3>Métodos de pago</h3>
-        ${tablaSimple(["Método", "Pagos", "Monto cobrado", "% del cobro"], reporte.metodosPago.slice(0, LIMIT_TABLE).map((item) => [
+        <h3>${escapar(t("metodosPago"))}</h3>
+        ${tablaSimple([t("metodo"), t("pagos"), t("montoCobrado"), t("porcentajeCobro")], reporte.metodosPago.slice(0, LIMIT_TABLE).map((item) => [
           item.nombre, item.pagos, formatearMoneda(item.monto, moneda), formatearPorcentaje(item.porcentaje)
         ]))}
       `;
@@ -227,13 +266,13 @@
     const ranking = $("#reporteRankingTrabajos");
     if (ranking) {
       ranking.innerHTML = `
-        <h3>Trabajos con mayor utilidad</h3>
-        ${tablaSimple(["Trabajo", "Cliente", "Fecha", "Precio", "Costo", "Utilidad", "Margen", "Estado"], reporte.trabajosMayorUtilidad.map((item) => [
-          item.nombre, item.cliente, item.fecha, formatearMoneda(item.precio, moneda), formatearMoneda(item.costo, moneda), formatearMoneda(item.utilidad, moneda), formatearPorcentaje(item.margen), item.estado
+        <h3>${escapar(t("trabajosMayorUtilidad"))}</h3>
+        ${tablaSimple([t("trabajo"), t("cliente"), t("fecha"), t("precio"), t("costo"), t("utilidad"), t("margen"), t("estado")], reporte.trabajosMayorUtilidad.map((item) => [
+          item.nombre, item.cliente, item.fecha, formatearMoneda(item.precio, moneda), formatearMoneda(item.costo, moneda), formatearMoneda(item.utilidad, moneda), formatearPorcentaje(item.margen), estadoVisible(item.estado)
         ]))}
-        <h3>Trabajos con menor utilidad</h3>
-        ${tablaSimple(["Trabajo", "Cliente", "Fecha", "Precio", "Costo", "Utilidad", "Margen", "Estado"], reporte.trabajosMenorUtilidad.map((item) => [
-          item.nombre, item.cliente, item.fecha, formatearMoneda(item.precio, moneda), formatearMoneda(item.costo, moneda), formatearMoneda(item.utilidad, moneda), formatearPorcentaje(item.margen), item.estado
+        <h3>${escapar(t("trabajosMenorUtilidad"))}</h3>
+        ${tablaSimple([t("trabajo"), t("cliente"), t("fecha"), t("precio"), t("costo"), t("utilidad"), t("margen"), t("estado")], reporte.trabajosMenorUtilidad.map((item) => [
+          item.nombre, item.cliente, item.fecha, formatearMoneda(item.precio, moneda), formatearMoneda(item.costo, moneda), formatearMoneda(item.utilidad, moneda), formatearPorcentaje(item.margen), estadoVisible(item.estado)
         ]))}
       `;
     }
@@ -242,13 +281,17 @@
     if (estados) {
       const costos = reporte.desgloseCostos;
       estados.innerHTML = `
-        <h3>Distribución por estado</h3>
-        ${tablaSimple(["Estado", "Cantidad", "Monto"], reporte.distribucionEstado.map((item) => [
-          item.estado, item.cantidad, formatearMoneda(item.monto, moneda)
+        <h3>${escapar(t("distribucionEstado"))}</h3>
+        ${tablaSimple([t("estado"), t("cantidad"), t("monto")], reporte.distribucionEstado.map((item) => [
+          estadoVisible(item.estado), item.cantidad, formatearMoneda(item.monto, moneda)
         ]))}
-        <h3>Desglose de costos disponible</h3>
-        ${tablaSimple(["Componente", "Monto"], Object.entries(costos.totales).map(([clave, valor]) => [clave, formatearMoneda(valor, moneda)]))}
-        <p class="help-text">${costos.calidad.completo} completos, ${costos.calidad.parcial} parciales y ${costos.calidad.sinDesglose} sin desglose detallado.</p>
+        <h3>${escapar(t("desgloseCostosDisponible"))}</h3>
+        ${tablaSimple([t("componente"), t("monto")], Object.entries(costos.totales).map(([clave, valor]) => [t(`costoComponente_${clave}`), formatearMoneda(valor, moneda)]))}
+        <p class="help-text">${escapar(t("calidadDesgloseCostos", {
+          completos: costos.calidad.completo,
+          parciales: costos.calidad.parcial,
+          sinDesglose: costos.calidad.sinDesglose
+        }))}</p>
       `;
     }
   }
@@ -259,19 +302,19 @@
     const calidad = reporte.calidadDatos;
     const issues = calidad.issues || {};
     const filas = [
-      ["Trabajos analizados", calidad.totalTrabajos],
-      ["Con información completa", calidad.completos],
-      ["Con información parcial", calidad.parciales],
-      ["Excluidos de rentabilidad", calidad.excluidosRentabilidad],
-      ["Sin costo histórico", issues.trabajosSinCostoHistorico?.length || 0],
-      ["Sin precio de venta", issues.trabajosSinPrecioVenta?.length || 0],
-      ["Sin cliente", issues.trabajosSinCliente?.length || 0],
-      ["Sin impresora", issues.trabajosSinImpresora?.length || 0],
-      ["Sin material", issues.trabajosSinMaterial?.length || 0],
-      ["Pagos sin fecha", issues.pagosSinFecha?.length || 0],
-      ["Estados desconocidos", issues.estadosDesconocidos?.length || 0]
+      [t("trabajosAnalizados"), calidad.totalTrabajos],
+      [t("informacionCompleta"), calidad.completos],
+      [t("informacionParcial"), calidad.parciales],
+      [t("excluidosRentabilidad"), calidad.excluidosRentabilidad],
+      [t("sinCostoHistorico"), issues.trabajosSinCostoHistorico?.length || 0],
+      [t("sinPrecioVenta"), issues.trabajosSinPrecioVenta?.length || 0],
+      [t("sinCliente"), issues.trabajosSinCliente?.length || 0],
+      [t("sinImpresora"), issues.trabajosSinImpresora?.length || 0],
+      [t("sinMaterial"), issues.trabajosSinMaterial?.length || 0],
+      [t("pagosSinFecha"), issues.pagosSinFecha?.length || 0],
+      [t("estadosDesconocidos"), issues.estadosDesconocidos?.length || 0]
     ];
-    contenedor.innerHTML = tablaSimple(["Revisión", "Cantidad"], filas);
+    contenedor.innerHTML = tablaSimple([t("revision"), t("cantidad")], filas);
   }
 
   function renderEstado(reporte) {
@@ -282,16 +325,41 @@
       estado.className = "report-status report-status--warning";
       return;
     }
-    if (!reporte.detalleTrabajos.length && !reporte.resumen.pagosCobrados) {
-      estado.textContent = t("sinResultadosReporte");
+    if (!reporte.monedasDisponibles.length) {
+      estado.textContent = t("sinTrabajosReporte");
       estado.className = "report-status report-status--empty";
       return;
     }
-    const mezcla = reporte.monedasDisponibles.length > 1
-      ? ` Hay ${reporte.monedasDisponibles.length} monedas registradas; se analiza solo ${reporte.moneda}.`
-      : "";
-    estado.textContent = t("periodoAplicado", { periodo: reporte.periodo.etiqueta, detalle: mezcla });
+    if (!reporte.detalleTrabajos.length && !reporte.resumen.pagosCobrados) {
+      estado.innerHTML = `
+        <span>${escapar(t("sinResultadosReporte"))}</span>
+        <button type="button" class="secondary" data-report-clear>${escapar(t("limpiarFiltros"))}</button>
+      `;
+      estado.className = "report-status report-status--empty";
+      return;
+    }
+    estado.textContent = t("periodoAplicado", { periodo: periodoVisible(reporte.periodo), detalle: "" });
     estado.className = "report-status";
+  }
+
+  function renderAdvertencias(reporte) {
+    const contenedor = $("#reporteAdvertencias");
+    if (!contenedor) return;
+    const avisos = [];
+    if (reporte.monedasDisponibles.length > 1) {
+      avisos.push(t("advertenciaVariasMonedas", {
+        cantidad: reporte.monedasDisponibles.length,
+        moneda: reporte.moneda
+      }));
+    }
+    const calidad = reporte.calidadDatos || {};
+    if (calidad.excluidosRentabilidad > 0) {
+      avisos.push(t("advertenciaDatosIncompletos", { cantidad: calidad.excluidosRentabilidad }));
+    }
+    contenedor.innerHTML = avisos.map((aviso) =>
+      `<p class="report-alert">${escapar(aviso)}</p>`
+    ).join("");
+    contenedor.hidden = !avisos.length;
   }
 
   function renderizar() {
@@ -299,6 +367,7 @@
     reporteActual = window.ReportesPrecio3D.generarReporte(leerFiltros());
     poblarFiltros(reporteActual);
     renderEstado(reporteActual);
+    renderAdvertencias(reporteActual);
     renderTarjetas(reporteActual);
     renderGrafico(reporteActual);
     renderRentabilidad(reporteActual);
@@ -339,6 +408,9 @@
 
     $("#reporteAplicarRango")?.addEventListener("click", renderizar);
     $("#reporteLimpiarFiltros")?.addEventListener("click", limpiarFiltros);
+    $("#reporteEstadoPanel")?.addEventListener("click", (evento) => {
+      if (evento.target.closest("[data-report-clear]")) limpiarFiltros();
+    });
     $("#reporteExportarResumen")?.addEventListener("click", () => {
       descargar("resumen-financiero-impresion-3d.csv", window.ReportesPrecio3D.exportarResumenCSV(leerFiltros()));
     });

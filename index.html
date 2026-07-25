@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
   <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
   <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
-  <link rel="stylesheet" href="styles.css?v=20260724-filaments-ui-v1">
+  <link rel="stylesheet" href="styles.css?v=20260725-basic-progressive-v1">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -152,7 +152,8 @@
       <div>
         <p class="eyebrow" data-i18n="modoCalculo">Modo de cálculo</p>
         <h2 data-i18n="cotizacionRapida">Elige cómo cotizar</h2>
-        <p class="mode-description">Completa los datos esenciales para obtener un precio recomendado.</p>
+        <p class="mode-description" data-i18n="modoBasicoDescripcion">Completa los datos esenciales para obtener un precio recomendado.</p>
+        <p class="mode-advanced-hint" data-i18n="modoAvanzadoOrientacion">Usa el modo avanzado cuando necesites controlar electricidad, amortización, mano de obra, comisiones, impuestos y otros costos detallados.</p>
       </div>
       <div class="mode-actions" role="group" aria-label="Modo de cálculo">
         <button type="button" id="btnModoBasico" class="mode-button" aria-pressed="true" data-i18n="modoBasico">Básico</button>
@@ -161,10 +162,10 @@
     </section>
 
     <section id="seccionModoBasico" class="mode-container">
-      <section class="panel quick-panel basic-quote-panel">
+      <section class="panel quick-panel basic-quote-panel" aria-describedby="basicQuickStartHelp">
         <header class="basic-form-header">
           <h2 data-i18n="basicFormTitle">Completa tu cotización</h2>
-          <p data-i18n="basicFormIntro">Ingresa los datos principales. Puedes dejar vacíos los campos opcionales.</p>
+          <p id="basicQuickStartHelp" data-i18n="basicQuickStartHelp">Obtén una estimación rápida con los datos esenciales. Después puedes agregar impresora, electricidad, inventario, comisiones y otros costos para mejorar la precisión.</p>
         </header>
 
         <div class="basic-blocks basic-flow">
@@ -198,29 +199,15 @@
               <button type="button" class="info-btn" data-help="datosImpresion" aria-label="Información sobre datos de la impresión">i</button>
             </div>
             <div class="field-grid basic-flow-fields">
-              <div class="field-block field-wide filament-picker">
-                <label for="filamentoBasico"><span data-i18n="bobinaInventario">Bobina de inventario</span> <span class="optional-label">(<span data-i18n="opcional">opcional</span>)</span></label>
-                <select id="filamentoBasico">
-                  <option value="">Sin bobina / costo manual</option>
-                </select>
-                <div id="filamentoResumenBasico" class="filament-picker-summary" aria-live="polite">
-                  Selecciona una bobina para usar su costo por gramo y estimar el consumo.
-                </div>
-                <div class="filament-picker-actions" hidden>
-                  <button type="button" id="cambiarMonedaFilamentoBasico" class="secondary compact-button" data-i18n="usarMonedaBobina">Usar moneda de la bobina</button>
-                  <button type="button" id="usarCostoActualFilamentoBasico" class="secondary compact-button" hidden data-i18n="usarCostoActual">Usar costo actual</button>
-                  <button type="button" id="usarCostoManualBasico" class="ghost-button compact-button">Seguir con costo manual</button>
-                </div>
-              </div>
               <label>
                 <span data-i18n="material">Material</span>
                 <select id="materialBasico"></select>
               </label>
               <div class="field-block">
-                <span class="field-label">Tipo de precio del filamento</span>
+                <span class="field-label" data-i18n="tipoPrecioFilamento">Tipo de precio del filamento</span>
                 <div class="mini-switch" aria-label="Modo de costo de material básico">
-                  <button type="button" id="modoCostoGramoBasico" class="mini-switch-button" aria-pressed="false">Por gramo</button>
-                  <button type="button" id="modoCostoKiloBasico" class="mini-switch-button active" aria-pressed="true">Por kilo</button>
+                  <button type="button" id="modoCostoGramoBasico" class="mini-switch-button" aria-pressed="false" data-i18n="porGramo">Por gramo</button>
+                  <button type="button" id="modoCostoKiloBasico" class="mini-switch-button active" aria-pressed="true" data-i18n="porKilo">Por kilo</button>
                 </div>
               </div>
               <div class="field-block">
@@ -293,8 +280,50 @@
           </section>
         </div>
 
+        <div class="actions basic-primary-actions">
+          <button type="button" id="calculateBasicButton" data-i18n="calcularPrecioRecomendado">Calcular precio recomendado</button>
+        </div>
+
+        <div class="basic-secondary-options" aria-label="Opciones complementarias" data-i18n-aria-label="opcionesComplementarias">
+        <details id="datosGuardadosBasico" class="basic-disclosure">
+          <summary>
+            <span data-i18n="basicSavedData">Usar datos guardados</span>
+            <span id="estadoDatosGuardadosBasico" class="basic-disclosure__status" data-i18n="ningunaOpcionAplicada">Sin opciones aplicadas</span>
+          </summary>
+          <div class="field-grid basic-flow-fields basic-disclosure__content">
+            <div class="field-block field-wide filament-picker">
+              <label for="filamentoBasico"><span data-i18n="bobinaInventario">Bobina de inventario</span> <span class="optional-label">(<span data-i18n="opcional">opcional</span>)</span></label>
+              <select id="filamentoBasico">
+                <option value="">Sin bobina / costo manual</option>
+              </select>
+              <div id="filamentoResumenBasico" class="filament-picker-summary" aria-live="polite">
+                Selecciona una bobina para usar su costo por gramo y estimar el consumo.
+              </div>
+              <div class="filament-picker-actions" hidden>
+                <button type="button" id="cambiarMonedaFilamentoBasico" class="secondary compact-button" data-i18n="usarMonedaBobina">Usar moneda de la bobina</button>
+                <button type="button" id="usarCostoActualFilamentoBasico" class="secondary compact-button" hidden data-i18n="usarCostoActual">Usar costo actual</button>
+                <button type="button" id="usarCostoManualBasico" class="ghost-button compact-button" data-i18n="usarCostoManual">Seguir con costo manual</button>
+              </div>
+            </div>
+            <label>
+              <span data-i18n="impresoraGuardadaOpcional">Impresora guardada (opcional)</span>
+              <select id="impresoraBasico"></select>
+            </label>
+            <div class="printer-profile-note field-wide">
+              <p id="impresoraPerfilNotaBasico" class="help-text" data-i18n="impresoraGuardadaAyuda">Puedes usar una impresora guardada o continuar con los valores estimados.</p>
+              <div class="compact-actions">
+                <button type="button" id="usarValoresManualesBasico" class="secondary compact-button" data-i18n="usarValoresManuales">Usar valores manuales</button>
+                <button type="button" id="actualizarPerfilBasico" class="secondary compact-button" hidden data-i18n="actualizarPerfilValores">Actualizar perfil con estos valores</button>
+              </div>
+            </div>
+          </div>
+        </details>
+
         <details id="costosAdicionalesBasico" class="basic-disclosure">
-          <summary data-i18n="basicAdditionalCosts">Costos adicionales (opcional)</summary>
+          <summary>
+            <span data-i18n="basicAdditionalCosts">Agregar otros costos</span>
+            <span id="estadoCostosAdicionalesBasico" class="basic-disclosure__status" data-i18n="ningunaOpcionAplicada">Sin opciones aplicadas</span>
+          </summary>
           <div class="field-grid basic-flow-fields basic-disclosure__content">
             <label>
               <span id="pesoSoportesPurgaLabelBasico" data-i18n="materialExtraPorUnidad">Material extra por unidad</span>
@@ -310,39 +339,77 @@
               <input type="number" id="envioBasico" min="0" placeholder="$">
             </label>
             <label>
-              <span data-i18n="impuesto">Impuesto</span>
-              <button type="button" class="info-btn info-btn--campo inline-info" data-help="impuestoCampo" aria-label="Información sobre impuesto">i</button>
-              <input type="number" id="impuestoBasico" min="0" placeholder="%">
+              <span data-i18n="perdidasFallasEstimadas">Pérdidas o fallas estimadas</span>
+              <button type="button" class="info-btn info-btn--campo inline-info" data-help="mermaCampo" aria-label="Información sobre pérdidas o fallas estimadas">i</button>
+              <input type="number" id="mermaBasico" min="0" placeholder="%">
             </label>
+          </div>
+          <div class="basic-internal-costs">
+            <div class="collapse-row basic-internal-costs__toggle">
+            <button
+              type="button"
+              id="toggleSupuestosEditables"
+              class="collapse-toggle"
+              aria-expanded="false"
+              aria-controls="panelSupuestosEditables"
+            >
+              <span data-i18n="costosAjustables">Costos internos usados</span>
+              <span class="collapse-indicator" data-i18n="mostrarContenido">Mostrar</span>
+            </button>
+            <button type="button" class="info-btn" data-help="supuestos" aria-label="Información sobre costos internos usados">i</button>
+            </div>
+            <div id="panelSupuestosEditables" class="field-grid basic-flow-fields collapsible-content" hidden>
+              <label>
+                <span data-i18n="wattsPromedio">Watts promedio</span>
+                <input type="number" id="wattsPromedioBasico" min="0" placeholder="Watts">
+              </label>
+              <label>
+                <span data-i18n="tarifaKwh">Tarifa kWh</span>
+                <input type="number" id="tarifaKwhBasico" min="0" placeholder="$">
+              </label>
+              <label>
+                <span data-i18n="costoRealImpresora">Costo real pagado por la impresora</span>
+                <button type="button" class="info-btn info-btn--campo inline-info" data-help="costoImpresoraCampo" aria-label="Información sobre costo real de impresora">i</button>
+                <input type="number" id="costoImpresoraBasico" min="0" placeholder="$">
+                <p id="costoImpresoraAvisoBasico" class="help-text warning-text" data-i18n="ingresaCostoRealImpresora">Ingresa el precio que realmente pagaste.</p>
+              </label>
+              <label>
+                <span data-i18n="costoHerramientas">Costo de herramientas</span>
+                <input type="number" id="costoHerramientasBasico" min="0" placeholder="$">
+              </label>
+              <label>
+                <span data-i18n="anosVida">Años de vida</span>
+                <input type="number" id="anosVidaBasico" min="0" placeholder="0">
+              </label>
+              <label>
+                <span data-i18n="diasOperativosAno">Días operativos al año</span>
+                <input type="number" id="diasOperativosAnoBasico" min="0" placeholder="0">
+              </label>
+              <label>
+                <span data-i18n="horasProductivasDia">Horas productivas al día</span>
+                <input type="number" id="horasProductivasDiaBasico" min="0" placeholder="0">
+              </label>
+              <label>
+                <span data-i18n="mantenimiento">Mantenimiento</span>
+                <input type="number" id="mantenimientoBasico" min="0" placeholder="%">
+              </label>
+            </div>
           </div>
         </details>
 
         <details id="ventaConfiguracionBasico" class="basic-disclosure">
-          <summary data-i18n="basicSalesSettings">Venta y configuración (opcional)</summary>
+          <summary>
+            <span data-i18n="basicSalesSettings">Opciones de venta</span>
+            <span id="estadoVentaConfiguracionBasico" class="basic-disclosure__status" data-i18n="ningunaOpcionAplicada">Sin opciones aplicadas</span>
+          </summary>
           <div class="field-grid basic-flow-fields basic-disclosure__content">
             <label>
               <span data-i18n="moneda">Moneda</span>
               <select id="currencySelectBasico"></select>
             </label>
             <label>
-              Idioma
+              <span data-i18n="idioma">Idioma</span>
               <select id="languageSelectBasico"></select>
-            </label>
-            <label>
-              <span data-i18n="impresora">Impresora</span>
-              <select id="impresoraBasico"></select>
-            </label>
-            <div class="printer-profile-note field-wide">
-              <p id="impresoraPerfilNotaBasico" class="help-text">Puedes usar una impresora guardada o mantener valores manuales.</p>
-              <div class="compact-actions">
-                <button type="button" id="usarValoresManualesBasico" class="secondary compact-button">Usar valores manuales</button>
-                <button type="button" id="actualizarPerfilBasico" class="secondary compact-button" hidden>Actualizar perfil con estos valores</button>
-              </div>
-            </div>
-            <label>
-              Pérdidas o fallas estimadas
-              <button type="button" class="info-btn info-btn--campo inline-info" data-help="mermaCampo" aria-label="Información sobre pérdidas o fallas estimadas">i</button>
-              <input type="number" id="mermaBasico" min="0" placeholder="%">
             </label>
             <label>
               <span data-i18n="canalVenta">Canal de venta</span>
@@ -357,6 +424,11 @@
               <span data-i18n="comisionFija">Comisión fija</span>
               <button type="button" class="info-btn info-btn--campo inline-info" data-help="comisionFijaCampo" aria-label="Información sobre comisión fija">i</button>
               <input type="number" id="feeFijoBasico" min="0" placeholder="$">
+            </label>
+            <label>
+              <span data-i18n="impuesto">Impuesto</span>
+              <button type="button" class="info-btn info-btn--campo inline-info" data-help="impuestoCampo" aria-label="Información sobre impuesto">i</button>
+              <input type="number" id="impuestoBasico" min="0" placeholder="%">
             </label>
             <div class="field-block field-wide">
               <span class="field-label" data-i18n="alcanceDatosSlicer">Los datos del slicer corresponden a:</span>
@@ -388,73 +460,22 @@
           </div>
         </details>
 
-        <div class="basic-internal-costs">
-          <div class="collapse-row basic-internal-costs__toggle">
-          <button
-            type="button"
-            id="toggleSupuestosEditables"
-            class="collapse-toggle"
-            aria-expanded="false"
-            aria-controls="panelSupuestosEditables"
-          >
-            <span data-i18n="costosAjustables">Costos internos usados</span>
-            <span class="collapse-indicator">Mostrar</span>
-          </button>
-          <button type="button" class="info-btn" data-help="supuestos" aria-label="Información sobre costos internos usados">i</button>
-          </div>
-          <div id="panelSupuestosEditables" class="field-grid basic-flow-fields collapsible-content" hidden>
-            <label>
-              Watts promedio
-              <input type="number" id="wattsPromedioBasico" min="0" placeholder="Watts">
-            </label>
-            <label>
-              Tarifa kWh
-              <input type="number" id="tarifaKwhBasico" min="0" placeholder="$">
-            </label>
-            <label>
-              <span data-i18n="costoRealImpresora">Costo real pagado por la impresora</span>
-              <button type="button" class="info-btn info-btn--campo inline-info" data-help="costoImpresoraCampo" aria-label="Información sobre costo real de impresora">i</button>
-              <input type="number" id="costoImpresoraBasico" min="0" placeholder="$">
-              <p id="costoImpresoraAvisoBasico" class="help-text warning-text" data-i18n="ingresaCostoRealImpresora">Ingresa el precio que realmente pagaste.</p>
-            </label>
-            <label>
-              Costo de herramientas
-              <input type="number" id="costoHerramientasBasico" min="0" placeholder="$">
-            </label>
-            <label>
-              Años de vida
-              <input type="number" id="anosVidaBasico" min="0" placeholder="0">
-            </label>
-            <label>
-              Días operativos al año
-              <input type="number" id="diasOperativosAnoBasico" min="0" placeholder="0">
-            </label>
-            <label>
-              <span data-i18n="horasProductivasDia">Horas productivas al día</span>
-              <input type="number" id="horasProductivasDiaBasico" min="0" placeholder="0">
-            </label>
-            <label>
-              Mantenimiento
-              <input type="number" id="mantenimientoBasico" min="0" placeholder="%">
-            </label>
-          </div>
-        </div>
-        <div class="actions basic-primary-actions">
-          <button type="button" id="calculateBasicButton" data-i18n="calcularPrecio">Calcular precio</button>
+        <div class="actions basic-secondary-actions">
           <button type="button" id="verCalculoAvanzado" class="secondary" data-i18n="verCalculoAvanzado">Ver cálculo avanzado</button>
+        </div>
         </div>
       </section>
 
       <section class="panel result-panel basic-result-panel" role="region" aria-labelledby="resultadoBasicoTitulo">
         <h2 id="resultadoBasicoTitulo" tabindex="-1" class="section-heading">
-          <span><span data-i18n="resultado">Resultado</span> básico</span>
+          <span data-i18n="resultadoBasico">Resultado básico</span>
           <button type="button" class="info-btn" data-help="resultado" aria-label="Información sobre resultado">i</button>
         </h2>
         <div id="resultBasico" class="result-box" role="status" aria-live="polite" aria-atomic="true">
-          Aún no hay un cálculo. Completa los datos y presiona Calcular precio.
+          Aún no hay un cálculo. Completa los datos esenciales y presiona Calcular precio recomendado.
         </div>
-        <details class="collapsible-section" hidden>
-          <summary>Ver desglose completo</summary>
+        <details class="collapsible-section basic-result-details" hidden>
+          <summary data-i18n="verDesgloseCompleto">Ver desglose completo</summary>
           <div id="basicBreakdown" class="breakdown-grid"></div>
         </details>
         <div id="basicWarnings" class="warning-list"></div>
@@ -1280,83 +1301,88 @@
 
     <section id="panelFinancieroPanel" class="panel result-panel financial-panel">
       <div class="clients-heading report-heading">
-        <div>
-          <p class="eyebrow">Reportes operativos</p>
+        <div class="report-heading__copy">
+          <p class="eyebrow" data-i18n="rendimientoNegocio">Rendimiento del negocio</p>
           <h2 data-i18n="panelFinanciero">Panel financiero</h2>
-          <p class="help-text">Analiza tus ventas, cobros, costos y rentabilidad utilizando los datos registrados en la aplicación.</p>
-          <p class="report-warning">Este panel es una herramienta de gestión. No reemplaza la contabilidad, los registros tributarios ni las declaraciones oficiales.</p>
+          <p class="help-text" data-i18n="panelFinancieroDescripcion">Resume ventas, costos y rentabilidad utilizando exclusivamente los datos guardados localmente.</p>
+          <p class="report-warning" data-i18n="panelFinancieroAdvertencia">Este panel es una herramienta de gestión. No reemplaza la contabilidad, los registros tributarios ni las declaraciones oficiales.</p>
         </div>
-        <div class="actions report-actions">
-          <button type="button" id="reporteExportarResumen" class="secondary" data-i18n="exportarResumen">Exportar resumen</button>
-          <button type="button" id="reporteExportarDetalle" class="secondary" data-i18n="exportarDetalle">Exportar detalle</button>
-          <button type="button" id="reporteImprimir" class="secondary" data-i18n="imprimirReporte">Imprimir reporte</button>
+        <div class="report-header-tools">
+          <div class="report-primary-filters" aria-label="Filtros principales" data-i18n-aria-label="filtrosPrincipales">
+            <label for="reportePeriodo"><span data-i18n="periodo">Período</span>
+              <select id="reportePeriodo" data-report-filter>
+                <option value="este_mes" selected data-i18n="esteMes">Este mes</option>
+                <option value="mes_anterior" data-i18n="mesAnterior">Mes anterior</option>
+                <option value="ultimos_90" data-i18n="ultimosTresMeses">Últimos tres meses</option>
+                <option value="este_ano" data-i18n="esteAno">Este año</option>
+                <option value="todo" data-i18n="todoPeriodo">Todo el período</option>
+                <option value="personalizado" data-i18n="rangoPersonalizado">Rango personalizado</option>
+              </select>
+            </label>
+            <label for="reporteMoneda"><span data-i18n="moneda">Moneda</span>
+              <select id="reporteMoneda" data-report-filter></select>
+            </label>
+            <label for="reporteEstado"><span data-i18n="estado">Estado</span>
+              <select id="reporteEstado" data-report-filter></select>
+            </label>
+            <button type="button" id="reporteLimpiarFiltros" class="secondary" data-i18n="limpiarFiltros">Limpiar filtros</button>
+          </div>
+          <details class="report-export-tools">
+            <summary data-i18n="exportarCompartir">Exportar y compartir</summary>
+            <div class="actions report-actions">
+              <button type="button" id="reporteExportarResumen" class="secondary" data-i18n="exportarResumen">Exportar resumen</button>
+              <button type="button" id="reporteExportarDetalle" class="secondary" data-i18n="exportarDetalle">Exportar detalle</button>
+              <button type="button" id="reporteImprimir" class="secondary" data-i18n="imprimirReporte">Imprimir reporte</button>
+            </div>
+          </details>
         </div>
       </div>
 
-      <details class="collapsible-section report-filters-panel" open>
-        <summary>Filtros del reporte</summary>
+      <details class="collapsible-section report-filters-panel">
+        <summary data-i18n="masFiltrosReporte">Más filtros del informe</summary>
         <div class="field-grid report-filters">
-          <label for="reportePeriodo">Período
-            <select id="reportePeriodo" data-report-filter>
-              <option value="hoy">Hoy</option>
-              <option value="ultimos_7">Últimos 7 días</option>
-              <option value="este_mes" selected>Este mes</option>
-              <option value="mes_anterior">Mes anterior</option>
-              <option value="ultimos_90">Últimos 90 días</option>
-              <option value="este_ano">Este año</option>
-              <option value="ano_anterior">Año anterior</option>
-              <option value="todo">Todo el período</option>
-              <option value="personalizado">Rango personalizado</option>
-            </select>
-          </label>
-          <label for="reporteMoneda">Moneda
-            <select id="reporteMoneda" data-report-filter></select>
-          </label>
-          <label for="reporteFechaInicio">Fecha inicial
+          <label for="reporteFechaInicio"><span data-i18n="fechaInicial">Fecha inicial</span>
             <input type="date" id="reporteFechaInicio" data-report-filter>
           </label>
-          <label for="reporteFechaFin">Fecha final
+          <label for="reporteFechaFin"><span data-i18n="fechaFinal">Fecha final</span>
             <input type="date" id="reporteFechaFin" data-report-filter>
           </label>
-          <label for="reporteEstado">Estado
-            <select id="reporteEstado" data-report-filter></select>
-          </label>
-          <label for="reporteCliente">Cliente
+          <label for="reporteCliente"><span data-i18n="cliente">Cliente</span>
             <select id="reporteCliente" data-report-filter></select>
           </label>
-          <label for="reporteImpresora">Impresora
+          <label for="reporteImpresora"><span data-i18n="impresora">Impresora</span>
             <select id="reporteImpresora" data-report-filter></select>
           </label>
-          <label for="reporteMaterial">Material
+          <label for="reporteMaterial"><span data-i18n="material">Material</span>
             <select id="reporteMaterial" data-report-filter></select>
           </label>
-          <label for="reporteCanal">Canal de venta
+          <label for="reporteCanal"><span data-i18n="canalVenta">Canal de venta</span>
             <select id="reporteCanal" data-report-filter></select>
           </label>
-          <label for="reporteMetodoPago">Método de pago
+          <label for="reporteMetodoPago"><span data-i18n="metodoPago">Método de pago</span>
             <select id="reporteMetodoPago" data-report-filter></select>
           </label>
-          <label for="reporteModo">Modo
+          <label for="reporteModo"><span data-i18n="modo">Modo</span>
             <select id="reporteModo" data-report-filter></select>
           </label>
         </div>
         <div class="actions report-filter-actions">
-          <button type="button" id="reporteAplicarRango">Aplicar</button>
-          <button type="button" id="reporteLimpiarFiltros" class="secondary">Limpiar filtros</button>
+          <button type="button" id="reporteAplicarRango" data-i18n="aplicarFiltros">Aplicar filtros</button>
         </div>
       </details>
 
-      <p id="reporteEstadoPanel" class="report-status" role="status"></p>
+      <div id="reporteEstadoPanel" class="report-status" role="status"></div>
+      <div id="reporteAdvertencias" class="report-alerts" aria-live="polite"></div>
       <div id="reporteKpis" class="report-kpi-grid" aria-live="polite"></div>
 
       <section class="panel report-section report-print-section">
         <h3 data-i18n="evolucionResultados">Evolución de resultados</h3>
-        <p class="help-text">Las ventas se agrupan por la fecha del trabajo o venta. Los pagos se agrupan por la fecha en que fueron registrados.</p>
+        <p class="help-text" data-i18n="evolucionResultadosAyuda">Las ventas se agrupan por la fecha del trabajo o venta. Los pagos se agrupan por la fecha en que fueron registrados.</p>
         <div id="reporteGrafico"></div>
       </section>
 
       <details class="collapsible-section report-section" open>
-        <summary>Rentabilidad por producto, cliente, impresora y material</summary>
+        <summary data-i18n="desgloseRentabilidad">Rentabilidad por producto, cliente, impresora y material</summary>
         <div class="report-grid-2">
           <section><h3 data-i18n="rentabilidadProducto">Rentabilidad por producto</h3><div id="reporteProductos"></div></section>
           <section><h3 data-i18n="rentabilidadCliente">Rentabilidad por cliente</h3><div id="reporteClientes"></div></section>
@@ -1366,13 +1392,13 @@
       </details>
 
       <details class="collapsible-section report-section" open>
-        <summary>Cuentas por cobrar y ranking de trabajos</summary>
+        <summary data-i18n="cuentasRanking">Cuentas por cobrar y ranking de trabajos</summary>
         <section><h3 data-i18n="pagosPendientes">Pagos pendientes</h3><div id="reporteCuentasPorCobrar"></div></section>
         <section><div id="reporteRankingTrabajos"></div></section>
       </details>
 
       <details class="collapsible-section report-section">
-        <summary>Canales, métodos de pago, estados y costos</summary>
+        <summary data-i18n="canalesEstadosCostos">Canales, métodos de pago, estados y costos</summary>
         <div id="reporteCanalesPago"></div>
         <div id="reporteEstadosCostos"></div>
       </details>
@@ -1925,7 +1951,7 @@
   <script src="js/printer-catalog.js?v=20260715-catalog-v1"></script>
   <script src="js/printers.js?v=20260715-printers-v2"></script>
   <script src="js/geolocation.js"></script>
-  <script src="js/i18n.js?v=20260724-filaments-ui-v1"></script>
+  <script src="js/i18n.js?v=20260725-basic-progressive-v1"></script>
   <script src="js/presets.js?v=20260724-i18n-fix-v1"></script>
   <script src="js/filaments.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/comparator.js"></script>
@@ -1942,8 +1968,8 @@
   <script src="js/printers-dashboard.js?v=20260724-printers-ui-v1"></script>
   <script src="js/filaments-dashboard.js?v=20260724-filaments-ui-v1"></script>
   <script src="js/quotes-dashboard.js?v=20260724-professional-quote-v1"></script>
-  <script src="js/reports-dashboard.js?v=20260724-i18n-fix-v1"></script>
-  <script src="app.js?v=20260724-visible-language-v1"></script>
+  <script src="js/reports-dashboard.js?v=20260725-financial-ui-v1"></script>
+  <script src="app.js?v=20260725-basic-progressive-v1"></script>
   <script>
     document.getElementById("siteFooterYear").textContent = new Date().getFullYear();
   </script>

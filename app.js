@@ -9,6 +9,7 @@ const a11yLiveRegion = document.querySelector("#a11yLiveRegion");
 const resultadoBasicoTitulo = document.querySelector("#resultadoBasicoTitulo");
 const resultadoAvanzadoTitulo = document.querySelector("#resultadoAvanzadoTitulo");
 const basicBreakdown = document.querySelector("#basicBreakdown");
+const basicBreakdownDetails = basicBreakdown?.closest("details");
 const basicWarnings = document.querySelector("#basicWarnings");
 const preciosNivelContenido = document.querySelector("#preciosNivelContenido");
 const comparadorCanalesContenido = document.querySelector("#comparadorCanalesContenido");
@@ -71,8 +72,12 @@ const borrarUltimoCalculoButton = document.querySelector("#borrarUltimoCalculoBu
 const supuestosModoBasico = document.querySelector("#supuestosModoBasico");
 const toggleSupuestosEditables = document.querySelector("#toggleSupuestosEditables");
 const panelSupuestosEditables = document.querySelector("#panelSupuestosEditables");
+const datosGuardadosBasico = document.querySelector("#datosGuardadosBasico");
 const costosAdicionalesBasico = document.querySelector("#costosAdicionalesBasico");
 const ventaConfiguracionBasico = document.querySelector("#ventaConfiguracionBasico");
+const estadoDatosGuardadosBasico = document.querySelector("#estadoDatosGuardadosBasico");
+const estadoCostosAdicionalesBasico = document.querySelector("#estadoCostosAdicionalesBasico");
+const estadoVentaConfiguracionBasico = document.querySelector("#estadoVentaConfiguracionBasico");
 const btnModoBasico = document.querySelector("#btnModoBasico");
 const btnModoAvanzado = document.querySelector("#btnModoAvanzado");
 const verCalculoAvanzado = document.querySelector("#verCalculoAvanzado");
@@ -1823,39 +1828,69 @@ function cambiarModo(modo) {
   programarGuardadoConfiguracion();
 }
 
+function obtenerEstadoOpcionesBasicas() {
+  const tieneNumeroPersonalizado = (id) => {
+    const valor = document.querySelector(`#${id}`)?.value;
+    return valor !== undefined && valor !== "" && Number(valor) !== 0;
+  };
+  const datosGuardados = [
+    Boolean(filamentoBasico?.value),
+    Boolean(impresoraBasico?.value && !["manual", "ninguna"].includes(impresoraBasico.value))
+  ].filter(Boolean).length;
+  const costosDirectos = [
+    "pesoSoportesPurgaBasico",
+    "embalajeBasico",
+    "envioBasico"
+  ].filter(tieneNumeroPersonalizado).length;
+  const materialSeleccionado = obtenerPorId(obtenerPresets()?.materiales, materialBasico?.value);
+  const mermaPredeterminada = (Number(materialSeleccionado?.mermaSugerida) || 0) * 100;
+  const mermaActual = Number(document.querySelector("#mermaBasico")?.value) || 0;
+  const costosAplicados = costosDirectos + (Math.abs(mermaActual - mermaPredeterminada) > 0.01 ? 1 : 0);
+  const opcionesVenta = [
+    Boolean(currencySelectBasico?.value && currencySelectBasico.value !== "CLP"),
+    Boolean(languageSelectBasico?.value && languageSelectBasico.value !== "es"),
+    (canalVentaBasico?.selectedIndex ?? 0) > 0,
+    tieneNumeroPersonalizado("feePorcentualBasico"),
+    tieneNumeroPersonalizado("feeFijoBasico"),
+    tieneNumeroPersonalizado("impuestoBasico"),
+    document.querySelector("#tipoGananciaBasico")?.value === "margen",
+    document.querySelector("#alcanceDatosSlicerBasico")?.value === "lote"
+  ].filter(Boolean).length;
+
+  return { datosGuardados, costosAplicados, opcionesVenta };
+}
+
+function actualizarIndicadoresDesplegablesBasicos() {
+  const estado = obtenerEstadoOpcionesBasicas();
+  const textoCantidad = (cantidad) => cantidad
+    ? textoInterfaz(cantidad === 1 ? "opcionAplicada" : "opcionesAplicadas", { cantidad })
+    : textoInterfaz("ningunaOpcionAplicada");
+  if (estadoDatosGuardadosBasico) {
+    estadoDatosGuardadosBasico.textContent = estado.datosGuardados
+      ? textoInterfaz("datosGuardadosSeleccionados")
+      : textoInterfaz("ningunaOpcionAplicada");
+  }
+  if (estadoCostosAdicionalesBasico) {
+    estadoCostosAdicionalesBasico.textContent = textoCantidad(estado.costosAplicados);
+  }
+  if (estadoVentaConfiguracionBasico) {
+    estadoVentaConfiguracionBasico.textContent = textoCantidad(estado.opcionesVenta);
+  }
+  return estado;
+}
+
 function sincronizarDesplegablesBasicos({ reiniciar = false } = {}) {
+  const estado = actualizarIndicadoresDesplegablesBasicos();
   if (reiniciar) {
+    if (datosGuardadosBasico) datosGuardadosBasico.open = false;
     if (costosAdicionalesBasico) costosAdicionalesBasico.open = false;
     if (ventaConfiguracionBasico) ventaConfiguracionBasico.open = false;
     return;
   }
 
-  const tieneNumeroPersonalizado = (id) => {
-    const valor = document.querySelector(`#${id}`)?.value;
-    return valor !== undefined && valor !== "" && Number(valor) !== 0;
-  };
-  const costosConValor = [
-    "pesoSoportesPurgaBasico",
-    "embalajeBasico",
-    "envioBasico",
-    "impuestoBasico"
-  ].some(tieneNumeroPersonalizado);
-  const materialSeleccionado = obtenerPorId(obtenerPresets()?.materiales, materialBasico?.value);
-  const mermaPredeterminada = (Number(materialSeleccionado?.mermaSugerida) || 0) * 100;
-  const mermaActual = Number(document.querySelector("#mermaBasico")?.value) || 0;
-  const ventaPersonalizada =
-    (currencySelectBasico?.value && currencySelectBasico.value !== "CLP") ||
-    (languageSelectBasico?.value && languageSelectBasico.value !== "es") ||
-    (impresoraBasico?.value && impresoraBasico.value !== "manual") ||
-    Math.abs(mermaActual - mermaPredeterminada) > 0.01 ||
-    (canalVentaBasico?.selectedIndex ?? 0) > 0 ||
-    tieneNumeroPersonalizado("feePorcentualBasico") ||
-    tieneNumeroPersonalizado("feeFijoBasico") ||
-    document.querySelector("#tipoGananciaBasico")?.value === "margen" ||
-    document.querySelector("#alcanceDatosSlicerBasico")?.value === "lote";
-
-  if (costosAdicionalesBasico) costosAdicionalesBasico.open = costosConValor;
-  if (ventaConfiguracionBasico) ventaConfiguracionBasico.open = Boolean(ventaPersonalizada);
+  if (datosGuardadosBasico) datosGuardadosBasico.open = estado.datosGuardados > 0;
+  if (costosAdicionalesBasico) costosAdicionalesBasico.open = estado.costosAplicados > 0;
+  if (ventaConfiguracionBasico) ventaConfiguracionBasico.open = estado.opcionesVenta > 0;
 }
 
 function ubicarCostosInternosEnModoBasico() {
@@ -2562,8 +2597,8 @@ function construirDatosAvanzados() {
   };
 }
 
-function crearItemResumen(etiqueta, valor) {
-  return `<div class="summary-item"><span>${etiqueta}</span><strong>${valor}</strong></div>`;
+function crearItemResumen(etiqueta, valor, clase = "") {
+  return `<div class="summary-item${clase ? ` ${clase}` : ""}"><span>${etiqueta}</span><strong>${valor}</strong></div>`;
 }
 
 function crearItemDesglose(etiqueta, valor) {
@@ -2936,7 +2971,8 @@ function renderizarResultado(resumen, feeEstimado, destino, desglose, opciones =
     cantidadProductos > 1
       ? crearItemResumen(
           textoInterfaz("precioUnitarioEstimado"),
-          formatearMoneda((Number(resumen.precioFinal) || 0) / cantidadProductos)
+          formatearMoneda((Number(resumen.precioFinal) || 0) / cantidadProductos),
+          opciones.resumenBasicoSimple ? "summary-item--key" : ""
         )
       : "";
   const datosSlicerHtml = `
@@ -2944,22 +2980,22 @@ function renderizarResultado(resumen, feeEstimado, destino, desglose, opciones =
       ${crearItemResumen(textoInterfaz("pesoTotalCalculado"), formatearCantidadFisica(pesoTotalUsado, "g"))}
       ${crearItemResumen(textoInterfaz("materialExtraTotalCalculado"), formatearCantidadFisica(materialExtraTotalUsado, "g"))}
       ${crearItemResumen(textoInterfaz("tiempoTotalCalculado"), formatearHorasTotales(tiempoTotalUsado))}
-      ${precioUnitarioHtml}
     `;
   const resumenHtml = opciones.resumenBasicoSimple
     ? `
-      ${crearItemResumen(textoInterfaz("precioSugerido"), formatearMoneda(resumen.precioFinal))}
-      ${crearItemResumen(textoInterfaz("costoRealEstimado"), formatearMoneda(resumen.costoTotal))}
+      ${precioUnitarioHtml}
+      ${crearItemResumen(textoInterfaz("costoRealEstimado"), formatearMoneda(resumen.costoTotal), "summary-item--key")}
+      ${crearItemResumen(textoInterfaz("utilidadEstimada"), formatearMoneda(utilidadEstimada), "summary-item--key")}
       ${datosSlicerHtml}
       ${crearItemResumen(textoInterfaz("tipoGananciaUsado"), etiquetaTipoGanancia(tipoGanancia))}
       ${crearItemResumen(etiquetaPorcentaje, formatearPorcentaje(porcentajeGanancia))}
-      ${crearItemResumen(textoInterfaz("utilidadEstimada"), formatearMoneda(utilidadEstimada))}
       ${crearItemResumen(textoInterfaz("margenReal"), formatearPorcentaje(margenReal))}
     `
     : `
       ${crearItemResumen(textoInterfaz("precioSugeridoCliente"), formatearMoneda(resumen.precioFinal))}
       ${crearItemResumen(textoInterfaz("costoRealEstimado"), formatearMoneda(resumen.costoTotal))}
       ${datosSlicerHtml}
+      ${precioUnitarioHtml}
       ${crearItemResumen(textoInterfaz("tipoGananciaUsado"), etiquetaTipoGanancia(tipoGanancia))}
       ${crearItemResumen(etiquetaPorcentaje, formatearPorcentaje(porcentajeGanancia))}
       ${crearItemResumen(textoInterfaz("utilidadEstimada"), formatearMoneda(utilidadEstimada))}
@@ -2986,6 +3022,7 @@ function renderizarResultado(resumen, feeEstimado, destino, desglose, opciones =
   destino.innerHTML = `
     <p class="result-job-name">${escaparHtml(nombreTrabajo)}</p>
     <p class="result-job-meta">${textoInterfaz("cantidadProductos")}: ${cantidadProductos} · ${textoInterfaz("alcanceDatosSlicerResultado")}: ${etiquetaAlcanceDatosSlicer(alcanceDatosSlicer)}</p>
+    ${opciones.resumenBasicoSimple ? `<p class="result-total-label">${textoInterfaz("precioRecomendadoTotal")}</p>` : ""}
     <p class="result-total">${formatearMoneda(resumen.precioFinal)}</p>
     <div class="result-summary">
       ${resumenHtml}
@@ -3015,9 +3052,11 @@ function renderizarResultadoBasico(
 
   if (resumen.precioNeto === null) {
     basicWarnings.innerHTML = "";
+    if (basicBreakdownDetails) basicBreakdownDetails.hidden = true;
     return;
   }
 
+  if (basicBreakdownDetails) basicBreakdownDetails.hidden = false;
   renderizarAdvertenciasBasicas(resumen, feeEstimado);
 }
 
@@ -4829,6 +4868,7 @@ function limpiarFormulario(opciones = {}) {
   resultBox.textContent = textoInterfaz("resultadoVacio");
   resultBasico.textContent = textoInterfaz("resultadoVacio");
   basicBreakdown.innerHTML = "";
+  if (basicBreakdownDetails) basicBreakdownDetails.hidden = true;
   basicWarnings.innerHTML = "";
   exportExcelButton.disabled = true;
   ultimoDatosCalculo = null;
@@ -4891,6 +4931,8 @@ exportExcelButton.addEventListener("click", exportarCalculoActualCSV);
 document.querySelectorAll('input[type="number"]').forEach((input) => {
   input.addEventListener("input", bloquearNumeroNegativo);
 });
+document.querySelector(".basic-quote-panel")?.addEventListener("input", actualizarIndicadoresDesplegablesBasicos);
+document.querySelector(".basic-quote-panel")?.addEventListener("change", actualizarIndicadoresDesplegablesBasicos);
 toggleSupuestosEditables.addEventListener("click", alternarSupuestosEditables);
 btnModoBasico.addEventListener("click", () => cambiarModo("basico"));
 btnModoAvanzado.addEventListener("click", () => cambiarModo("avanzado"));
@@ -4909,6 +4951,7 @@ impresoraBasico.addEventListener("change", aplicarImpresoraBasico);
 usarValoresManualesBasico?.addEventListener("click", () => {
   impresoraBasico.value = "manual";
   aplicarImpresoraBasico();
+  costosAdicionalesBasico.open = true;
   panelSupuestosEditables.hidden = false;
   toggleSupuestosEditables.setAttribute("aria-expanded", "true");
   toggleSupuestosEditables.querySelector(".collapse-indicator").textContent = textoInterfaz("ocultar");
@@ -5070,6 +5113,7 @@ document.addEventListener("precio3d:idioma-actualizado", () => {
   actualizarAyudaCostoMaterial("avanzado");
   actualizarResumenFilamento("basico");
   actualizarResumenFilamento("avanzado");
+  actualizarIndicadoresDesplegablesBasicos();
   const datosGuardados = obtenerDatosNegocioGuardados();
   if (perfilNegocioTieneDatos(datosGuardados)) renderizarResumenPerfilNegocio(datosGuardados);
 });
