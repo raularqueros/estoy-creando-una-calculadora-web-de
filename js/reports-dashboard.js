@@ -326,7 +326,7 @@
       return;
     }
     if (!reporte.monedasDisponibles.length) {
-      estado.textContent = t("sinTrabajosReporte");
+      estado.innerHTML = `<strong>${escapar(t("sinTrabajosReporte"))}</strong>`;
       estado.className = "report-status report-status--empty";
       return;
     }
@@ -340,6 +340,50 @@
     }
     estado.textContent = t("periodoAplicado", { periodo: periodoVisible(reporte.periodo), detalle: "" });
     estado.className = "report-status";
+  }
+
+  function reporteSinTrabajos(reporte) {
+    return !reporte.monedasDisponibles.length;
+  }
+
+  function reporteSinResultados(reporte) {
+    return !reporteSinTrabajos(reporte)
+      && reporte.periodo.valido
+      && !reporte.detalleTrabajos.length
+      && !reporte.resumen.pagosCobrados;
+  }
+
+  function actualizarVisibilidad(reporte) {
+    const panel = $("#panelFinancieroPanel");
+    if (!panel) return;
+
+    const sinTrabajos = reporteSinTrabajos(reporte);
+    const sinResultados = reporteSinResultados(reporte);
+    const sinDatos = sinTrabajos || sinResultados;
+
+    panel.classList.toggle("financial-panel--empty", sinTrabajos);
+    panel.classList.toggle("financial-panel--filtered-empty", sinResultados);
+    panel.querySelectorAll(".report-data-section").forEach((seccion) => {
+      seccion.hidden = sinDatos;
+    });
+
+    const filtrosAvanzados = panel.querySelector(".report-filters-panel");
+    if (filtrosAvanzados) filtrosAvanzados.hidden = sinTrabajos;
+
+    panel.querySelectorAll("[data-report-filter], #reporteAplicarRango, #reporteLimpiarFiltros")
+      .forEach((control) => {
+        control.disabled = sinTrabajos;
+      });
+
+    const exportaciones = panel.querySelector(".report-export-tools");
+    if (exportaciones) exportaciones.hidden = sinTrabajos;
+    panel.querySelectorAll("#reporteExportarResumen, #reporteExportarDetalle, #reporteImprimir")
+      .forEach((control) => {
+        control.disabled = sinDatos;
+      });
+
+    const advertencias = $("#reporteAdvertencias");
+    if (advertencias && sinDatos) advertencias.hidden = true;
   }
 
   function renderAdvertencias(reporte) {
@@ -373,6 +417,7 @@
     renderRentabilidad(reporteActual);
     renderTablas(reporteActual);
     renderCalidad(reporteActual);
+    actualizarVisibilidad(reporteActual);
   }
 
   function limpiarFiltros() {

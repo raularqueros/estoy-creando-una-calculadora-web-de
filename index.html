@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
   <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
   <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
-  <link rel="stylesheet" href="styles.css?v=20260725-help-guide-v1">
+  <link rel="stylesheet" href="styles.css?v=20260725-financial-states-v1">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -1294,8 +1294,7 @@
     <section id="panelFinancieroPanel" class="panel result-panel financial-panel">
       <div class="clients-heading report-heading">
         <div class="report-heading__copy">
-          <p class="eyebrow" data-i18n="rendimientoNegocio">Rendimiento del negocio</p>
-          <h2 data-i18n="panelFinanciero">Panel financiero</h2>
+          <h2 data-i18n="rendimientoNegocio">Rendimiento del negocio</h2>
           <p class="help-text" data-i18n="panelFinancieroDescripcion">Resume ventas, costos y rentabilidad utilizando exclusivamente los datos guardados localmente.</p>
           <p class="report-warning" data-i18n="panelFinancieroAdvertencia">Este panel es una herramienta de gestión. No reemplaza la contabilidad, los registros tributarios ni las declaraciones oficiales.</p>
         </div>
@@ -1365,15 +1364,15 @@
 
       <div id="reporteEstadoPanel" class="report-status" role="status"></div>
       <div id="reporteAdvertencias" class="report-alerts" aria-live="polite"></div>
-      <div id="reporteKpis" class="report-kpi-grid" aria-live="polite"></div>
+      <div id="reporteKpis" class="report-kpi-grid report-data-section" aria-live="polite"></div>
 
-      <section class="panel report-section report-print-section">
+      <section class="panel report-section report-print-section report-data-section">
         <h3 data-i18n="evolucionResultados">Evolución de resultados</h3>
         <p class="help-text" data-i18n="evolucionResultadosAyuda">Las ventas se agrupan por la fecha del trabajo o venta. Los pagos se agrupan por la fecha en que fueron registrados.</p>
         <div id="reporteGrafico"></div>
       </section>
 
-      <details class="collapsible-section report-section" open>
+      <details class="collapsible-section report-section report-data-section">
         <summary data-i18n="desgloseRentabilidad">Rentabilidad por producto, cliente, impresora y material</summary>
         <div class="report-grid-2">
           <section><h3 data-i18n="rentabilidadProducto">Rentabilidad por producto</h3><div id="reporteProductos"></div></section>
@@ -1383,19 +1382,19 @@
         </div>
       </details>
 
-      <details class="collapsible-section report-section" open>
+      <details class="collapsible-section report-section report-data-section">
         <summary data-i18n="cuentasRanking">Cuentas por cobrar y ranking de trabajos</summary>
         <section><h3 data-i18n="pagosPendientes">Pagos pendientes</h3><div id="reporteCuentasPorCobrar"></div></section>
         <section><div id="reporteRankingTrabajos"></div></section>
       </details>
 
-      <details class="collapsible-section report-section">
+      <details class="collapsible-section report-section report-data-section">
         <summary data-i18n="canalesEstadosCostos">Canales, métodos de pago, estados y costos</summary>
         <div id="reporteCanalesPago"></div>
         <div id="reporteEstadosCostos"></div>
       </details>
 
-      <details class="collapsible-section report-section">
+      <details class="collapsible-section report-section report-data-section">
         <summary data-i18n="calidadDatos">Calidad de los datos</summary>
         <div id="reporteCalidadDatos"></div>
       </details>
@@ -1980,7 +1979,7 @@
   <script src="js/printers-dashboard.js?v=20260724-printers-ui-v1"></script>
   <script src="js/filaments-dashboard.js?v=20260724-filaments-ui-v1"></script>
   <script src="js/quotes-dashboard.js?v=20260724-professional-quote-v1"></script>
-  <script src="js/reports-dashboard.js?v=20260725-financial-ui-v1"></script>
+  <script src="js/reports-dashboard.js?v=20260725-financial-states-v1"></script>
   <script src="app.js?v=20260725-basic-progressive-v1"></script>
   <script>
     document.getElementById("siteFooterYear").textContent = new Date().getFullYear();
