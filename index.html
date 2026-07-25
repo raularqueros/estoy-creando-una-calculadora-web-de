@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Calculadora de precio de impresión 3D | Costos, cotizaciones e inventario">
   <meta name="twitter:description" content="Herramienta local para calcular costos, precios y cotizaciones de impresión 3D con impresoras e inventario de filamentos.">
   <meta name="twitter:image" content="https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/assets/images/social-preview.svg">
-  <link rel="stylesheet" href="styles.css?v=20260725-financial-states-v1">
+  <link rel="stylesheet" href="styles.css?v=20260725-final-public-fixes-v1">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -778,7 +778,7 @@
 
     <details class="panel result-panel price-levels-panel result-disclosure" hidden>
       <summary class="result-disclosure__summary">
-        <span>Precios por nivel</span>
+        <span data-i18n="preciosPorNivel">Precios por nivel</span>
       </summary>
       <div class="result-disclosure__content">
         <p class="help-text">Compara precios sugeridos usando el mismo pedido y cambiando solo el margen.</p>
@@ -984,7 +984,7 @@
     <section id="misTrabajosPanel" class="panel result-panel jobs-panel">
       <details class="collapsible-section" open>
         <summary data-i18n="misTrabajos">Mis trabajos</summary>
-        <p class="help-text">Guarda cotizaciones calculadas en este navegador. Puedes exportarlas como JSON para respaldarlas o moverlas a otro equipo.</p>
+        <p class="help-text" data-i18n="trabajosGuardadoDescripcion">Guarda cotizaciones calculadas en este navegador. Puedes exportarlas como JSON para respaldarlas o moverlas a otro equipo.</p>
 
         <div class="job-save-box">
           <section class="jobs-save-section">
@@ -1081,8 +1081,8 @@
               <span data-i18n="modo">Modo</span>
               <select id="trabajosFiltroModo">
                 <option value="todos" data-i18n="todos">Todos</option>
-                <option value="basico">Básico</option>
-                <option value="avanzado">Avanzado</option>
+                <option value="basico" data-i18n="modoBasico">Básico</option>
+                <option value="avanzado" data-i18n="modoAvanzado">Avanzado</option>
               </select>
             </label>
             <label>
@@ -1472,45 +1472,45 @@
     <section id="respaldoIntegridadPanel" class="panel backup-panel">
       <div class="backup-heading">
         <div>
-          <p class="section-kicker">Protección de datos locales</p>
-          <h2>Respaldo y restauración</h2>
-          <p class="help-text">Tus datos se guardan en este navegador. Descarga respaldos periódicamente para evitar pérdidas o trasladar la información a otro dispositivo.</p>
+          <p class="section-kicker" data-i18n="backupProteccionDatos">Protección de datos locales</p>
+          <h2 data-i18n="backupTitulo">Respaldo y restauración</h2>
+          <p class="help-text" data-i18n="backupDescripcion">Tus datos se guardan en este navegador. Descarga respaldos periódicamente para evitar pérdidas o trasladar la información a otro dispositivo.</p>
         </div>
-        <button type="button" id="descargarRespaldoCompletoButton">Descargar respaldo completo</button>
+        <button type="button" id="descargarRespaldoCompletoButton" data-i18n="backupDescargarCompleto">Descargar respaldo completo</button>
       </div>
 
       <div id="backupSummary" class="backup-summary" aria-live="polite">
-        <div><strong id="backupTotalClientes">0</strong><span>Clientes</span></div>
-        <div><strong id="backupTotalCotizaciones">0</strong><span>Cotizaciones</span></div>
-        <div><strong id="backupTotalTrabajos">0</strong><span>Trabajos</span></div>
-        <div><strong id="backupTotalImpresoras">0</strong><span>Impresoras</span></div>
-        <div><strong id="backupTotalBobinas">0</strong><span>Bobinas</span></div>
-        <div><strong id="backupTotalMovimientos">0</strong><span>Movimientos</span></div>
+        <div><strong id="backupTotalClientes">0</strong><span data-i18n="backupClientes">Clientes</span></div>
+        <div><strong id="backupTotalCotizaciones">0</strong><span data-i18n="backupCotizaciones">Cotizaciones</span></div>
+        <div><strong id="backupTotalTrabajos">0</strong><span data-i18n="backupTrabajos">Trabajos</span></div>
+        <div><strong id="backupTotalImpresoras">0</strong><span data-i18n="backupImpresoras">Impresoras</span></div>
+        <div><strong id="backupTotalBobinas">0</strong><span data-i18n="backupBobinas">Bobinas</span></div>
+        <div><strong id="backupTotalMovimientos">0</strong><span data-i18n="backupMovimientos">Movimientos</span></div>
       </div>
 
       <dl class="backup-metadata">
-        <div><dt>Almacenamiento actual</dt><dd>Este dispositivo</dd></div>
-        <div><dt>Último respaldo</dt><dd id="backupLastDate">Aún no registrado</dd></div>
-        <div><dt>Almacenamiento aproximado</dt><dd id="backupStorageSize">0 KB</dd></div>
+        <div><dt data-i18n="backupAlmacenamientoActual">Almacenamiento actual</dt><dd data-i18n="backupEsteDispositivo">Este dispositivo</dd></div>
+        <div><dt data-i18n="backupUltimoRespaldo">Último respaldo</dt><dd id="backupLastDate" data-i18n="backupAunNoRegistrado">Aún no registrado</dd></div>
+        <div><dt data-i18n="backupAlmacenamientoAproximado">Almacenamiento aproximado</dt><dd id="backupStorageSize">0 KB</dd></div>
       </dl>
 
       <details class="backup-storage-details">
-        <summary>Ver uso aproximado por módulo</summary>
+        <summary data-i18n="backupVerUsoModulo">Ver uso aproximado por módulo</summary>
         <dl id="backupStorageBreakdown" class="backup-storage-breakdown">
-          <div><dt>Configuración</dt><dd id="backupSizeConfiguracion">0 B</dd></div>
-          <div><dt>Clientes</dt><dd id="backupSizeClientes">0 B</dd></div>
-          <div><dt>Cotizaciones</dt><dd id="backupSizeCotizaciones">0 B</dd></div>
-          <div><dt>Trabajos</dt><dd id="backupSizeTrabajos">0 B</dd></div>
-          <div><dt>Impresoras</dt><dd id="backupSizeImpresoras">0 B</dd></div>
-          <div><dt>Inventario</dt><dd id="backupSizeInventario">0 B</dd></div>
+          <div><dt data-i18n="backupConfiguracion">Configuración</dt><dd id="backupSizeConfiguracion">0 B</dd></div>
+          <div><dt data-i18n="backupClientes">Clientes</dt><dd id="backupSizeClientes">0 B</dd></div>
+          <div><dt data-i18n="backupCotizaciones">Cotizaciones</dt><dd id="backupSizeCotizaciones">0 B</dd></div>
+          <div><dt data-i18n="backupTrabajos">Trabajos</dt><dd id="backupSizeTrabajos">0 B</dd></div>
+          <div><dt data-i18n="backupImpresoras">Impresoras</dt><dd id="backupSizeImpresoras">0 B</dd></div>
+          <div><dt data-i18n="backupInventario">Inventario</dt><dd id="backupSizeInventario">0 B</dd></div>
         </dl>
       </details>
 
       <div class="actions backup-actions">
-        <button type="button" id="importarRespaldoCompletoButton" class="secondary">Importar respaldo</button>
+        <button type="button" id="importarRespaldoCompletoButton" class="secondary" data-i18n="backupImportar">Importar respaldo</button>
         <input type="file" id="importarRespaldoCompletoInput" accept="application/json,.json" hidden>
-        <button type="button" id="revisarIntegridadButton" class="secondary">Revisar integridad</button>
-        <button type="button" id="descargarRespaldoPrevioButton" class="secondary" disabled>Descargar respaldo previo</button>
+        <button type="button" id="revisarIntegridadButton" class="secondary" data-i18n="backupRevisarIntegridad">Revisar integridad</button>
+        <button type="button" id="descargarRespaldoPrevioButton" class="secondary" disabled data-i18n="descargarRespaldoPrevio">Descargar respaldo previo</button>
       </div>
       <p id="backupMessage" class="help-text" role="status"></p>
       <div id="integrityReport" class="integrity-report" aria-live="polite"></div>
@@ -1963,15 +1963,15 @@
   <script src="js/printer-catalog.js?v=20260715-catalog-v1"></script>
   <script src="js/printers.js?v=20260715-printers-v2"></script>
   <script src="js/geolocation.js"></script>
-  <script src="js/i18n.js?v=20260725-i18n-cleanup-v1"></script>
+  <script src="js/i18n.js?v=20260725-final-public-fixes-v1"></script>
   <script src="js/presets.js?v=20260724-i18n-fix-v1"></script>
   <script src="js/filaments.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/comparator.js"></script>
   <script src="js/storage.js?v=20260715-filaments-jobs-v2"></script>
   <script src="js/clients.js?v=20260714-clients-v1"></script>
   <script src="js/quotes.js?v=20260715-quotes-v2"></script>
-  <script src="js/jobs-dashboard.js?v=20260724-i18n-fix-v1"></script>
-  <script src="js/backup.js?v=20260715-backup-v1"></script>
+  <script src="js/jobs-dashboard.js?v=20260725-final-public-fixes-v1"></script>
+  <script src="js/backup.js?v=20260725-final-public-fixes-v1"></script>
   <script src="js/reports.js?v=20260715-reports-v1"></script>
   <script src="js/help.js?v=20260724-i18n-fix-v1"></script>
   <script src="js/navigation.js?v=20260725-help-guide-v1"></script>
@@ -1979,7 +1979,7 @@
   <script src="js/printers-dashboard.js?v=20260724-printers-ui-v1"></script>
   <script src="js/filaments-dashboard.js?v=20260724-filaments-ui-v1"></script>
   <script src="js/quotes-dashboard.js?v=20260724-professional-quote-v1"></script>
-  <script src="js/reports-dashboard.js?v=20260725-financial-states-v1"></script>
+  <script src="js/reports-dashboard.js?v=20260725-final-public-fixes-v1"></script>
   <script src="app.js?v=20260725-i18n-cleanup-v1"></script>
   <script>
     document.getElementById("siteFooterYear").textContent = new Date().getFullYear();

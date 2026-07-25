@@ -112,9 +112,9 @@
     }, {});
   }
 
-  function formatearTotales(totales) {
+  function formatearTotales(totales, monedaCero = "") {
     const textos = Object.entries(totales).map(([moneda, valor]) => formatearMoneda(valor, moneda));
-    return textos.length ? textos.join(" · ") : formatearMoneda(0, "CLP");
+    return textos.length ? textos.join(" · ") : formatearMoneda(0, monedaCero || "CLP");
   }
 
   function rangoPeriodo(periodo, referencia = new Date()) {
@@ -227,6 +227,8 @@
     const contenedor = $("#trabajosResumen");
     if (!contenedor) return;
     const indicadores = calcularIndicadores(trabajos);
+    const monedasFiltradas = [...new Set(trabajos.map(monedaTrabajo).filter(Boolean))];
+    const monedaCero = monedasFiltradas.length === 1 ? monedasFiltradas[0] : "";
     let comparacion = "";
 
     if (filtros.periodo === "este_mes") {
@@ -242,11 +244,11 @@
     }
 
     contenedor.innerHTML = [
-      tarjetaIndicador(t("cotizadoPeriodo"), formatearTotales(indicadores.cotizado), "cotizado", comparacion),
-      tarjetaIndicador(t("vendidoAceptado"), formatearTotales(indicadores.aceptado), "aceptado"),
-      tarjetaIndicador(t("pagado"), formatearTotales(indicadores.pagado), "pagado"),
-      tarjetaIndicador(t("utilidadEstimadaEtiqueta"), formatearTotales(indicadores.utilidadEstimada), "utilidad"),
-      tarjetaIndicador(t("utilidadReal"), formatearTotales(indicadores.utilidadReal), "utilidad"),
+      tarjetaIndicador(t("cotizadoPeriodo"), formatearTotales(indicadores.cotizado, monedaCero), "cotizado", comparacion),
+      tarjetaIndicador(t("vendidoAceptado"), formatearTotales(indicadores.aceptado, monedaCero), "aceptado"),
+      tarjetaIndicador(t("pagado"), formatearTotales(indicadores.pagado, monedaCero), "pagado"),
+      tarjetaIndicador(t("utilidadEstimadaEtiqueta"), formatearTotales(indicadores.utilidadEstimada, monedaCero), "utilidad"),
+      tarjetaIndicador(t("utilidadReal"), formatearTotales(indicadores.utilidadReal, monedaCero), "utilidad"),
       tarjetaIndicador(t("trabajosPendientes"), String(indicadores.pendientes), "pendiente"),
       tarjetaIndicador(t("tasaAceptacion"), formatearPorcentaje(indicadores.tasaAceptacion), "tasa")
     ].join("");
@@ -726,7 +728,7 @@
 
     if (accion === "confirmar-pagado") {
       const pagado = window.StoragePrecio3D?.cambiarEstadoTrabajo?.(id, "Pagado", "Saldo pagado");
-      mostrarMensaje(pagado ? "Pago y estado actualizados." : "No se pudo actualizar el estado.", !pagado);
+      mostrarMensaje(t(pagado ? "pagoEstadoActualizados" : "noActualizarEstado"), !pagado);
       cerrarModal();
       renderizar();
       return;
@@ -761,7 +763,7 @@
       $("#trabajoDetallePanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
     } else if (accion === "eliminar-manteniendo-consumos") {
       const eliminado = window.StoragePrecio3D?.eliminarTrabajo?.(id);
-      mostrarMensaje(eliminado ? "Trabajo eliminado. Los movimientos de inventario se conservaron." : "No se pudo eliminar el trabajo.", !eliminado);
+      mostrarMensaje(t(eliminado ? "trabajoEliminadoMovimientosConservados" : "noEliminarTrabajo"), !eliminado);
       cerrarModal();
       renderizar();
     } else if (accion === "vincular-cliente") {
@@ -772,11 +774,11 @@
         cliente: cliente?.nombre || trabajo.cliente,
         clienteSnapshot: cliente ? window.ClientesPrecio3D?.crearSnapshot?.(cliente) : trabajo.clienteSnapshot
       });
-      mostrarMensaje(actualizado ? "Cliente vinculado al trabajo." : "No se pudo actualizar el vínculo.", !actualizado);
+      mostrarMensaje(t(actualizado ? "clienteVinculadoTrabajo" : "noActualizarVinculo"), !actualizado);
       renderizar();
     } else if (accion === "duplicar") {
       const duplicado = window.StoragePrecio3D?.duplicarTrabajo?.(id);
-      mostrarMensaje(duplicado ? "Trabajo duplicado." : "No se pudo duplicar el trabajo.", !duplicado);
+      mostrarMensaje(t(duplicado ? "trabajoDuplicadoMensaje" : "noDuplicarTrabajo"), !duplicado);
       renderizar();
     } else if (accion === "eliminar") {
       const tieneConsumos = movimientosInventarioTrabajo(id).length > 0;
@@ -791,7 +793,7 @@
         `);
       } else if (confirm("¿Seguro que quieres eliminar este trabajo?")) {
         const eliminado = window.StoragePrecio3D?.eliminarTrabajo?.(id);
-        mostrarMensaje(eliminado ? "Trabajo eliminado." : "No se pudo eliminar el trabajo.", !eliminado);
+        mostrarMensaje(t(eliminado ? "trabajoEliminadoMensaje" : "noEliminarTrabajo"), !eliminado);
         renderizar();
       }
     }
@@ -800,9 +802,9 @@
   function manejarCambio(event) {
     if (event.target.matches("[data-commercial-action='estado']")) {
       const actualizado = window.StoragePrecio3D?.cambiarEstadoTrabajo?.(event.target.dataset.jobId, event.target.value);
-      mostrarMensaje(actualizado ? "Estado e historial actualizados." : "No se pudo actualizar el estado.", !actualizado);
+      mostrarMensaje(t(actualizado ? "estadoHistorialActualizados" : "noActualizarEstado"), !actualizado);
       if (actualizado && ["En producción", "Terminado"].includes(event.target.value) && !resumenConsumoInventario(actualizado).registrado && tieneMaterialAsociado(actualizado)) {
-        mostrarMensaje("Recuerda registrar el consumo de material cuando conozcas el uso real.");
+        mostrarMensaje(t("recordarConsumoMaterial"));
       }
       renderizar();
     }
@@ -819,7 +821,7 @@
         fechaPago: $("#ventaFechaPago").value,
         notasVenta: $("#ventaNotas").value
       });
-      mostrarMensaje(actualizado ? "Venta registrada." : "No se pudo registrar la venta.", !actualizado);
+      mostrarMensaje(t(actualizado ? "ventaRegistradaMensaje" : "noRegistrarVenta"), !actualizado);
       if (actualizado) cerrarModal();
       renderizar();
     }
@@ -832,7 +834,7 @@
         metodo: $("#pagoMetodo").value,
         nota: $("#pagoNota").value
       });
-      mostrarMensaje(actualizado ? "Pago registrado." : "No se pudo registrar el pago.", !actualizado);
+      mostrarMensaje(t(actualizado ? "pagoRegistradoMensaje" : "noRegistrarPago"), !actualizado);
       if (actualizado) {
         cerrarModal();
         if (actualizado.saldoPendiente <= 0 && actualizado.estado !== "Pagado") {

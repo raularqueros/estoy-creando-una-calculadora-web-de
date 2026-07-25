@@ -33,6 +33,8 @@
   const CAMPOS_FECHA = /fecha|createdAt|updatedAt|guardadoEn|createdAt|updatedAt/i;
   const CLAVES_PELIGROSAS = new Set(["__proto__", "prototype", "constructor"]);
   let respaldoPrevio = null;
+  const t = (clave, reemplazos = {}) =>
+    window.obtenerTextoI18n?.(clave, reemplazos) || clave;
 
   function texto(valor, respaldo = "") {
     return String(valor ?? respaldo).trim();
@@ -791,7 +793,7 @@
           const destino = document.getElementById(id);
           if (destino) destino.textContent = String(valor);
         });
-        elementos.tamano.textContent = `${formatearBytes(resumen.tamanos.total)} (estimación)`;
+        elementos.tamano.textContent = `${formatearBytes(resumen.tamanos.total)} (${t("backupEstimacion")})`;
         const tamanos = {
           backupSizeConfiguracion: resumen.tamanos.configuracion,
           backupSizeClientes: resumen.tamanos.clientes,
@@ -807,7 +809,7 @@
         const ultimo = obtenerFechaUltimoRespaldo();
         elementos.ultimaFecha.textContent = ultimo?.createdAt
           ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(ultimo.createdAt))
-          : "Aún no registrado";
+          : t("backupAunNoRegistrado");
       } catch (error) {
         mostrarMensaje(`No fue posible leer el almacenamiento local: ${error.message}`, "error");
       }
@@ -1025,6 +1027,7 @@
     });
 
     window.addEventListener("precio3d:respaldo-importado", actualizarResumen);
+    document.addEventListener("precio3d:idioma-actualizado", actualizarResumen);
     ["clientes", "cotizaciones", "trabajos", "impresoras", "filamentos"].forEach((modulo) => {
       window.addEventListener(`precio3d:${modulo}-actualizados`, actualizarResumen);
     });

@@ -62,6 +62,16 @@
     return clave ? t(clave) : periodo?.etiqueta || t("rangoPersonalizado");
   }
 
+  function etiquetaDatoReporte(valor) {
+    const clave = {
+      "Cliente no registrado": "clienteNoRegistrado",
+      "Impresora no registrada": "impresoraNoRegistrada",
+      basico: "modoBasico",
+      avanzado: "modoAvanzado"
+    }[String(valor ?? "")];
+    return clave ? t(clave) : valor;
+  }
+
   function descargar(nombre, contenido, tipo = "text/csv;charset=utf-8") {
     const blob = new Blob([contenido], { type: tipo });
     const url = URL.createObjectURL(blob);
@@ -112,12 +122,15 @@
     }
     const estadosEtiquetas = Object.fromEntries((filtros.estados || []).map((estado) => [estado, estadoVisible(estado)]));
     poblarSelect($("#reporteEstado"), filtros.estados || [], estadosEtiquetas, t("todos"));
-    poblarSelect($("#reporteCliente"), filtros.clientes || [], filtros.clientesEtiquetas || {}, t("todos"));
-    poblarSelect($("#reporteImpresora"), filtros.impresoras || [], filtros.impresorasEtiquetas || {}, t("todas"));
+    const clientesEtiquetas = Object.fromEntries(Object.entries(filtros.clientesEtiquetas || {}).map(([valor, etiqueta]) => [valor, etiquetaDatoReporte(etiqueta)]));
+    const impresorasEtiquetas = Object.fromEntries(Object.entries(filtros.impresorasEtiquetas || {}).map(([valor, etiqueta]) => [valor, etiquetaDatoReporte(etiqueta)]));
+    const modosEtiquetas = Object.fromEntries((filtros.modos || []).map((modo) => [modo, etiquetaDatoReporte(modo)]));
+    poblarSelect($("#reporteCliente"), filtros.clientes || [], clientesEtiquetas, t("todos"));
+    poblarSelect($("#reporteImpresora"), filtros.impresoras || [], impresorasEtiquetas, t("todas"));
     poblarSelect($("#reporteMaterial"), filtros.materiales || [], {}, t("todos"));
     poblarSelect($("#reporteCanal"), filtros.canales || [], {}, t("todos"));
     poblarSelect($("#reporteMetodoPago"), filtros.metodosPago || [], {}, t("todos"));
-    poblarSelect($("#reporteModo"), filtros.modos || [], {}, t("todos"));
+    poblarSelect($("#reporteModo"), filtros.modos || [], modosEtiquetas, t("todos"));
   }
 
   function renderTarjetas(reporte) {
@@ -131,10 +144,10 @@
     const valorCostos = trabajosConCosto ? formatearMoneda(r.costosProduccion, moneda) : t("sinDatos");
     const valorUtilidad = trabajosConCosto ? formatearMoneda(r.utilidadBruta, moneda) : t("sinDatos");
     const items = [
-      [t("ventasConsideradas"), valorVentas, t("ventasConsideradasAyuda", { cantidad: r.trabajosVendidos, moneda })],
-      [t("costosTotales"), valorCostos, t("costosTotalesAyuda", { cantidad: trabajosConCosto, moneda })],
-      [t("utilidadEstimada"), valorUtilidad, t("utilidadEstimadaAyuda", { cantidad: trabajosConCosto, moneda })],
-      [t("margenPromedio"), trabajosConCosto ? formatearPorcentaje(r.margenBruto) : t("sinDatos"), t("margenPromedioAyuda", { cantidad: trabajosConCosto })]
+      [t("ventasConsideradas"), valorVentas, t(r.trabajosVendidos === 1 ? "ventasConsideradasAyudaSingular" : "ventasConsideradasAyuda", { cantidad: r.trabajosVendidos, moneda })],
+      [t("costosTotales"), valorCostos, t(trabajosConCosto === 1 ? "costosTotalesAyudaSingular" : "costosTotalesAyuda", { cantidad: trabajosConCosto, moneda })],
+      [t("utilidadEstimada"), valorUtilidad, t(trabajosConCosto === 1 ? "utilidadEstimadaAyudaSingular" : "utilidadEstimadaAyuda", { cantidad: trabajosConCosto, moneda })],
+      [t("margenPromedio"), trabajosConCosto ? formatearPorcentaje(r.margenBruto) : t("sinDatos"), t(trabajosConCosto === 1 ? "margenPromedioAyudaSingular" : "margenPromedioAyuda", { cantidad: trabajosConCosto })]
     ];
     contenedor.innerHTML = items.map(([titulo, valor, ayuda]) => `
       <article class="report-kpi-card">
@@ -165,6 +178,9 @@
       : margen + (indice * (ancho - margen * 2)) / (datos.length - 1);
     const y = (valor) => margen + ((maximo - numero(valor)) / rango) * (alto - margen * 2);
     const linea = (campo) => datos.map((item, indice) => `${x(indice)},${y(item[campo])}`).join(" ");
+    const marcadorUnico = (campo) => datos.length === 1
+      ? `<circle class="serie-marker ${campo}" cx="${x(0)}" cy="${y(datos[0][campo])}" r="5" />`
+      : "";
     const baseCero = y(0);
     contenedor.innerHTML = `
       <figure class="report-chart">
@@ -178,6 +194,10 @@
           <polyline class="serie pagos" points="${linea("pagos")}" />
           <polyline class="serie costos" points="${linea("costos")}" />
           <polyline class="serie utilidad" points="${linea("utilidad")}" />
+          ${marcadorUnico("ventas")}
+          ${marcadorUnico("pagos")}
+          ${marcadorUnico("costos")}
+          ${marcadorUnico("utilidad")}
         </svg>
         <div class="report-chart-legend">
           <span>${escapar(t("ventas"))}</span><span>${escapar(t("pagos"))}</span><span>${escapar(t("costos"))}</span><span>${escapar(t("utilidad"))}</span>

@@ -5810,6 +5810,14 @@ body.modal-open {
 .report-chart .pagos { stroke: #2563eb; stroke-dasharray: 7 5; }
 .report-chart .costos { stroke: #b45309; stroke-dasharray: 3 4; }
 .report-chart .utilidad { stroke: #7c3aed; stroke-dasharray: 10 4; }
+.report-chart .serie-marker {
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+.report-chart .serie-marker.ventas { fill: #0f766e; }
+.report-chart .serie-marker.pagos { fill: #2563eb; }
+.report-chart .serie-marker.costos { fill: #b45309; }
+.report-chart .serie-marker.utilidad { fill: #7c3aed; }
 
 .report-chart-legend {
   display: flex;
