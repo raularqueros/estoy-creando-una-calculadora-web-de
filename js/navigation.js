@@ -77,9 +77,9 @@
   const resultadoBasico = document.querySelector(".basic-result-panel");
   const supuestosBasicos = document.querySelector(".assumptions-panel");
   const resultadoAvanzado = document.querySelector("#result")?.closest(".panel");
-  const opcionesBasicas = document.querySelector(".quick-panel > details.collapsible-section");
-  const botonCostos = document.querySelector("#toggleSupuestosEditables")?.closest(".collapse-row");
-  const costosBasicos = document.querySelector("#supuestosEditablesBasico");
+  const datosGuardadosBasico = document.querySelector("#datosGuardadosBasico");
+  const costosAdicionalesBasico = document.querySelector("#costosAdicionalesBasico");
+  const ventaConfiguracionBasico = document.querySelector("#ventaConfiguracionBasico");
   const paneles = {
     selectorModo: document.querySelector(".mode-switch-panel"),
     modoBasico: document.querySelector("#seccionModoBasico"),
@@ -260,10 +260,25 @@
   const panelCostos = document.createElement("section");
   panelCostos.className = "panel settings-panel";
   panelCostos.innerHTML = `
-    <h2 data-i18n="costosInternosUsados">Costos internos usados</h2>
-    <p class="help-text" data-i18n="costosInternosUsadosAyuda">Puedes mantener estos valores o ajustarlos con tus costos reales. Se usan en el modo básico.</p>
+    <section class="settings-group settings-group--preferences">
+      <div class="settings-group__heading">
+        <p class="eyebrow" data-i18n="configuracionPreferencias">Preferencias generales</p>
+        <h2 data-i18n="configuracionPreferencias">Preferencias generales</h2>
+        <p class="help-text" data-i18n="configuracionPreferenciasAyuda">Define el idioma, la moneda y las opciones de venta que usarás por defecto.</p>
+      </div>
+    </section>
+    <section class="settings-group settings-group--calculator">
+      <div class="settings-group__heading">
+        <p class="eyebrow" data-i18n="configuracionCalculadora">Valores y comportamiento de la calculadora</p>
+        <h2 data-i18n="configuracionCalculadora">Valores y comportamiento de la calculadora</h2>
+        <p class="help-text" data-i18n="configuracionCalculadoraAyuda">Ajusta los datos guardados y los costos que se reutilizan al calcular.</p>
+      </div>
+    </section>
   `;
-  [opcionesBasicas, botonCostos, costosBasicos].filter(Boolean).forEach((elemento) => panelCostos.appendChild(elemento));
+  const grupoPreferencias = panelCostos.querySelector(".settings-group--preferences");
+  const grupoCalculadora = panelCostos.querySelector(".settings-group--calculator");
+  [ventaConfiguracionBasico].filter(Boolean).forEach((elemento) => grupoPreferencias.appendChild(elemento));
+  [datosGuardadosBasico, costosAdicionalesBasico].filter(Boolean).forEach((elemento) => grupoCalculadora.appendChild(elemento));
 
   mover("configuracion", [
     panelCostos,
