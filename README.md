@@ -8,7 +8,7 @@ Funciona sin backend, sin cuentas, sin base de datos externa y sin frameworks. E
 
 URL configurada para publicación:
 
-https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/
+https://raularqueros.github.io/calculadora-precio-impresion-3d-completa/
 
 ## Funciones principales
 

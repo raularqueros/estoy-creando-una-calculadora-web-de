@@ -4,7 +4,7 @@
 
 - Titulo: `Calculadora de precio de impresion 3D | Costos, cotizaciones e inventario`
 - Description: `Calcula costos de impresion 3D, define precios rentables, crea cotizaciones y gestiona impresoras e inventario de filamentos desde una herramienta local.`
-- URL publica: `https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/`
+- URL publica: `https://raularqueros.github.io/calculadora-precio-impresion-3d-completa/`
 - Configuracion editable: `js/site-config.js`
 
 ## Cambiar a dominio propio
@@ -28,7 +28,7 @@ El archivo `sitemap.xml` incluye solo la pagina principal. Cuando existan pagina
 
 `robots.txt` permite indexar la web y referencia el sitemap. Para comprobarlo, abre:
 
-`https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/robots.txt`
+`https://raularqueros.github.io/calculadora-precio-impresion-3d-completa/robots.txt`
 
 ## Canonical
 

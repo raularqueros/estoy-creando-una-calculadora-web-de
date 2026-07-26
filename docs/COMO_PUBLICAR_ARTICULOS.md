@@ -92,7 +92,7 @@ Agregar manualmente al sitemap solo articulos publicados:
 
 ```xml
 <url>
-  <loc>https://raularqueros.github.io/estoy-creando-una-calculadora-web-de/blog/articulos/slug-del-articulo.html</loc>
+  <loc>https://raularqueros.github.io/calculadora-precio-impresion-3d-completa/blog/articulos/slug-del-articulo.html</loc>
   <lastmod>YYYY-MM-DD</lastmod>
   <changefreq>monthly</changefreq>
   <priority>0.7</priority>
