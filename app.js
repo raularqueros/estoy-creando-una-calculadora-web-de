@@ -2239,7 +2239,7 @@ function aplicarImpresoraBasico() {
   document.querySelector("#mantenimientoBasico").value = (Number(impresora.porcentajeMantenimiento) * 100).toFixed(1);
   if (impresoraPerfilNotaBasico) {
     const mensajeBase = textoInterfaz("parametrosTecnicosImpresora", {
-      impresora: nombreImpresoraTrabajo
+      impresora: impresora?.nombre || "configuración manual"
     });
     impresoraPerfilNotaBasico.textContent = monedaCoincideConPreset(impresora, "basico")
       ? mensajeBase
@@ -2312,7 +2312,7 @@ function aplicarImpresoraAvanzado() {
   document.querySelector("#mantenimientoAvanzado").value = (Number(impresora.porcentajeMantenimiento) * 100).toFixed(1);
   if (impresoraPerfilNotaAvanzado) {
     const mensajeBase = textoInterfaz("parametrosTecnicosImpresora", {
-      impresora: nombreImpresoraTrabajo
+      impresora: impresora?.nombre || "configuración manual"
     });
     impresoraPerfilNotaAvanzado.textContent = monedaCoincideConPreset(impresora, "avanzado")
       ? mensajeBase
@@ -3225,13 +3225,14 @@ function seleccionarClienteTrabajo(cliente) {
 
 function obtenerClienteSnapshotFormulario() {
   const cotizacion = {
-    nombre: valorCampo("clienteCotizacion").trim(),
-    empresa: valorCampo("empresaCliente").trim(),
-    rutIdFiscal: valorCampo("rutCliente").trim(),
-    telefono: valorCampo("contactoCliente").trim(),
-    correo: valorCampo("correoCliente").trim(),
-    direccion: valorCampo("direccionCliente").trim()
+    nombre: (valorCampo("clienteCotizacion") || "").trim(),
+    empresa: (valorCampo("empresaCliente") || "").trim(),
+    rutIdFiscal: (valorCampo("rutCliente") || "").trim(),
+    telefono: (valorCampo("contactoCliente") || "").trim(),
+    correo: (valorCampo("correoCliente") || "").trim(),
+    direccion: (valorCampo("direccionCliente") || "").trim()
   };
+  return cotizacion;
 }
 
 function construirTrabajoActual() {
@@ -4378,7 +4379,7 @@ function obtenerDatosCotizacionActuales() {
     return null;
   }
 
-  return {
+  const cotizacion = {
     datosNegocio,
     datosCliente,
     clienteId: datosCliente.clienteId || trabajoCotizacionTemporal?.clienteId || "",
@@ -4570,11 +4571,7 @@ function iniciarNuevaCotizacion() {
   window.StoragePrecio3D?.borrarCotizacionActual?.();
   cotizacionClienteVista.hidden = true;
   cotizacionClienteVista.innerHTML = "";
-  mostrarMensaje(
-    cotizacionMessage,
-    textoInterfaz("nuevaCotizacionPreparada"),
-    "success"
-  );
+  mostrarMensajeCotizacion(textoInterfaz("nuevaCotizacionPreparada"));
 }
 
 function actualizarVistaCotizacionSiExiste() {

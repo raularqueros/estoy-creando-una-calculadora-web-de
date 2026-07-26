@@ -381,7 +381,8 @@
   }
 
   function detalleItem(etiqueta, valor) {
-    return `<div class="job-detail-item"><span>${escapar(etiqueta)}</span><strong>${escapar(valor || "No registrado")}</strong></div>`;
+    const valorVisible = valor !== null && valor !== undefined && valor !== "" ? valor : "No registrado";
+    return `<div class="job-detail-item"><span>${escapar(etiqueta)}</span><strong>${escapar(valorVisible)}</strong></div>`;
   }
 
   function renderizarMaterialInventario(trabajo) {
