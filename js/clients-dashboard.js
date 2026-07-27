@@ -379,7 +379,7 @@
       if (buscador) { buscador.value = cliente.nombre; buscador.dispatchEvent(new Event("input", { bubbles: true })); }
     }
     if (accion === "exportar") exportarJSON(cliente);
-    if (accion === "eliminar" && confirm(`¿Eliminar a ${cliente.nombre}? Los trabajos vinculados se conservarán.`)) {
+    if (accion === "eliminar" && confirm(t("confirmarEliminarCliente", { cliente: cliente.nombre }))) {
       if (api()?.eliminarCliente?.(cliente.id)) {
         clienteActivoId = "";
         $("#clienteDetallePanel").hidden = true;
@@ -407,7 +407,7 @@
     const archivo = event.target.files?.[0];
     event.target.value = "";
     if (!archivo) return;
-    const reemplazar = confirm("¿Quieres reemplazar los clientes actuales? Aceptar reemplaza; Cancelar combina.");
+    const reemplazar = confirm(t("confirmarReemplazarClientes"));
     const resultado = api()?.importarClientesJSON?.(await archivo.text(), reemplazar ? "reemplazar" : "combinar");
     if (!resultado?.ok) { mostrarMensaje(resultado?.error || "No se pudo importar el archivo.", true); return; }
     renderizar();

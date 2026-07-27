@@ -792,7 +792,7 @@
             <button type="button" class="secondary" data-commercial-action="cerrar-modal">Cancelar</button>
           </div>
         `);
-      } else if (confirm("¿Seguro que quieres eliminar este trabajo?")) {
+      } else if (confirm(t("confirmarEliminarTrabajo"))) {
         const eliminado = window.StoragePrecio3D?.eliminarTrabajo?.(id);
         mostrarMensaje(t(eliminado ? "trabajoEliminadoMensaje" : "noEliminarTrabajo"), !eliminado);
         renderizar();
@@ -855,7 +855,7 @@
       if (!esAdicional && resumenConsumoInventario(trabajo).consumosActivos.some(({ movimiento }) => !movimiento.esAdicional)) {
         return mostrarMensaje("El consumo principal ya está registrado.", true);
       }
-      if (!confirm(`Se descontarán ${cantidad.toLocaleString("es-CL")} g del inventario. ¿Confirmas?`)) return;
+      if (!confirm(t("confirmarDescontarInventario", { cantidad: cantidad.toLocaleString(document.documentElement.lang || "es") }))) return;
       const boton = event.submitter;
       if (boton) boton.disabled = true;
       const fueReasignada = Boolean(trabajo.filamentoId && trabajo.filamentoId !== bobinaId);
@@ -882,7 +882,7 @@
     if (event.target.id === "reversionConsumoForm") {
       event.preventDefault();
       const { jobId, bobinaId, movimientoId } = event.target.dataset;
-      if (!confirm("El material volverá al stock y se conservará la trazabilidad. ¿Confirmas?")) return;
+      if (!confirm(t("confirmarRevertirMaterial"))) return;
       const resultado = window.FilamentosPrecio3D?.revertirConsumoTrabajo?.(bobinaId, movimientoId, {
         nota: $("#reversionNota")?.value
       });
@@ -900,7 +900,7 @@
       const cantidad = numero($("#correccionCantidad")?.value);
       const nota = $("#correccionNota")?.value || "";
       if (!trabajo || cantidad <= 0) return mostrarMensaje("Ingresa un consumo corregido válido.", true);
-      if (!confirm("Se revertirá el registro anterior y se guardará el consumo corregido. ¿Confirmas?")) return;
+      if (!confirm(t("confirmarCorregirConsumo"))) return;
       const reversion = window.FilamentosPrecio3D?.revertirConsumoTrabajo?.(bobinaId, movimientoId, { nota: `Corrección: ${nota}` });
       if (!reversion?.ok) return mostrarMensaje(reversion?.error || "No se pudo revertir el consumo anterior.", true);
       const nuevo = window.FilamentosPrecio3D?.registrarConsumoTrabajo?.(bobinaId, trabajo, {
