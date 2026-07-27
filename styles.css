@@ -5998,12 +5998,12 @@ body.modal-open {
     background: #ffffff;
   }
 
-  body:not(.printing-report) * {
+  body:not(.printing-report):not(.printing-quote) * {
     visibility: hidden;
   }
 
-  body:not(.printing-report) #cotizacionClientePanel,
-  body:not(.printing-report) #cotizacionClientePanel * {
+  body:not(.printing-report):not(.printing-quote) #cotizacionClientePanel,
+  body:not(.printing-report):not(.printing-quote) #cotizacionClientePanel * {
     visibility: visible;
   }
 
@@ -6016,6 +6016,32 @@ body.modal-open {
     background: #ffffff;
     border: 0;
     box-shadow: none;
+  }
+
+  body.printing-quote > :not(#quotePrintRoot) {
+    display: none !important;
+  }
+
+  body.printing-quote #quotePrintRoot {
+    display: block !important;
+    position: static !important;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    color: #000000;
+    background: #ffffff;
+  }
+
+  body.printing-quote #quotePrintRoot .print-quote {
+    display: block !important;
+    position: static !important;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    visibility: visible !important;
+    overflow: visible;
   }
 
   .quote-commercial-editor,

@@ -552,22 +552,44 @@
     const numeroSeguro = nombreSeguroDocumento(cotizacionVista.numeroCotizacion) || "Sin-numero";
     const clienteSeguro = nombreSeguroDocumento(cliente) || "Sin-cliente";
     let restaurado = false;
-    const restaurarTitulo = () => {
+
+    const crearRaizImpresion = () => {
+      document.querySelector("#quotePrintRoot")?.remove();
+      const cotizacion = document.querySelector("#cotizacionClienteVista .print-quote");
+      if (!cotizacion) return null;
+      const raiz = document.createElement("div");
+      raiz.id = "quotePrintRoot";
+      raiz.setAttribute("aria-hidden", "true");
+      raiz.appendChild(cotizacion.cloneNode(true));
+      document.body.appendChild(raiz);
+      return raiz;
+    };
+
+    const finalizarImpresion = () => {
       if (restaurado) return;
       restaurado = true;
+      document.body.classList.remove("printing-quote");
+      document.querySelector("#quotePrintRoot")?.remove();
       document.title = tituloOriginal;
     };
 
+    const raizImpresion = crearRaizImpresion();
+    if (!raizImpresion) {
+      mensaje(t("primeroCalculaCotizacion"), true);
+      return false;
+    }
+
+    document.body.classList.add("printing-quote");
     document.title = `Cotizacion-${numeroSeguro}-${clienteSeguro}`;
-    window.addEventListener("afterprint", restaurarTitulo, { once: true });
-    window.addEventListener("focus", restaurarTitulo, { once: true });
+    window.addEventListener("afterprint", finalizarImpresion, { once: true });
+    void raizImpresion.offsetHeight;
     try {
       window.print();
     } catch (error) {
-      restaurarTitulo();
+      finalizarImpresion();
       throw error;
     }
-    window.setTimeout(restaurarTitulo, 60000);
+    window.setTimeout(finalizarImpresion, 60000);
     return true;
   }
 
